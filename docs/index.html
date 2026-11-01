@@ -187,6 +187,7 @@ footer{margin-top:38px;text-align:center;color:var(--muted);font:600 12px var(--
    le 8 app entrano in una sola schermata a qualunque risoluzione.
    Effetti pesanti spenti per una navigazione fluida. */
 html.tv{font-size:calc(100vw / 96)}
+@supports (font-size:min(1vw,1vh)){html.tv{font-size:min(calc(100vw / 96),calc(100vh / 54))}}
 html.tv body{font-size:1.6rem;background:radial-gradient(60rem 40rem at 12% 0%,rgba(14,116,144,.35),transparent 70%),
   radial-gradient(60rem 40rem at 95% 25%,rgba(91,33,182,.35),transparent 70%),radial-gradient(70rem 40rem at 45% 110%,rgba(157,23,77,.3),transparent 70%),#05060f}
 html.tv .aurora,html.tv .grid-floor,html.tv .scan,html.tv #warp{display:none}
