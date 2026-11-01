@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Banner 320x180 mostrato nella schermata Home di Android TV / Fire TV -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:fillColor="#0E1116" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#F0A040"
+        android:pathData="M40,50h56a20,20 0 0 1 20,20v40a20,20 0 0 1 -20,20h-56a20,20 0 0 1 -20,-20v-40a20,20 0 0 1 20,-20z" />
+    <path android:strokeColor="#1A1306" android:strokeWidth="9" android:strokeLineCap="round"
+        android:strokeLineJoin="round" android:pathData="M56,66v48M56,90l26,-24M61,86l23,28" />
+    <!-- "KAIROS" -->
+    <path android:strokeColor="#EEF1F6" android:strokeWidth="7" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M136,70v40M136,90l18,-20M140,86l16,24 M166,110l12,-40l12,40M171,98h14 M202,70v40 M216,110v-40h12a10,10 0 0 1 0,20h-12M228,90l10,20 M262,70a12,20 0 1 0 0.1,0z M300,74a10,8 0 1 0 -10,14a10,8 0 1 1 -10,14" />
+</vector>
