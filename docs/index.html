@@ -133,7 +133,8 @@ body.tv .btn{padding:18px;font-size:22px}
 <script>
 /* ============================================================
    CONFIG — modifica solo questa parte.
-   code    = il codice Downloader (AFTVnews) dell'app
+   code    = il codice Downloader (AFTVnews) dell'app, mostrato agli utenti
+   url     = link DIRETTO all'APK (usato dal pulsante: niente pagine o cookie)
    icon    = lettera/emoji mostrata se non metti un'immagine
    iconUrl = (facoltativo) link a un'immagine PNG/JPG dell'icona
    color   = colore di sfondo dell'icona
@@ -145,17 +146,17 @@ const STORE = {
 };
 
 const APPS = [
-  { name: "OrbixPlay",  description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "618101",  icon: "O", iconUrl: "", color: "#3b82f6" },
-  { name: "IboOne",     description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "2533617", icon: "I", iconUrl: "", color: "#10b981" },
-  { name: "IboPro",     description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "9416617", icon: "P", iconUrl: "", color: "#a855f7" },
-  { name: "OraPlayer",  description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "8408809", icon: "O", iconUrl: "", color: "#ef4444" },
-  { name: "MT",         description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "8128314", icon: "M", iconUrl: "", color: "#f59e0b" },
-  { name: "Tv Mate",    description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "2578076", icon: "T", iconUrl: "", color: "#06b6d4" },
-  { name: "Ibo Player", description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "1171959", icon: "B", iconUrl: "", color: "#ec4899" },
+  { name: "OrbixPlay",  description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "618101", url: "https://apk.orbixplay.com/firestick.apk",  icon: "O", iconUrl: "", color: "#3b82f6" },
+  { name: "IboOne",     description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "2533617", url: "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk", icon: "I", iconUrl: "", color: "#10b981" },
+  { name: "IboPro",     description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "9416617", url: "https://www.dropbox.com/scl/fi/0v0iupzuvtwxoim9kgeok/ibop.apk?rlkey=m1su3jzjamu2rod5crm0vup1v&st=6mqrxj7c&dl=1", icon: "P", iconUrl: "", color: "#a855f7" },
+  { name: "OraPlayer",  description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "8408809", url: "https://upgrade.logicyel.com/testapk/ora_stb_prodRelease_1000122.apk", icon: "O", iconUrl: "", color: "#ef4444" },
+  { name: "MT",         description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "8128314", url: "https://www.dropbox.com/scl/fi/8tjxhc4k5reyee08eray2/MirkoTeam-7.0-v910-vpn.apk?rlkey=izdccv5uyqq7hmubl2ooynls4&st=objtg0ex&dl=1", icon: "M", iconUrl: "", color: "#f59e0b" },
+  { name: "Tv Mate",    description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "2578076", url: "https://api.tivimateiptvpro.com/api/download/android", icon: "T", iconUrl: "", color: "#06b6d4" },
+  { name: "Ibo Player", description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "1171959", url: "http://ibodesk.com/iboupdate.apk", icon: "B", iconUrl: "", color: "#ec4899" },
 ];
 /* ===================== fine CONFIG ===================== */
 
-const downloadUrl = code => "https://aftv.news/" + encodeURIComponent(String(code).trim());
+const downloadUrl = app => app.url || ("https://aftv.news/" + encodeURIComponent(String(app.code).trim()));
 
 // --- Riconoscimento del dispositivo ---
 const ua = navigator.userAgent || "";
@@ -203,7 +204,7 @@ APPS.forEach((app, i) => {
       <div><small>Codice Downloader</small><strong>${esc(app.code)}</strong></div>
       ${isTV ? "" : `<button class="btn ghost" type="button" data-copy="${esc(app.code)}">Copia</button>`}
     </div>
-    <a class="btn primary" href="${disabled ? "#" : downloadUrl(app.code)}" data-i="${i}"
+    <a class="btn primary" href="${disabled ? "#" : esc(downloadUrl(app))}" data-i="${i}"
        ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${disabled ? "Solo per Android" : btnLabel}</a>
     <p class="status" id="st${i}" aria-live="polite"></p>`;
   grid.appendChild(card);
@@ -224,7 +225,7 @@ grid.addEventListener("click", e => {
   if (isStoreApp) {                       // l'app Android scarica e avvia l'installazione
     e.preventDefault();
     const app = APPS[+a.dataset.i];
-    window.KairosStore.install(downloadUrl(app.code), app.name, "st" + a.dataset.i);
+    window.KairosStore.install(downloadUrl(app), app.name, "st" + a.dataset.i);
   }
 });
 
