@@ -291,8 +291,8 @@ html.tv .intro-bar b{box-shadow:none}
 
   <div class="notice" id="noticeIOS"><b>Sei su iPhone o iPad.</b> Queste app sono per Android (file APK) e non si installano su iOS: Apple consente solo l'App Store. Puoi installarle su Android, Fire TV o Android TV.</div>
   <div class="notice" id="noticeSmartTV"><b>Sei sul browser di una smart TV (Samsung, LG o simile).</b> Queste TV non installano file APK. Usa una Fire TV Stick, un box Android TV o uno smartphone Android.</div>
-  <div class="notice info" id="noticeFire"><b>Fire TV / Android TV:</b> scegli l'app con le frecce e premi <b>OK</b> sul pulsante Installa. In alternativa usa il codice in <b>Downloader</b>.</div>
-  <div class="notice" id="noticeDesktop"><b>Sei su un computer.</b> Apri questa pagina dal dispositivo Android, oppure usa il codice dell'app in Downloader sulla TV.</div>
+  <div class="notice info" id="noticeFire"><b>Fire TV / Android TV:</b> scegli l'app con le frecce e premi <b>OK</b> sul pulsante Installa.</div>
+  <div class="notice" id="noticeDesktop"><b>Sei su un computer.</b> Apri questa pagina dal dispositivo Android, Fire TV o Android TV per installare le app.</div>
 
   <div class="section-title">LE APP</div>
   <main class="grid" id="grid" aria-label="App disponibili"></main>
@@ -301,9 +301,9 @@ html.tv .intro-bar b{box-shadow:none}
     <section>
       <h2>FIRE TV / ANDROID TV</h2>
       <ol>
-        <li>Installa <b>Downloader</b> dallo store della TV.</li>
-        <li>Impostazioni → Il mio Fire TV → Opzioni sviluppatore → abilita <b>Installa app sconosciute</b>.</li>
-        <li>In Downloader inserisci il <b>codice</b> e premi Vai.</li>
+        <li>Scegli l'app con le frecce del telecomando.</li>
+        <li>Premi <b>OK</b> sul pulsante <b>Installa</b>.</li>
+        <li>La prima volta consenti di <b>installare app sconosciute</b>.</li>
         <li>Conferma con <b>Installa</b>.</li>
       </ol>
     </section>
@@ -331,7 +331,7 @@ html.tv .intro-bar b{box-shadow:none}
 <script>
 /* =================================================================
    CONFIG — modifica solo questa parte.
-   code  = codice Downloader (mostrato agli utenti)
+   code  = codice Downloader (solo promemoria, non viene mostrato)
    url   = link DIRETTO all'APK (usato dal pulsante: niente pagine o cookie)
    icon  = immagine nella cartella icons/
    glow  = colore del bagliore della scheda
@@ -514,10 +514,6 @@ APPS.forEach((app, i) => {
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
-      <div class="code">
-        <div><small>CODICE DOWNLOADER</small><strong>${esc(app.code)}</strong></div>
-        ${isTV ? "" : `<button class="copy" type="button" data-copy="${esc(app.code)}">COPIA</button>`}
-      </div>
       <a class="btn" href="${disabled ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
