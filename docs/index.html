@@ -104,7 +104,8 @@ header{display:flex;align-items:center;gap:18px;margin-bottom:30px}
 /* ---------- griglia app ---------- */
 .section-title{display:flex;align-items:center;gap:14px;margin:0 0 18px;font:700 14px var(--display);letter-spacing:.32em;color:var(--muted)}
 .section-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;perspective:1200px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:22px;perspective:1200px}
+.inner>*{min-width:0}
 .card{position:relative;border-radius:22px;padding:2px;background:linear-gradient(160deg,rgba(140,170,255,.22),rgba(140,170,255,.04));
   transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;
   opacity:0;animation:cardIn .8s cubic-bezier(.2,.9,.25,1) forwards;animation-play-state:paused}
@@ -130,10 +131,13 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
   box-shadow:0 0 0 1px rgba(255,255,255,.08),0 8px 24px -6px var(--glow,#22d3ee);transition:transform .35s}
 .icon.light{background:radial-gradient(circle at 50% 40%,#2a2f4a,#0b0e1c)}
 .icon img{width:100%;height:100%;object-fit:cover;display:block}
+.icon .fb{display:none;width:100%;height:100%;place-items:center;font:900 32px var(--display);color:#fff;background:var(--glow,#22d3ee)}
+.icon.noimg img{display:none}.icon.noimg .fb{display:grid}
 .icon.contain img{object-fit:contain;padding:6px}
 .card.focus .icon{transform:translateZ(30px) scale(1.06)}
 .num{position:absolute;bottom:10px;right:16px;font:900 40px var(--display);color:rgba(255,255,255,.05);letter-spacing:.05em;pointer-events:none}
-.name{margin:0;font:700 21px/1.15 var(--display);letter-spacing:.04em}
+.name{margin:0;font:700 21px/1.15 var(--display);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top>div:last-child{min-width:0}
 .tag{display:inline-block;margin-top:6px;font:700 11px var(--display);letter-spacing:.2em;color:var(--glow,#22d3ee);opacity:.9}
 .desc{margin:0;color:#b8c3dc;font-size:16px;flex:1}
 .code{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:14px;padding:10px 14px;
@@ -156,7 +160,10 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
 .progress{height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;display:none}
 .progress.on{display:block}
 .progress b{display:block;height:100%;width:0;background:var(--grad);box-shadow:0 0 12px var(--c1);transition:width .3s}
-.status{font-size:15px;color:var(--c1);min-height:1.3em;margin:-6px 0 0;letter-spacing:.03em}
+.status{font-size:15px;color:var(--c1);margin:-6px 0 0;letter-spacing:.03em}
+.status:empty{display:none}
+.top{order:1}.desc,.status{order:2}.code{order:3}.btn{order:4}.progress{order:5}
+.card.busy .desc{display:none}.card.busy .status{margin:0}
 
 /* ---------- effetti click ---------- */
 .ring{position:fixed;z-index:60;pointer-events:none;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
@@ -175,14 +182,64 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
 .how li::marker{color:var(--c3);font-weight:700}
 footer{margin-top:38px;text-align:center;color:var(--muted);font:600 12px var(--display);letter-spacing:.25em}
 
-/* ---------- TV: tutto più grande ---------- */
-body.tv{font-size:20px}
-body.tv .wrap{max-width:1680px;padding:40px 60px}
-body.tv .grid{grid-template-columns:repeat(4,1fr);gap:28px}
-body.tv .name{font-size:23px}
-body.tv .desc{font-size:18px}
-body.tv .btn{padding:18px;font-size:16px}
-body.tv .icon{width:86px;height:86px}
+/* =========== MODALITÀ TV (Fire TV / Android TV) ===========
+   Tutto in "rem" proporzionali alla larghezza dello schermo:
+   le 8 app entrano in una sola schermata a qualunque risoluzione.
+   Effetti pesanti spenti per una navigazione fluida. */
+html.tv{font-size:calc(100vw / 96)}
+html.tv body{font-size:1.6rem;background:radial-gradient(60rem 40rem at 12% 0%,rgba(14,116,144,.35),transparent 70%),
+  radial-gradient(60rem 40rem at 95% 25%,rgba(91,33,182,.35),transparent 70%),radial-gradient(70rem 40rem at 45% 110%,rgba(157,23,77,.3),transparent 70%),#05060f}
+html.tv .aurora,html.tv .grid-floor,html.tv .scan,html.tv #warp{display:none}
+html.tv .wrap{max-width:none;padding:1.5rem 3.4rem 2rem}
+html.tv header{margin-bottom:1.2rem;gap:1.4rem}
+html.tv .logo-wrap{width:4.6rem;height:4.6rem}
+html.tv .logo-wrap img{filter:none}
+html.tv .logo-wrap::after{display:none}
+html.tv .brand h1{font-size:2.6rem;animation:none;background-size:100% 100%}
+html.tv .brand p{font-size:1.25rem;margin-top:.2rem}
+html.tv .brand p .caret{display:none}
+html.tv .card{will-change:transform}
+html.tv .chip{font-size:1rem;padding:.7rem 1.2rem}
+html.tv .chip .dot{animation:none}
+html.tv .sound{width:3.8rem;height:3.8rem;border-radius:1.1rem}
+html.tv .sound svg{width:1.8rem;height:1.8rem}
+html.tv .notice{font-size:1.15rem;padding:.6rem 1.4rem .6rem 3.6rem;margin-bottom:1.2rem;border-radius:1.2rem}
+html.tv .notice::before{left:1.1rem;top:.55rem;width:1.7rem;height:1.7rem;font-size:1rem;box-shadow:none}
+html.tv .notice.show{animation:none}
+html.tv .section-title{display:none}
+html.tv .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:1.3rem 1.6rem;perspective:none}
+html.tv .card{border-radius:1.6rem;padding:.2rem;transform-style:flat;transition:transform .18s ease-out;animation-name:cardInTv;box-shadow:none}
+@keyframes cardInTv{from{opacity:0;transform:translateY(2rem)}to{opacity:1;transform:none}}
+html.tv .card::before{animation:none;background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3));inset:-.2rem;border-radius:1.8rem;padding:.25rem;transition:opacity .15s}
+html.tv .card.focus{transform:scale(1.045);box-shadow:0 0 2.4rem -.6rem var(--glow,#22d3ee)}
+html.tv .inner{padding:1.1rem 1.3rem;gap:.7rem;border-radius:1.45rem;background:rgba(14,18,38,.94)}
+html.tv .inner::after{display:none}
+html.tv .num{display:none}
+html.tv .top{gap:1.2rem}
+html.tv .icon{width:4.8rem;height:4.8rem;border-radius:1.3rem;box-shadow:0 0 0 .1rem rgba(255,255,255,.1);transition:none}
+html.tv .card.focus .icon{transform:none}
+html.tv .icon .fb{font-size:2.4rem}
+html.tv .name{font-size:1.75rem}
+html.tv .tag{font-size:.9rem;margin-top:.35rem}
+html.tv .desc{font-size:1.2rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+html.tv .code{padding:.5rem 1rem;border-radius:1rem}
+html.tv .code small{font-size:.85rem}
+html.tv .code strong{font-size:1.8rem;text-shadow:none}
+html.tv .btn{padding:.85rem;font-size:1.25rem;border-radius:1rem;gap:.8rem;box-shadow:none;transition:none;background-size:100% 100%}
+html.tv .btn svg{width:1.5rem;height:1.5rem}
+html.tv .btn::after{display:none}
+html.tv .btn:focus{box-shadow:0 0 0 .25rem #fff;background-position:0 0}
+html.tv .progress{height:.5rem}
+html.tv .progress b{box-shadow:none}
+html.tv .status{font-size:1.25rem;line-height:1.3}
+html.tv .how{margin-top:2.6rem;gap:1.6rem}
+html.tv .how section{padding:1.4rem 1.6rem;border-radius:1.4rem}
+html.tv .how h2{font-size:1.15rem}
+html.tv .how ol{font-size:1.3rem}
+html.tv footer{margin-top:2rem;font-size:1rem}
+html.tv .intro-logo g{filter:none}
+html.tv .intro-logo{animation:none}
+html.tv .intro-bar b{box-shadow:none}
 @media (max-width:640px){
   header{flex-wrap:wrap}.hud{margin-left:0;width:100%;justify-content:space-between}
   .grid{grid-template-columns:1fr}.logo-wrap{width:60px;height:60px}
@@ -307,12 +364,15 @@ const isAndroidTV = /Android/.test(ua) && /(\bTV\b|BRAVIA|AndroidTV|GoogleTV|Chr
 const isSmartTV = !isFireTV && !isAndroidTV && /(Tizen|Web0S|webOS|SmartTV|SMART-TV|NetCast|HbbTV|VIDAA|Roku)/i.test(ua);
 const isAndroid = /Android/.test(ua);
 let appIsTv = false; try { appIsTv = isStoreApp && window.KairosStore.isTv && window.KairosStore.isTv(); } catch (e) {}
-const isTV = isFireTV || isAndroidTV || isSmartTV || appIsTv;
+const q = new URLSearchParams(location.search);
+const noTouchAndroid = isAndroid && !/Mobile/i.test(ua) && (navigator.maxTouchPoints || 0) === 0 && !matchMedia("(hover:hover)").matches;
+let isTV = isFireTV || isAndroidTV || isSmartTV || appIsTv || noTouchAndroid;
+if (q.get("tv") === "1") isTV = true; else if (q.get("tv") === "0") isTV = false;
 const lite = isTV || (navigator.hardwareConcurrency || 4) <= 2;
 const canInstall = isStoreApp || isAndroid;
 const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-if (isTV) document.body.classList.add("tv");
+if (isTV) { document.documentElement.classList.add("tv"); document.body.classList.add("tv"); }
 if (lite) document.body.classList.add("lite");
 const show = id => document.getElementById(id).classList.add("show");
 if (!isStoreApp) {
@@ -376,7 +436,7 @@ soundBtn.addEventListener("click", () => { Sound.toggle(); paintSound(); });
 const FX = (() => {
   const cv = document.getElementById("fx"), cx = cv.getContext("2d");
   let W, H, P = [], speed = 1, raf;
-  const N = reduce ? 0 : (lite ? 38 : 85);
+  const N = reduce ? 0 : (isTV ? 70 : lite ? 38 : 85);
   const cols = ["34,211,238", "139,92,246", "236,72,153"];
   function size() { const d = Math.min(devicePixelRatio || 1, lite ? 1 : 2); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0); }
   function init() { P = Array.from({ length: N }, () => ({ x: Math.random() * W, y: Math.random() * H, z: Math.random() * .8 + .2,
@@ -396,9 +456,12 @@ const FX = (() => {
     speed += (1 - speed) * .04;
     raf = requestAnimationFrame(frame);
   }
-  size(); init(); if (N) frame();
+  function still() { cx.clearRect(0, 0, W, H); for (const p of P) { cx.beginPath(); cx.arc(p.x, p.y, p.z * 1.6, 0, 6.283); cx.fillStyle = `rgba(${p.c},${.35 + p.z * .5})`; cx.fill(); } }
+  size(); init();
+  if (isTV) { still(); addEventListener("resize", () => { size(); init(); still(); }); return { warp() {} }; }
+  if (N) frame();
   addEventListener("resize", () => { size(); });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelAnimationFrame(raf); else if (N) frame(); });
+  document.addEventListener("visibilitychange", () => { cancelAnimationFrame(raf); if (!document.hidden && N) frame(); });
   return { warp() { speed = 9; } };
 })();
 
@@ -407,7 +470,7 @@ function burst(x, y, color) {
   if (reduce) return;
   const r = document.createElement("div"); r.className = "ring"; r.style.left = x + "px"; r.style.top = y + "px";
   r.style.borderColor = color; document.body.appendChild(r); setTimeout(() => r.remove(), 750);
-  const n = lite ? 10 : 22;
+  const n = isTV ? 0 : lite ? 10 : 22;
   for (let i = 0; i < n; i++) {
     const s = document.createElement("div"), a = Math.random() * 6.283, d = 60 + Math.random() * 120;
     s.className = "spark"; s.style.left = x + "px"; s.style.top = y + "px";
@@ -422,6 +485,7 @@ document.getElementById("storeName").textContent = STORE.name;
 document.getElementById("footer").textContent = (STORE.contact ? STORE.contact + "  ·  " : "") + "© " + new Date().getFullYear() + "  " + STORE.name;
 (function typer() {
   const el = document.getElementById("typed"); let li = 0, ci = 0, del = false;
+  if (isTV || reduce) { el.textContent = STORE.taglines[0]; return; }
   (function step() {
     const s = STORE.taglines[li];
     el.textContent = s.slice(0, ci);
@@ -445,7 +509,7 @@ APPS.forEach((app, i) => {
     <div class="inner">
       <span class="num">${String(i + 1).padStart(2, "0")}</span>
       <div class="top">
-        <div class="icon${app.light ? " light contain" : ""}"><img alt="" loading="lazy" src="${esc(app.icon)}"></div>
+        <div class="icon${app.light ? " light contain" : ""}"><img alt="" decoding="async" src="${esc(app.icon)}" onerror="this.parentNode.classList.add('noimg')"><span class="fb">${esc(app.name.charAt(0))}</span></div>
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
@@ -457,7 +521,7 @@ APPS.forEach((app, i) => {
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
     </div>`;
-  card.addEventListener("animationend", e => { if (e.animationName === "cardIn") card.classList.add("shown"); });
+  card.addEventListener("animationend", e => { if (/^cardIn/.test(e.animationName)) card.classList.add("shown"); });
   grid.appendChild(card);
 });
 (function count() {
@@ -502,6 +566,7 @@ grid.addEventListener("click", e => {
     window.KairosStore.install(downloadUrl(app), app.name, "st" + i);
   } else {
     status("st" + i, "Download avviato…");
+    setTimeout(() => status("st" + i, ""), 5000);
   }
 });
 
@@ -509,6 +574,7 @@ grid.addEventListener("click", e => {
 function status(id, text) {
   const el = document.getElementById(id); if (!el) return;
   el.textContent = text;
+  const card = el.closest(".card"); if (card) card.classList.toggle("busy", !!text);
   const i = id.slice(2), pg = document.getElementById("pg" + i);
   const m = /(\d+)%/.exec(text);
   if (pg) {
@@ -536,9 +602,9 @@ function moveFocus(dir) {
     const d = h ? Math.abs(dx) + Math.abs(dy) * 3 : Math.abs(dy) + Math.abs(dx) * 3;
     if (d < bestD) { bestD = d; best = el; }
   });
-  if (best) { best.focus(); best.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" }); }
-  else if (dir === "ArrowUp") window.scrollTo({ top: 0, behavior: "smooth" });
-  else if (dir === "ArrowDown") window.scrollBy({ top: 300, behavior: "smooth" });
+  if (best) { best.focus(); best.scrollIntoView({ block: "nearest", behavior: (reduce || isTV) ? "auto" : "smooth" }); }
+  else if (dir === "ArrowUp") window.scrollTo({ top: 0, behavior: isTV ? "auto" : "smooth" });
+  else if (dir === "ArrowDown") window.scrollBy({ top: innerHeight * .5, behavior: isTV ? "auto" : "smooth" });
 }
 document.addEventListener("keydown", e => {
   if (!entered) { if (["Enter", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key) || e.keyCode === 23) { e.preventDefault(); enter(); } return; }
@@ -568,7 +634,7 @@ intro.addEventListener("click", enter);
 if (reduce) enter();
 intro.focus();
 // senza interazione entra da solo (in silenzio, il browser blocca i suoni)
-setTimeout(() => { if (!entered) enter(); }, isTV ? 9000 : 4200);
+setTimeout(() => { if (!entered) enter(); }, isTV ? 6000 : 4200);
 if (!isTV && !isStoreApp) document.getElementById("introPress").textContent = "TOCCA PER ENTRARE";
 
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
