@@ -361,7 +361,8 @@ html.tv .intro-bar b{box-shadow:none}
 
 <script>
 /* =================================================================
-   CONFIG — modifica solo questa parte.
+   CONFIG — elenco di RISERVA. L'elenco vero è in apps.json e si
+   modifica dal pannello: https://<tuo-sito>/kairos-store/admin/
    code  = codice Downloader (solo promemoria, non viene mostrato)
    url   = link DIRETTO all'APK (usato dal pulsante: niente pagine o cookie)
    icon  = immagine nella cartella icons/
@@ -369,13 +370,13 @@ html.tv .intro-bar b{box-shadow:none}
            se lo indichi, il pulsante Disinstalla riconosce l'app con certezza
    glow  = colore del bagliore della scheda
    ================================================================= */
-const STORE = {
+let STORE = {
   name: "KAIROS STORE",
   taglines: ["Le tue app, in un solo posto.", "Installa con un clic.", "Sempre aggiornate."],
   contact: "",
 };
 
-const APPS = [
+let APPS = [
   { name: "OrbixPlay",  tag: "PLAYER",   description: "Player moderno e veloce per TV e smartphone.", code: "618101",  url: "https://apk.orbixplay.com/firestick.apk", icon: "icons/orbixplay.webp", glow: "#38bdf8" },
   { name: "IboOne",     tag: "PLAYER",   description: "Interfaccia elegante, ottimizzata per il telecomando.", code: "2533617", url: "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk", icon: "icons/iboone.webp", glow: "#22c55e" },
   { name: "IboPro",     tag: "PLAYER",   description: "La versione Pro, ricca di funzioni.", code: "9416617", url: "https://www.dropbox.com/scl/fi/0v0iupzuvtwxoim9kgeok/ibop.apk?rlkey=m1su3jzjamu2rod5crm0vup1v&st=6mqrxj7c&dl=1", icon: "icons/ibopro.webp", glow: "#ef4444" },
@@ -514,6 +515,7 @@ function burst(x, y, color) {
 }
 
 // ---------- testi ----------
+function renderTexts() {
 document.title = "Kairos Store";
 document.getElementById("storeName").textContent = STORE.name;
 document.getElementById("footer").textContent = (STORE.contact ? STORE.contact + "  ·  " : "") + "© " + new Date().getFullYear() + "  " + STORE.name;
@@ -540,6 +542,7 @@ document.getElementById("footer").textContent = (STORE.contact ? STORE.contact +
     setTimeout(step, del ? 28 : 55);
   })();
 })();
+}
 
 // ---------- schede app ----------
 const DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 10l6 6 6-6M4 21h16"/></svg>';
@@ -547,6 +550,8 @@ const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const grid = document.getElementById("grid");
 const disabled = isIOS || isSmartTV;
 const label = isStoreApp || canInstall || isTV ? "INSTALLA" : "SCARICA";
+function renderCards() {
+grid.innerHTML = "";
 APPS.forEach((app, i) => {
   const card = document.createElement("article");
   card.className = "card";
@@ -571,8 +576,10 @@ APPS.forEach((app, i) => {
 });
 (function count() {
   const el = document.getElementById("count"), n = APPS.length; let k = 0;
+  if (!n) { el.textContent = 0; return; }
   const t = setInterval(() => { el.textContent = ++k; if (k >= n) clearInterval(t); }, 120);
 })();
+}
 
 // tilt 3D con il mouse (solo dispositivi con puntatore)
 if (!lite && !reduce && matchMedia("(hover:hover)").matches) {
@@ -655,7 +662,6 @@ function refreshInstalled() {
   }
 }
 window.kairosRefreshInstalled = refreshInstalled;
-refreshInstalled();
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(refreshInstalled, 300); });
 
 // ---------- pulsante AGGIORNA e avvisi di aggiornamento ----------
@@ -756,6 +762,29 @@ intro.focus();
 setTimeout(() => { if (!entered) enter(); }, isTV ? 6000 : 4200);
 const ip = document.getElementById("introPress");
 if (ip && !isTV && !isStoreApp) ip.textContent = "TOCCA PER ENTRARE";
+
+// ---------- elenco app da apps.json (modificabile dal pannello di gestione) ----------
+(function loadApps() {
+  let done = false;
+  const start = () => {
+    if (done) return; done = true;
+    renderTexts(); renderCards(); refreshInstalled();
+    if (isTV && entered && !(document.activeElement && document.activeElement.closest && document.activeElement.closest(".card, .hud"))) {
+      const f = document.querySelector("a.btn:not([aria-disabled='true'])"); if (f) f.focus();
+    }
+  };
+  setTimeout(start, 4000); // rete lenta: dopo 4 secondi usa l'elenco di riserva
+  fetch("apps.json?t=" + Date.now(), { cache: "no-store" })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (done || !d || !Array.isArray(d.apps)) return;
+      APPS = d.apps.filter(a => a && a.name && !a.hidden);
+      if (d.store) STORE = Object.assign({}, STORE, d.store);
+      if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
+    })
+    .catch(() => {})
+    .then(start);
+})();
 
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 </script>
