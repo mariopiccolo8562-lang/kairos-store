@@ -3,7 +3,7 @@ name: Compila Kairos Store (APK)
 on:
   push:
     branches: [main]
-    paths: ['android/**', 'docs/**', '.github/workflows/**']
+    paths: ['android/**', '.github/workflows/**']   # la lista app (docs/) si aggiorna online senza nuova versione dell'app
   workflow_dispatch:
 
 permissions:
