@@ -135,7 +135,7 @@ public class MainActivity extends Activity {
             try {
                 download(url, name, statusId);
             } catch (Exception e) {
-                status(statusId, "Errore: " + e.getMessage());
+                status(statusId, "Download non riuscito. Controlla la connessione e riprova.");
             } finally {
                 busy = false;
             }
@@ -168,11 +168,9 @@ public class MainActivity extends Activity {
         String type = c.getContentType() == null ? "" : c.getContentType().toLowerCase(Locale.ROOT);
         String path = current.toLowerCase(Locale.ROOT);
         if (type.startsWith("text/html") && !path.contains(".apk")) {
-            // Il codice porta a una pagina web, non a un file: la apriamo nello store
+            // Il link porta a una pagina web invece che al file: non la mostriamo
             c.disconnect();
-            final String page = current;
-            status(statusId, "Il link apre una pagina: scarica da lì.");
-            runOnUiThread(() -> web.loadUrl(page));
+            status(statusId, "Download non disponibile al momento. Riprova più tardi.");
             return;
         }
 
