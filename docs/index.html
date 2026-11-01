@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kairos Store</title>
+<meta name="theme-color" content="#0e1116">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+/* ============================================================
+   KAIROS STORE — pagina unica, funziona su telefono, tablet,
+   Android TV, Fire TV (telecomando) e browser delle smart TV.
+   Per modificare le app guarda la sezione CONFIG più in basso.
+   ============================================================ */
+:root{
+  --bg:#0e1116; --panel:#171b22; --panel2:#1f2530; --line:#2a313d;
+  --text:#eef1f6; --muted:#9aa4b2; --accent:#f5b84a; --accent-ink:#1a1306;
+  --ok:#5fd3a0; --warn:#f08a5d;
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+
+header{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.logo{width:52px;height:52px;border-radius:14px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--accent),#e0742f);color:var(--accent-ink);font-weight:800;font-size:26px}
+header h1{margin:0;font-size:26px;letter-spacing:-.01em}
+header p{margin:2px 0 0;color:var(--muted);font-size:15px}
+
+.notice{display:none;border:1px solid var(--line);background:var(--panel);border-left:4px solid var(--warn);
+  border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:15px}
+.notice.show{display:block}
+.notice.info{border-left-color:var(--ok)}
+.notice b{color:var(--text)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:20px;
+  display:flex;flex-direction:column;gap:14px;outline:none;transition:transform .12s,border-color .12s,box-shadow .12s}
+.card:focus-within,.card.focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(245,184,74,.25);transform:translateY(-2px)}
+.top{display:flex;gap:14px;align-items:center}
+.icon{width:64px;height:64px;border-radius:16px;flex:none;display:grid;place-items:center;font-size:30px;font-weight:800;
+  color:#fff;overflow:hidden}
+.icon img{width:100%;height:100%;object-fit:cover}
+.name{margin:0;font-size:20px;line-height:1.2}
+.meta{color:var(--muted);font-size:14px}
+.desc{margin:0;color:#cfd5de;font-size:15px;flex:1}
+
+.code{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel2);
+  border-radius:12px;padding:10px 14px}
+.code small{color:var(--muted);display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.code strong{font-size:24px;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+
+.btn{appearance:none;border:2px solid transparent;border-radius:12px;padding:13px 18px;font:inherit;font-weight:700;
+  cursor:pointer;text-decoration:none;text-align:center;display:block;width:100%}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line);padding:8px 12px;width:auto;font-size:14px}
+.btn:focus-visible,.btn:focus{outline:none;border-color:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.25)}
+.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.status{font-size:14px;color:var(--muted);min-height:1.2em;margin:-4px 0 0}
+
+.how{margin-top:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.how section{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.how h2{font-size:17px;margin:0 0 8px}
+.how ol{margin:0;padding-left:20px;color:#cfd5de;font-size:15px}
+.how li{margin:4px 0}
+footer{margin-top:36px;color:var(--muted);font-size:13px;text-align:center}
+
+/* TV: tutto più grande, leggibile dal divano */
+body.tv{font-size:20px}
+body.tv .wrap{max-width:1600px;padding:40px 56px}
+body.tv header h1{font-size:36px}
+body.tv .grid{grid-template-columns:repeat(3,1fr);gap:28px}
+body.tv .name{font-size:26px}
+body.tv .desc{font-size:19px}
+body.tv .code strong{font-size:32px}
+body.tv .btn{padding:18px;font-size:22px}
+@media (max-width:420px){ .grid{grid-template-columns:1fr} header h1{font-size:22px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" id="logo">K</div>
+    <div>
+      <h1 id="storeName">Kairos Store</h1>
+      <p id="storeTag">Le mie app, sempre aggiornate</p>
+    </div>
+  </header>
+
+  <div class="notice" id="noticeIOS"><b>Sei su iPhone o iPad.</b> Queste app sono per Android (file APK) e non si possono installare su iOS: Apple consente di installare app solo dall'App Store. Puoi comunque consultare la pagina e installarle su un dispositivo Android, Fire TV o Android TV.</div>
+  <div class="notice" id="noticeSmartTV"><b>Sei sul browser di una smart TV (Samsung, LG o simile).</b> Queste TV non installano file APK. Le app funzionano su Fire TV Stick, Android TV / Google TV e smartphone Android: collega uno di questi dispositivi alla TV.</div>
+  <div class="notice info" id="noticeFire"><b>Fire TV / Android TV:</b> premi <b>Scarica e installa</b> con il telecomando. In alternativa apri l'app <b>Downloader</b> e inserisci il codice mostrato sotto ogni app.</div>
+  <div class="notice info" id="noticeApp"><b>Store installato.</b> Premi <b>Installa</b>: l'app viene scaricata e ti verrà chiesto di confermare l'installazione.</div>
+  <div class="notice" id="noticeDesktop"><b>Sei su un computer.</b> Per installare apri questa pagina dal dispositivo Android, oppure usa l'app Downloader sulla TV con il codice dell'app.</div>
+
+  <main class="grid" id="grid" aria-label="App disponibili"></main>
+
+  <div class="how">
+    <section>
+      <h2>Fire TV Stick / Android TV</h2>
+      <ol>
+        <li>Installa <b>Downloader</b> (di AFTVnews) dallo store della TV.</li>
+        <li>Impostazioni → Il mio Fire TV → Opzioni sviluppatore → abilita <b>Installa app sconosciute</b> per Downloader.</li>
+        <li>Apri Downloader, inserisci il <b>codice</b> dell'app e premi Vai.</li>
+        <li>Conferma con <b>Installa</b>.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Smartphone / tablet Android</h2>
+      <ol>
+        <li>Premi <b>Scarica e installa</b> sull'app che vuoi.</li>
+        <li>Apri il file APK scaricato (dalla notifica o da Download).</li>
+        <li>Se richiesto, consenti al browser di <b>installare app sconosciute</b>.</li>
+        <li>Premi <b>Installa</b>.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>iPhone, iPad e smart TV</h2>
+      <ol>
+        <li>Gli APK funzionano solo su Android: iOS e le TV Samsung/LG non li installano.</li>
+        <li>Usa uno smartphone Android, una Fire TV Stick o un box Android TV.</li>
+      </ol>
+    </section>
+  </div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — modifica solo questa parte.
+   code    = il codice Downloader (AFTVnews) dell'app
+   icon    = lettera/emoji mostrata se non metti un'immagine
+   iconUrl = (facoltativo) link a un'immagine PNG/JPG dell'icona
+   color   = colore di sfondo dell'icona
+   ============================================================ */
+const STORE = {
+  name: "Kairos Store",
+  tagline: "Le mie app, sempre aggiornate",
+  contact: "", // es. "Supporto: tuamail@esempio.it"
+};
+
+const APPS = [
+  { name: "OrbixPlay",  description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "618101",  icon: "O", iconUrl: "", color: "#3b82f6" },
+  { name: "IboOne",     description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "2533617", icon: "I", iconUrl: "", color: "#10b981" },
+  { name: "IboPro",     description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "9416617", icon: "P", iconUrl: "", color: "#a855f7" },
+  { name: "OraPlayer",  description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "8408809", icon: "O", iconUrl: "", color: "#ef4444" },
+  { name: "MT",         description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "8128314", icon: "M", iconUrl: "", color: "#f59e0b" },
+  { name: "Tv Mate",    description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "2578076", icon: "T", iconUrl: "", color: "#06b6d4" },
+  { name: "Ibo Player", description: "Per smartphone, tablet, Android TV e Fire TV.", version: "", code: "1171959", icon: "B", iconUrl: "", color: "#ec4899" },
+];
+/* ===================== fine CONFIG ===================== */
+
+const downloadUrl = code => "https://aftv.news/" + encodeURIComponent(String(code).trim());
+
+// --- Riconoscimento del dispositivo ---
+const ua = navigator.userAgent || "";
+const isStoreApp = typeof window.KairosStore !== "undefined";          // dentro l'app Android dello store
+const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isFireTV = /AFT[A-Z0-9]/.test(ua) || /Silk.*TV/i.test(ua);
+const isAndroidTV = /Android/.test(ua) && /(TV|BRAVIA|AndroidTV|GoogleTV|Chromecast|MiBOX|SHIELD)/i.test(ua);
+const isSmartTV = !isFireTV && !isAndroidTV && /(Tizen|Web0S|webOS|SmartTV|SMART-TV|NetCast|HbbTV|VIDAA|Roku)/i.test(ua);
+const isAndroid = /Android/.test(ua);
+const isTV = isFireTV || isAndroidTV || isSmartTV || (isStoreApp && window.KairosStore.isTv && window.KairosStore.isTv());
+const canInstall = isStoreApp || isAndroid;
+
+if (isTV) document.body.classList.add("tv");
+const show = id => document.getElementById(id).classList.add("show");
+if (isStoreApp) show("noticeApp");
+else if (isIOS) show("noticeIOS");
+else if (isSmartTV) show("noticeSmartTV");
+else if (isFireTV || isAndroidTV) show("noticeFire");
+else if (!isAndroid) show("noticeDesktop");
+
+// --- Testi dello store ---
+document.title = STORE.name;
+document.getElementById("storeName").textContent = STORE.name;
+document.getElementById("storeTag").textContent = STORE.tagline;
+document.getElementById("logo").textContent = (STORE.name.trim()[0] || "K").toUpperCase();
+document.getElementById("footer").textContent =
+  (STORE.contact ? STORE.contact + " · " : "") + "© " + new Date().getFullYear() + " " + STORE.name;
+
+// --- Schede delle app ---
+const grid = document.getElementById("grid");
+APPS.forEach((app, i) => {
+  const card = document.createElement("article");
+  card.className = "card";
+  const icon = app.iconUrl
+    ? `<div class="icon" style="background:${app.color}"><img alt="" src="${app.iconUrl}"></div>`
+    : `<div class="icon" style="background:${app.color}">${esc(app.icon || app.name[0])}</div>`;
+  const btnLabel = isStoreApp ? "Installa" : (canInstall ? "Scarica e installa" : "Apri link di download");
+  const disabled = isIOS || isSmartTV;
+  card.innerHTML = `
+    <div class="top">${icon}
+      <div><h2 class="name">${esc(app.name)}</h2>${app.version ? `<div class="meta">Versione ${esc(app.version)}</div>` : ""}</div>
+    </div>
+    <p class="desc">${esc(app.description)}</p>
+    <div class="code">
+      <div><small>Codice Downloader</small><strong>${esc(app.code)}</strong></div>
+      ${isTV ? "" : `<button class="btn ghost" type="button" data-copy="${esc(app.code)}">Copia</button>`}
+    </div>
+    <a class="btn primary" href="${disabled ? "#" : downloadUrl(app.code)}" data-i="${i}"
+       ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${disabled ? "Solo per Android" : btnLabel}</a>
+    <p class="status" id="st${i}" aria-live="polite"></p>`;
+  grid.appendChild(card);
+});
+
+grid.addEventListener("click", e => {
+  const copy = e.target.closest("[data-copy]");
+  if (copy) {
+    const t = copy.getAttribute("data-copy");
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+      .then(() => { copy.textContent = "Copiato"; setTimeout(() => copy.textContent = "Copia", 1500); })
+      .catch(() => { copy.textContent = t; });
+    return;
+  }
+  const a = e.target.closest("a.btn.primary");
+  if (!a) return;
+  if (a.getAttribute("aria-disabled") === "true") { e.preventDefault(); return; }
+  if (isStoreApp) {                       // l'app Android scarica e avvia l'installazione
+    e.preventDefault();
+    const app = APPS[+a.dataset.i];
+    window.KairosStore.install(downloadUrl(app.code), app.name, "st" + a.dataset.i);
+  }
+});
+
+// L'app Android richiama questa funzione per mostrare l'avanzamento
+window.kairosStatus = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+
+// --- Navigazione con telecomando (frecce + OK) ---
+const focusables = () => [...document.querySelectorAll("a.btn.primary:not([aria-disabled='true'])")];
+function moveFocus(dir) {
+  const items = focusables(); if (!items.length) return;
+  const cur = document.activeElement;
+  if (!items.includes(cur)) { items[0].focus(); return; }
+  const r = cur.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let best = null, bestD = Infinity;
+  items.forEach(el => {
+    if (el === cur) return;
+    const q = el.getBoundingClientRect(), x = q.left + q.width / 2, y = q.top + q.height / 2;
+    const dx = x - cx, dy = y - cy;
+    const ok = dir === "ArrowRight" ? dx > 5 : dir === "ArrowLeft" ? dx < -5 : dir === "ArrowDown" ? dy > 5 : dy < -5;
+    if (!ok) return;
+    const horiz = dir === "ArrowRight" || dir === "ArrowLeft";
+    const d = horiz ? Math.abs(dx) + Math.abs(dy) * 3 : Math.abs(dy) + Math.abs(dx) * 3;
+    if (d < bestD) { bestD = d; best = el; }
+  });
+  if (best) { best.focus(); best.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  else if (dir === "ArrowUp") window.scrollTo({ top: 0, behavior: "smooth" });
+  else if (dir === "ArrowDown") window.scrollBy({ top: 300, behavior: "smooth" });
+}
+document.addEventListener("keydown", e => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); moveFocus(e.key); }
+});
+document.addEventListener("focusin", e => {
+  document.querySelectorAll(".card.focus").forEach(c => c.classList.remove("focus"));
+  const c = e.target.closest(".card"); if (c) c.classList.add("focus");
+});
+if (isTV) { const f = focusables()[0]; if (f) f.focus(); }
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+</script>
+</body>
+</html>
