@@ -5,6 +5,7 @@ plugins {
 def storeUrl = (project.findProperty('storeUrl') ?: '').toString().trim()
 def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
 def ksFile = System.getenv('KEYSTORE_FILE')
+def githubRepo = (System.getenv('GITHUB_REPOSITORY') ?: (project.findProperty('githubRepo') ?: '')).toString().trim()
 
 android {
     namespace 'com.kairos.store'
@@ -17,6 +18,7 @@ android {
         versionCode runNumber
         versionName "1.0.${runNumber}"
         buildConfigField 'String', 'STORE_URL', "\"${storeUrl}\""
+        buildConfigField 'String', 'GITHUB_REPO', "\"${githubRepo}\""
     }
 
     buildFeatures {
