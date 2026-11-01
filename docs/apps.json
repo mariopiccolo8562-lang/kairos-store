@@ -1,0 +1,109 @@
+{
+  "store": {
+    "name": "KAIROS STORE",
+    "taglines": [
+      "Le tue app, in un solo posto.",
+      "Installa con un clic.",
+      "Sempre aggiornate."
+    ],
+    "contact": ""
+  },
+  "apps": [
+    {
+      "name": "OrbixPlay",
+      "tag": "PLAYER",
+      "description": "Player moderno e veloce per TV e smartphone.",
+      "url": "https://apk.orbixplay.com/firestick.apk",
+      "code": "618101",
+      "icon": "icons/orbixplay.webp",
+      "glow": "#38bdf8",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "IboOne",
+      "tag": "PLAYER",
+      "description": "Interfaccia elegante, ottimizzata per il telecomando.",
+      "url": "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk",
+      "code": "2533617",
+      "icon": "icons/iboone.webp",
+      "glow": "#22c55e",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "IboPro",
+      "tag": "PLAYER",
+      "description": "La versione Pro, ricca di funzioni.",
+      "url": "https://www.dropbox.com/scl/fi/0v0iupzuvtwxoim9kgeok/ibop.apk?rlkey=m1su3jzjamu2rod5crm0vup1v&st=6mqrxj7c&dl=1",
+      "code": "9416617",
+      "icon": "icons/ibopro.webp",
+      "glow": "#ef4444",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "OraPlayer",
+      "tag": "PLAYER",
+      "description": "Leggero e reattivo, ideale per Fire TV.",
+      "url": "https://upgrade.logicyel.com/testapk/ora_stb_prodRelease_1000122.apk",
+      "code": "8408809",
+      "icon": "icons/oraplayer.webp",
+      "glow": "#f43f5e",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "MT",
+      "tag": "STREAM",
+      "description": "Streaming fluido con VPN integrata.",
+      "url": "https://www.dropbox.com/scl/fi/8tjxhc4k5reyee08eray2/MirkoTeam-7.0-v910-vpn.apk?rlkey=izdccv5uyqq7hmubl2ooynls4&st=objtg0ex&dl=1",
+      "code": "8128314",
+      "icon": "icons/mt.webp",
+      "glow": "#f5b84a",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "TiviMate",
+      "tag": "PLAYER",
+      "description": "Guida TV completa e interfaccia curata.",
+      "url": "https://api.tivimateiptvpro.com/api/download/android",
+      "code": "2578076",
+      "icon": "icons/tivimate.webp",
+      "glow": "#60a5fa",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "Ibo Player",
+      "tag": "PLAYER",
+      "description": "Semplice e immediato, per tutti i dispositivi.",
+      "url": "http://ibodesk.com/iboupdate.apk",
+      "code": "1171959",
+      "icon": "icons/iboplayer.webp",
+      "glow": "#dc2626",
+      "pkg": "",
+      "light": true,
+      "hidden": false
+    },
+    {
+      "name": "Selling",
+      "tag": "SMARTERS",
+      "description": "Player completo con profili multipli.",
+      "url": "https://download2.slt.st/smarters5slt.apk",
+      "code": "7033537",
+      "icon": "icons/selling.webp",
+      "glow": "#e11d48",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    }
+  ]
+}
