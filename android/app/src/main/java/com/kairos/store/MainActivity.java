@@ -55,6 +55,8 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setUseWideViewPort(true);
         s.setLoadWithOverviewMode(true);
+        s.setTextZoom(100); // la pagina si adatta da sola allo schermo: niente ingrandimento del testo di sistema
+        s.setMediaPlaybackRequiresUserGesture(false);
 
         web.addJavascriptInterface(new Bridge(), "KairosStore");
         web.setWebViewClient(new WebViewClient() {
