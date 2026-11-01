@@ -503,6 +503,18 @@ function burst(x, y, color) {
 document.title = "Kairos Store";
 document.getElementById("storeName").textContent = STORE.name;
 document.getElementById("footer").textContent = (STORE.contact ? STORE.contact + "  ·  " : "") + "© " + new Date().getFullYear() + "  " + STORE.name;
+// versione: quella dell'app installata; dal browser, l'ultima versione pubblicata su GitHub
+(function showVersion() {
+  const f = document.getElementById("footer"), base = f.textContent;
+  const set = v => { if (v) f.textContent = base + "  ·  VERSIONE: " + v; };
+  if (isStoreApp) {
+    try { if (window.KairosStore.appVersion) set(window.KairosStore.appVersion()); } catch (e) {}
+    return;
+  }
+  fetch("https://api.github.com/repos/mariopiccolo8562-lang/kairos-store/releases/latest")
+    .then(r => r.ok ? r.json() : null).then(j => { if (j && j.tag_name) set(String(j.tag_name).replace(/^v/, "")); })
+    .catch(() => {});
+})();
 (function typer() {
   const el = document.getElementById("typed"); let li = 0, ci = 0, del = false;
   if (isTV || reduce) { el.textContent = STORE.taglines[0]; return; }
