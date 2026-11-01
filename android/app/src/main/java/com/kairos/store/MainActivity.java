@@ -22,6 +22,7 @@ import androidx.core.content.FileProvider;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -43,6 +44,11 @@ public class MainActivity extends Activity {
     private File pendingApk;
     private String pendingStatusId;
     private volatile boolean busy = false;
+
+    // ---- aggiornamenti ----
+    private static final long REFRESH_AFTER_MS = 5 * 60 * 1000L; // ricarica la lista se l'app torna in primo piano dopo 5 minuti
+    private long lastRefresh = 0;
+    private boolean updateCheckDone = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,17 +80,51 @@ public class MainActivity extends Activity {
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 // Store online non raggiungibile: usa la copia inclusa nell'APK
-                if (failingUrl != null && failingUrl.equals(BuildConfig.STORE_URL)) {
+                if (failingUrl != null && !BuildConfig.STORE_URL.isEmpty()
+                        && failingUrl.startsWith(BuildConfig.STORE_URL)) {
                     view.loadUrl(LOCAL_PAGE);
+                }
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                // A ogni apertura: controlla in automatico se c'è una nuova versione dello store
+                if (!updateCheckDone) {
+                    updateCheckDone = true;
+                    checkStoreUpdate(false);
                 }
             }
         });
         web.setDownloadListener((url, userAgent, contentDisposition, mimeType, length) ->
                 startDownload(url, "App", null));
 
-        String start = BuildConfig.STORE_URL.isEmpty() ? LOCAL_PAGE : BuildConfig.STORE_URL;
-        web.loadUrl(start);
+        loadStore(false, null);
         web.requestFocus();
+    }
+
+    /** Carica sempre la versione più recente della lista app (niente copia vecchia in memoria). */
+    private void loadStore(boolean skipIntro, String msg) {
+        lastRefresh = System.currentTimeMillis();
+        if (BuildConfig.STORE_URL.isEmpty()) {
+            web.loadUrl(LOCAL_PAGE);
+            return;
+        }
+        web.clearCache(true);
+        String url = BuildConfig.STORE_URL + (BuildConfig.STORE_URL.contains("?") ? "&" : "?") + "t=" + lastRefresh;
+        if (skipIntro) url += "&intro=0";
+        if (msg != null) url += "&msg=" + msg;
+        web.loadUrl(url);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // App rimasta aperta in sottofondo: al ritorno aggiorna lista e versione
+        if (web != null && lastRefresh > 0 && !busy && pendingApk == null
+                && System.currentTimeMillis() - lastRefresh > REFRESH_AFTER_MS) {
+            updateCheckDone = false;
+            loadStore(true, null);
+        }
     }
 
     /** true = il link lo gestisce l'app (download), false = lo apre la WebView */
@@ -114,6 +154,71 @@ public class MainActivity extends Activity {
         public boolean isTv() {
             return isTelevision();
         }
+
+        /** Pulsante AGGIORNA: controlla nuova versione dello store e ricarica la lista app */
+        @JavascriptInterface
+        public void refresh() {
+            runOnUiThread(() -> checkStoreUpdate(true));
+        }
+
+        @JavascriptInterface
+        public String appVersion() {
+            return BuildConfig.VERSION_NAME;
+        }
+    }
+
+    // ------------------------------------------------------------ aggiornamento dello store
+
+    private static final String UPD = "stUpd";
+
+    private void checkStoreUpdate(boolean manual) {
+        if (BuildConfig.GITHUB_REPO.isEmpty()) {
+            if (manual) loadStore(true, "ok");
+            return;
+        }
+        if (busy) {
+            if (manual) status(UPD, "Attendi: è già in corso un download…");
+            return;
+        }
+        if (manual) status(UPD, "Controllo aggiornamenti…");
+        new Thread(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(
+                        "https://api.github.com/repos/" + BuildConfig.GITHUB_REPO + "/releases/latest").openConnection();
+                c.setConnectTimeout(15000);
+                c.setReadTimeout(15000);
+                c.setRequestProperty("Accept", "application/vnd.github+json");
+                c.setRequestProperty("User-Agent", "KairosStore/" + BuildConfig.VERSION_NAME);
+                int code = c.getResponseCode();
+                if (code != 200) {
+                    c.disconnect();
+                    throw new Exception("risposta " + code);
+                }
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                try (InputStream in = c.getInputStream()) {
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = in.read(buf)) != -1) bos.write(buf, 0, n);
+                } finally {
+                    c.disconnect();
+                }
+                String tag = new JSONObject(bos.toString("UTF-8")).optString("tag_name", ""); // es. "v1.0.12"
+                String num = tag.substring(tag.lastIndexOf('.') + 1).replaceAll("[^0-9]", "");
+                int latest = num.isEmpty() ? 0 : Integer.parseInt(num);
+                if (latest > BuildConfig.VERSION_CODE) {
+                    String apk = "https://github.com/" + BuildConfig.GITHUB_REPO + "/releases/latest/download/KairosStore.apk";
+                    status(UPD, "Nuova versione di Kairos Store (1.0." + latest + "): aggiornamento in corso…");
+                    runOnUiThread(() -> startDownload(apk, "KairosStore", UPD));
+                } else if (manual) {
+                    runOnUiThread(() -> loadStore(true, "ok"));
+                }
+            } catch (Exception e) {
+                if (manual) {
+                    status(UPD, "Controllo aggiornamenti non riuscito. Ricarico la lista delle app…");
+                    runOnUiThread(() -> web.postDelayed(() -> loadStore(true, null), 1800));
+                }
+            }
+        }).start();
     }
 
     private boolean isTelevision() {
