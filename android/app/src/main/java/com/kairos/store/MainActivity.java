@@ -10,6 +10,8 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.view.KeyEvent;
 import android.webkit.JavascriptInterface;
@@ -49,6 +51,10 @@ public class MainActivity extends Activity {
     private static final long REFRESH_AFTER_MS = 5 * 60 * 1000L; // ricarica la lista se l'app torna in primo piano dopo 5 minuti
     private long lastRefresh = 0;
     private boolean updateCheckDone = false;
+
+    // ---- ritorno automatico dalla schermata "installa app sconosciute" ----
+    private final Handler poll = new Handler(Looper.getMainLooper());
+    private Runnable permWatcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -324,11 +330,12 @@ public class MainActivity extends Activity {
                 && !getPackageManager().canRequestPackageInstalls()) {
             pendingApk = apk;
             pendingStatusId = statusId;
-            status(statusId, "Consenti a Kairos Store di installare app, poi torna indietro.");
+            status(statusId, "Attiva l'interruttore per Kairos Store: lo store torna qui da solo.");
             try {
                 Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                         Uri.parse("package:" + getPackageName()));
                 startActivityForResult(i, REQ_UNKNOWN_SOURCES);
+                startPermissionWatcher();
                 return;
             } catch (ActivityNotFoundException e) {
                 // Alcune Fire TV non hanno questa schermata: proviamo comunque
@@ -358,9 +365,65 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Mentre è aperta la schermata del permesso controlla ogni mezzo secondo se l'utente
+     * ha attivato l'interruttore: appena lo fa, chiude la schermata, riporta lo store
+     * in primo piano e avvia l'installazione, senza dover premere Indietro.
+     */
+    private void startPermissionWatcher() {
+        stopPermissionWatcher();
+        final long start = System.currentTimeMillis();
+        permWatcher = new Runnable() {
+            @Override
+            public void run() {
+                if (pendingApk == null) {
+                    permWatcher = null;
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        && getPackageManager().canRequestPackageInstalls()) {
+                    permWatcher = null;
+                    File apk = pendingApk;
+                    pendingApk = null;
+                    try {
+                        finishActivity(REQ_UNKNOWN_SOURCES); // chiude la schermata del permesso
+                    } catch (Exception ignored) { }
+                    try {
+                        Intent back = new Intent(MainActivity.this, MainActivity.class);
+                        back.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(back);                 // riporta lo store in primo piano
+                    } catch (Exception ignored) { }
+                    status(pendingStatusId, "Permesso attivato. Avvio installazione…");
+                    poll.postDelayed(() -> launchInstaller(apk, pendingStatusId), 400);
+                    return;
+                }
+                if (System.currentTimeMillis() - start < 5 * 60 * 1000L) {
+                    poll.postDelayed(this, 500);
+                } else {
+                    permWatcher = null;
+                }
+            }
+        };
+        poll.postDelayed(permWatcher, 500);
+    }
+
+    private void stopPermissionWatcher() {
+        if (permWatcher != null) {
+            poll.removeCallbacks(permWatcher);
+            permWatcher = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopPermissionWatcher();
+        super.onDestroy();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_UNKNOWN_SOURCES) stopPermissionWatcher();
         if (requestCode == REQ_UNKNOWN_SOURCES && pendingApk != null) {
             File apk = pendingApk;
             pendingApk = null;
