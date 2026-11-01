@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId 'com.kairos.store'
-        minSdk 21
+        minSdk 24
         targetSdk 34
         versionCode runNumber
         versionName "1.0.${runNumber}"
@@ -50,7 +50,7 @@ android {
 // Copia la pagina dello store (cartella docs/) dentro l'APK
 tasks.register('copyStorePage', Copy) {
     from("${rootDir}/../docs") {
-        include 'index.html', 'icon.svg', 'manifest.webmanifest'
+        include 'index.html', 'icon.svg', 'manifest.webmanifest', 'icons/**'
     }
     into "${projectDir}/src/main/assets"
 }
