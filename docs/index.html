@@ -168,6 +168,14 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
 .btn:focus,.btn:hover{background-position:100% 0;box-shadow:0 0 0 3px #fff,0 0 34px rgba(34,211,238,.75)}
 .btn:focus::after,.btn:hover::after{transform:translateX(120%)}
 .btn:active{transform:scale(.97)}
+.unbtn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:11px 16px;border-radius:14px;cursor:pointer;outline:none;
+  order:4;border:1px solid rgba(244,63,94,.45);background:rgba(244,63,94,.08);color:#fda4af;font:700 12px var(--display);letter-spacing:.2em;transition:.2s}
+.unbtn svg{width:16px;height:16px;flex:none}
+.unbtn:focus,.unbtn:hover{background:rgba(244,63,94,.22);border-color:#fb7185;color:#fff;box-shadow:0 0 0 3px #fff,0 0 26px rgba(244,63,94,.6)}
+.unbtn[hidden]{display:none}
+.inst{position:absolute;top:-9px;right:18px;z-index:3;padding:3px 8px;border-radius:6px;font:700 9px var(--display);letter-spacing:.15em;
+  color:#052e1a;background:#34d399;box-shadow:0 0 12px rgba(52,211,153,.5)}
+.inst[hidden]{display:none}
 .btn[aria-disabled="true"]{filter:grayscale(1);opacity:.4;cursor:not-allowed;box-shadow:none}
 .progress{height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;display:none}
 .progress.on{display:block}
@@ -245,6 +253,10 @@ html.tv .code small{font-size:.85rem}
 html.tv .code strong{font-size:1.8rem;text-shadow:none}
 html.tv .btn{padding:.85rem;font-size:1.25rem;border-radius:1rem;gap:.8rem;box-shadow:none;transition:none;background-size:100% 100%}
 html.tv .btn svg{width:1.5rem;height:1.5rem}
+html.tv .unbtn{padding:.6rem;font-size:1rem;border-radius:1rem;gap:.7rem;transition:none}
+html.tv .unbtn svg{width:1.3rem;height:1.3rem}
+html.tv .unbtn:focus{box-shadow:0 0 0 .25rem #fff}
+html.tv .inst{font-size:.72rem;padding:.2rem .6rem;top:-.7rem;right:1.2rem;box-shadow:none}
 html.tv .btn::after{display:none}
 html.tv .btn:focus{box-shadow:0 0 0 .25rem #fff;background-position:0 0}
 html.tv .progress{height:.5rem}
@@ -353,6 +365,8 @@ html.tv .intro-bar b{box-shadow:none}
    code  = codice Downloader (solo promemoria, non viene mostrato)
    url   = link DIRETTO all'APK (usato dal pulsante: niente pagine o cookie)
    icon  = immagine nella cartella icons/
+   pkg   = (facoltativo) nome del pacchetto Android, es. "com.esempio.player":
+           se lo indichi, il pulsante Disinstalla riconosce l'app con certezza
    glow  = colore del bagliore della scheda
    ================================================================= */
 const STORE = {
@@ -529,6 +543,7 @@ document.getElementById("footer").textContent = (STORE.contact ? STORE.contact +
 
 // ---------- schede app ----------
 const DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 10l6 6 6-6M4 21h16"/></svg>';
+const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 const grid = document.getElementById("grid");
 const disabled = isIOS || isSmartTV;
 const label = isStoreApp || canInstall || isTV ? "INSTALLA" : "SCARICA";
@@ -538,6 +553,7 @@ APPS.forEach((app, i) => {
   card.style.setProperty("--glow", app.glow || "#22d3ee");
   card.style.animationDelay = (i * 0.08) + "s";
   card.innerHTML = `
+    <span class="inst" id="in${i}" hidden>INSTALLATA</span>
     <div class="inner">
       <span class="num">${String(i + 1).padStart(2, "0")}</span>
       <div class="top">
@@ -546,6 +562,7 @@ APPS.forEach((app, i) => {
       </div>
       <p class="desc">${esc(app.description)}</p>
       <a class="btn" href="${disabled ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
+      <button class="unbtn" type="button" id="un${i}" data-u="${i}" hidden>${TRASH}<span>DISINSTALLA</span></button>
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
     </div>`;
@@ -583,6 +600,13 @@ grid.addEventListener("click", e => {
       .catch(() => { copy.textContent = t; });
     return;
   }
+  const u = e.target.closest(".unbtn");
+  if (u) {
+    const app = APPS[+u.dataset.u];
+    Sound.select();
+    if (isStoreApp && u.dataset.pkg && window.KairosStore.uninstall) window.KairosStore.uninstall(u.dataset.pkg);
+    return;
+  }
   const a = e.target.closest("a.btn");
   if (!a) return;
   if (a.getAttribute("aria-disabled") === "true") { e.preventDefault(); Sound.error(); return; }
@@ -614,6 +638,25 @@ function status(id, text) {
   if (/non riuscito|non disponibile|annullata|Impossibile/i.test(text)) Sound.error();
 }
 window.kairosStatus = status;
+
+// ---------- app installate: etichetta INSTALLATA e pulsante DISINSTALLA (solo nell'app) ----------
+function refreshInstalled() {
+  if (!isStoreApp || typeof window.KairosStore.installedPackage !== "function") return;
+  const focused = document.activeElement;
+  APPS.forEach((app, i) => {
+    let pkg = "";
+    try { pkg = window.KairosStore.installedPackage(app.name, app.pkg || "") || ""; } catch (e) {}
+    const u = document.getElementById("un" + i), t = document.getElementById("in" + i);
+    u.dataset.pkg = pkg; u.hidden = !pkg; t.hidden = !pkg;
+  });
+  // se il pulsante con il focus è sparito (app appena disinstallata) torna su Installa
+  if (focused && focused.classList && focused.classList.contains("unbtn") && focused.hidden) {
+    const b = document.querySelector('a.btn[data-i="' + focused.dataset.u + '"]'); if (b) b.focus();
+  }
+}
+window.kairosRefreshInstalled = refreshInstalled;
+refreshInstalled();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(refreshInstalled, 300); });
 
 // ---------- pulsante AGGIORNA e avvisi di aggiornamento ----------
 const updateBtn = document.getElementById("updateBtn");
@@ -662,7 +705,7 @@ if (q.get("msg") === "ok") {
 }
 
 // ---------- navigazione con telecomando ----------
-const focusables = () => [updateBtn, soundBtn, ...document.querySelectorAll("a.btn:not([aria-disabled='true'])")];
+const focusables = () => [updateBtn, soundBtn, ...document.querySelectorAll("a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
 function moveFocus(dir) {
   const items = focusables(); const cur = document.activeElement;
   if (!items.includes(cur)) { (items[1] || items[0]).focus(); return; }
