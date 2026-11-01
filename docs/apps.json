@@ -104,6 +104,18 @@
       "pkg": "",
       "light": false,
       "hidden": false
+    },
+    {
+      "name": "Kairos App",
+      "tag": "Kairos",
+      "description": "La nostra app originale, con uno stile intuitivo.",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-iptv/releases/download/v1.0.0/kairos.apk",
+      "code": "5341837",
+      "icon": "icons/kairos-app-mvyfgrl7.webp",
+      "glow": "#ff0000",
+      "pkg": "",
+      "light": false,
+      "hidden": false
     }
   ]
 }
