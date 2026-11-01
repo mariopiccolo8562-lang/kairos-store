@@ -1,10 +1,14 @@
 package com.kairos.store;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.UiModeManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -31,6 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -125,6 +130,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // tornando da un'installazione o disinstallazione: aggiorna i pulsanti delle app
+        if (web != null) web.evaluateJavascript("window.kairosRefreshInstalled && window.kairosRefreshInstalled()", null);
         // App rimasta aperta in sottofondo: al ritorno aggiorna lista e versione
         if (web != null && lastRefresh > 0 && !busy && pendingApk == null
                 && System.currentTimeMillis() - lastRefresh > REFRESH_AFTER_MS) {
@@ -171,6 +178,88 @@ public class MainActivity extends Activity {
         public String appVersion() {
             return BuildConfig.VERSION_NAME;
         }
+
+        /** Nome del pacchetto dell'app se è installata, altrimenti "" */
+        @JavascriptInterface
+        public String installedPackage(String name, String hint) {
+            return findPackage(name, hint);
+        }
+
+        /** Apre la richiesta di disinstallazione del sistema */
+        @JavascriptInterface
+        public void uninstall(String pkg) {
+            runOnUiThread(() -> {
+                if (pkg == null || pkg.isEmpty() || !isInstalled(pkg)) return;
+                try {
+                    Intent i = new Intent(Intent.ACTION_DELETE, Uri.parse("package:" + pkg));
+                    startActivity(i);
+                } catch (Exception e) {
+                    try { // riserva: scheda dell'app nelle impostazioni, con il pulsante Disinstalla
+                        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + pkg)));
+                    } catch (Exception ignored) { }
+                }
+            });
+        }
+    }
+
+    // ------------------------------------------------------------ app installate
+
+    private SharedPreferences prefs() {
+        return getSharedPreferences("kairos", MODE_PRIVATE);
+    }
+
+    private static String norm(String s) {
+        return s == null ? "" : s.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+    }
+
+    private boolean isInstalled(String pkg) {
+        try {
+            getPackageManager().getApplicationInfo(pkg, 0);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Trova il pacchetto di un'app: 1) indicato nella lista, 2) ricordato quando lo store
+     * l'ha installata, 3) cercando tra le app installate quella con lo stesso nome.
+     */
+    private String findPackage(String name, String hint) {
+        if (hint != null && !hint.isEmpty() && isInstalled(hint)) return hint;
+        String key = norm(name);
+        if (key.isEmpty()) return "";
+        String saved = prefs().getString("pkg_" + key, "");
+        if (!saved.isEmpty() && isInstalled(saved)) return saved;
+        try {
+            PackageManager pm = getPackageManager();
+            List<ApplicationInfo> apps = pm.getInstalledApplications(0);
+            String partial = "";
+            for (ApplicationInfo ai : apps) {
+                if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
+                if (ai.packageName.equals(getPackageName())) continue;
+                String label = norm(String.valueOf(pm.getApplicationLabel(ai)));
+                if (label.isEmpty()) continue;
+                if (label.equals(key)) return ai.packageName;
+                if (partial.isEmpty() && key.length() >= 4 && (label.startsWith(key) || key.startsWith(label) && label.length() >= 4)) {
+                    partial = ai.packageName;
+                }
+            }
+            return partial;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /** Ricorda il pacchetto contenuto nell'APK scaricato, per riconoscere l'app in seguito. */
+    private void rememberPackage(String name, File apk) {
+        try {
+            if (name == null || "KairosStore".equals(name) || "App".equals(name)) return;
+            PackageInfo pi = getPackageManager().getPackageArchiveInfo(apk.getAbsolutePath(), 0);
+            if (pi != null && pi.packageName != null) {
+                prefs().edit().putString("pkg_" + norm(name), pi.packageName).apply();
+            }
+        } catch (Exception ignored) { }
     }
 
     // ------------------------------------------------------------ aggiornamento dello store
@@ -319,6 +408,7 @@ public class MainActivity extends Activity {
         } finally {
             c.disconnect();
         }
+        rememberPackage(name, out);
         status(statusId, "Download completato. Avvio installazione…");
         runOnUiThread(() -> install(out, statusId));
     }
@@ -388,11 +478,7 @@ public class MainActivity extends Activity {
                     try {
                         finishActivity(REQ_UNKNOWN_SOURCES); // chiude la schermata del permesso
                     } catch (Exception ignored) { }
-                    try {
-                        Intent back = new Intent(MainActivity.this, MainActivity.class);
-                        back.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        startActivity(back);                 // riporta lo store in primo piano
-                    } catch (Exception ignored) { }
+                    bringToFront();                          // riporta lo store in primo piano
                     status(pendingStatusId, "Permesso attivato. Avvio installazione…");
                     poll.postDelayed(() -> launchInstaller(apk, pendingStatusId), 400);
                     return;
@@ -405,6 +491,20 @@ public class MainActivity extends Activity {
             }
         };
         poll.postDelayed(permWatcher, 500);
+    }
+
+    /** Riporta lo store davanti a tutto, con più metodi perché ogni versione di Fire OS si comporta diversamente. */
+    private void bringToFront() {
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
+        } catch (Exception ignored) { }
+        try {
+            Intent back = new Intent(MainActivity.this, MainActivity.class);
+            back.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(back);
+        } catch (Exception ignored) { }
     }
 
     private void stopPermissionWatcher() {
