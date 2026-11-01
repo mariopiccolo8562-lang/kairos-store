@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+}
+
+def storeUrl = (project.findProperty('storeUrl') ?: '').toString().trim()
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+def ksFile = System.getenv('KEYSTORE_FILE')
+
+android {
+    namespace 'com.kairos.store'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.kairos.store'
+        minSdk 21
+        targetSdk 34
+        versionCode runNumber
+        versionName "1.0.${runNumber}"
+        buildConfigField 'String', 'STORE_URL', "\"${storeUrl}\""
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        release {
+            if (ksFile) {
+                storeFile file(ksFile)
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (ksFile) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// Copia la pagina dello store (cartella docs/) dentro l'APK
+tasks.register('copyStorePage', Copy) {
+    from("${rootDir}/../docs") {
+        include 'index.html', 'icon.svg', 'manifest.webmanifest'
+    }
+    into "${projectDir}/src/main/assets"
+}
+preBuild.dependsOn copyStorePage
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
