@@ -818,12 +818,16 @@ function cleanServer(s) {
   s = String(s || "").trim().replace(/\/+$/, "");
   return /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(s) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(s) ? s : "";
 }
+// Server predefinito: l'autorizzazione resta attiva anche se un altro programma riscrive apps.json
+// senza il blocco "approval". Per spegnerla: "approval": { "on": false } in apps.json, oppure
+// "Approvazione" spenta nel pannello Kairos Control (il server autorizza da solo e registra il download).
+const AP_DEFAULT = "https://kairos-panel.mariopiccolo8562.workers.dev";
 function apServer() {
   const a = STORE.approval;
-  if (a && typeof a === "object") return a.on === false ? "" : cleanServer(a.server);
+  if (a && typeof a === "object") return a.on === false ? "" : cleanServer(a.server) || cleanServer(AP_DEFAULT);
   // elenco di riserva (apps.json non caricato): vale il server ricordato dall'app dello store
-  if (!appsLoaded && isStoreApp) { try { return cleanServer(window.KairosStore.approvalServer && window.KairosStore.approvalServer()); } catch (e) {} }
-  return "";
+  if (!appsLoaded && isStoreApp) { try { const s = cleanServer(window.KairosStore.approvalServer && window.KairosStore.approvalServer()); if (s) return s; } catch (e) {} }
+  return cleanServer(AP_DEFAULT);
 }
 // l'app Android ricorda il server: così blocca anche i download che non passano da questa pagina
 function tellApp() {
@@ -855,7 +859,16 @@ const AP = (() => {
   let cur = null, timer = 0, back = null, cfg = { s: "", t: 0, on: null };
   if (isTV) { $("apCode").readOnly = true; $("apCode").tabIndex = -1; } // sul TV si usa il tastierino a schermo
 
-  // richieste in attesa ricordate sul dispositivo (lo store può ricaricarsi mentre si aspetta)
+  // richieste IN ATTESA ricordate sul dispositivo (lo store può ricaricarsi mentre si aspetta).
+  // Ogni autorizzazione vale per una sola app e un solo download: una richiesta già autorizzata,
+  // usata, scaduta o revocata non viene mai riusata per un'installazione successiva.
+  const ENDED = {
+    denied: "Il venditore non ha autorizzato il download.",
+    revoked: "Il venditore ha revocato l'autorizzazione per questa app. Se ti serve ancora, richiedila di nuovo.",
+    used: "Questa autorizzazione è già stata usata: ogni download richiede un nuovo permesso del venditore.",
+    expired: "La richiesta è scaduta: richiedila di nuovo.",
+    unknown: "La richiesta non è più valida: richiedila di nuovo.",
+  };
   const saved = () => { try { return JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) { return {}; } };
   function save(name, v) {
     const s = saved(); if (v) s[name] = v; else delete s[name];
@@ -888,9 +901,10 @@ const AP = (() => {
     if (el && !el.disabled && el.offsetParent !== null) el.focus(); else $("apIn").focus();
   }
   function step(n) { $("apStep1").hidden = n !== 1; $("apStep2").hidden = n !== 2; }
-  function askStep() {
+  function askStep(again) {
     step(1); $("apAsk").disabled = false;
-    $("apText").innerHTML = "Per scaricare questa app serve l'<b>autorizzazione del venditore</b>. Premi il pulsante: il venditore riceve subito la richiesta.";
+    $("apAsk").querySelector("span").textContent = again ? "RICHIEDI DI NUOVO" : "RICHIEDI AUTORIZZAZIONE";
+    $("apText").innerHTML = again ? "Per scaricare di nuovo serve una <b>nuova autorizzazione del venditore</b>: ogni download ne richiede una." : "Per scaricare questa app serve l'<b>autorizzazione del venditore</b>. Premi il pulsante: il venditore riceve subito la richiesta.";
     focusFirst();
   }
   function waitStep() {
@@ -927,7 +941,9 @@ const AP = (() => {
     start(app, url, !auto);
     if (!cur.server) { askStep(); $("apAsk").disabled = true; msg("Download non disponibile: contatta il venditore."); return; }
     if (auto) { status("st" + i, "Avvio del download…"); ask(true); return; }
+    // si riprende solo una richiesta ancora in attesa per QUESTA app (stesso link); tutto il resto riparte da zero
     if (s && s.id && Date.now() - s.t < TTL && s.url === url) { cur.id = s.id; waitStep(); check(true, 0); return; }
+    if (s) save(app.name, null);
     askStep();
     getCfg(); // tiene aggiornato lo stato dell'approvazione per le prossime volte
   }
@@ -942,6 +958,7 @@ const AP = (() => {
       c.busy = false;
       if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
       if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now() }); msg(""); reveal(); waitStep(); poll(0); return; }
+      if (j.http === 403 && /bloccato/i.test(j.error || "")) { c.busy = false; reveal(); askStep(); $("apAsk").disabled = true; Sound.error(); msg("Dispositivo bloccato dal venditore: non puoi più scaricare app da questo store. Contatta il venditore."); return; }
       fail(j.error || NET);
     }, () => fail(NET));
   }
@@ -955,14 +972,15 @@ const AP = (() => {
       if (j.status === "approved" && j.token) { go(j.token); return; }
       if (j.status === "pending") { poll(n); return; }
       if (j.http === 429 || j.http >= 500) { poll(Math.max(n, 60)); return; }
-      if (j.status === "denied") { ended("Il venditore non ha autorizzato il download."); return; }
-      ended(first ? "" : "La richiesta è scaduta: richiedila di nuovo.");
+      // rifiutata, revocata, già usata o scaduta: si può solo chiedere una nuova autorizzazione
+      ended(first && (j.status === "expired" || j.http === 404) ? "" : ENDED[j.status] || ENDED.unknown, j.status);
     }, () => { if (cur === c) poll(Math.max(n, 30)); });
   }
-  function ended(t) {
+  function ended(t, st) {
     clearTimeout(timer);
     if (cur) { save(cur.app, null); cur.id = ""; }
-    askStep(); if (t) { Sound.error(); msg(t); }
+    askStep(!!t); if (t) { Sound.error(); msg(t); }
+    if (st === "revoked" || st === "used") $("apText").innerHTML = (st === "revoked" ? "<b>Autorizzazione revocata.</b> " : "<b>Autorizzazione già usata.</b> ") + "Per scaricare serve una nuova autorizzazione del venditore.";
   }
   function verify() {
     const c = cur; if (!c || !c.id || c.busy) return;
@@ -972,8 +990,8 @@ const AP = (() => {
     call("verify", { id: c.id, did: c.did, code }, c.server).then(j => {
       c.busy = false; if (cur !== c) return;
       if (j.ok && j.token) { go(j.token); return; }
-      if (j.status === "denied") { ended(j.error || "Troppi tentativi: richiesta annullata."); return; }
-      if (j.status === "expired" || j.status === "used" || j.http === 404) { ended("La richiesta è scaduta: richiedila di nuovo."); return; }
+      if (j.status === "denied") { ended(j.error || "Troppi tentativi: richiesta annullata.", "denied"); return; }
+      if (j.status === "revoked" || j.status === "used" || j.status === "expired" || j.http === 404) { ended(ENDED[j.status] || ENDED.unknown, j.status); return; }
       Sound.error(); $("apCode").value = ""; msg(j.error || NET);
     }, () => { c.busy = false; if (cur === c) { Sound.error(); msg(NET); } });
   }
@@ -999,13 +1017,15 @@ const AP = (() => {
     } else {
       status(sid, "Autorizzato: avvio del download…");
       call("consume", { id: c.id, did: c.did, token, url: c.url }, c.server).then(j => {
-        if (!j.ok) { status(sid, j.error || "Autorizzazione non valida o scaduta."); setTimeout(() => status(sid, ""), 6000); return; }
+        if (!j.ok) { status(sid, j.status === "revoked" ? "Autorizzazione revocata dal venditore." : j.error || "Autorizzazione non valida o scaduta."); setTimeout(() => status(sid, ""), 6000); return; }
         status(sid, "Download avviato…"); setTimeout(() => status(sid, ""), 5000);
         location.href = c.url;
       }, () => { status(sid, NET); setTimeout(() => status(sid, ""), 6000); });
     }
   }
-  // riapre la richiesta lasciata in sospeso (es. lo store si è ricaricato mentre si aspettava)
+  // riapre la richiesta lasciata in sospeso (es. lo store si è ricaricato mentre si aspettava).
+  // Solo se è ANCORA in attesa: una richiesta già autorizzata non fa mai partire un download da sola
+  // dopo un ricaricamento, e non viene riusata per la prossima installazione.
   function resume() {
     if (!entered) { setTimeout(resume, 800); return; }
     if (!apServer() || isOpen()) return;
@@ -1016,9 +1036,8 @@ const AP = (() => {
     if (i < 0 || String(downloadUrl(APPS[i])).trim() !== best.url) { save(best.name, null); return; }
     call("status?id=" + encodeURIComponent(best.id) + "&did=" + encodeURIComponent(installId()), null).then(j => {
       if (isOpen()) return;
-      if (j.status === "approved" && j.token) { start(APPS[i], best.url, false); cur.id = best.id; go(j.token); }
-      else if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(); poll(0); }
-      else if (j.status) save(best.name, null);
+      if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(); poll(0); }
+      else if (j.status || j.http === 404) save(best.name, null);
     }, () => {});
   }
   function key(e) {
@@ -1160,7 +1179,7 @@ function pollApps() {
       appsLoaded = true;
       APPS = d.apps.filter(a => a && a.name && !a.hidden);
       if (d.store) STORE = Object.assign({}, STORE, d.store);
-      STORE.approval = d.store && d.store.approval; // tolta da apps.json = autorizzazione spenta
+      STORE.approval = d.store && d.store.approval; // tolta da apps.json = server predefinito (AP_DEFAULT)
       if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
       renderTexts(); renderCards(); refreshInstalled(); tellApp(); AP.prefetch();
       if (idx >= 0) { const c = document.querySelectorAll(".card")[Math.min(idx, APPS.length - 1)]; const b = c && c.querySelector("a.btn"); if (b) b.focus(); }

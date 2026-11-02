@@ -518,6 +518,10 @@ public class MainActivity extends Activity {
             }
             JSONObject j = text.trim().startsWith("{") ? new JSONObject(text) : new JSONObject();
             if (code == 200 && j.optBoolean("ok") && url.equals(j.optString("appUrl"))) return null;
+            // ogni autorizzazione vale per un solo download: revocata o già usata → serve una nuova richiesta
+            String st = j.optString("status", "");
+            if ("revoked".equals(st)) return "Autorizzazione revocata dal venditore.";
+            if ("used".equals(st)) return "Autorizzazione già usata: richiedila di nuovo.";
             String err = j.optString("error", "");
             if (err.length() > 160) err = err.substring(0, 160);
             return err.isEmpty() ? "Autorizzazione non valida o scaduta. Richiedila di nuovo." : err;
