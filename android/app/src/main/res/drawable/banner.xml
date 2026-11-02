@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Banner 320x180 mostrato nella schermata Home di Android TV / Fire TV -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:pathData="M0,0h320v180h-320z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="320" android:endY="180"
+                android:startColor="#0B1030" android:centerColor="#130B2E" android:endColor="#05060F" />
+        </aapt:attr>
+    </path>
+    <!-- logo esagonale -->
+    <path android:strokeWidth="5" android:strokeLineJoin="round"
+        android:pathData="M70,46 L104,66 L104,114 L70,134 L36,114 L36,66 Z">
+        <aapt:attr name="android:strokeColor">
+            <gradient android:type="linear" android:startX="36" android:startY="46" android:endX="104" android:endY="134"
+                android:startColor="#22D3EE" android:centerColor="#8B5CF6" android:endColor="#EC4899" />
+        </aapt:attr>
+    </path>
+    <path android:strokeWidth="8" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M60,68 V112 M60,92 L84,68 M66,86 L86,112">
+        <aapt:attr name="android:strokeColor">
+            <gradient android:type="linear" android:startX="60" android:startY="68" android:endX="86" android:endY="112"
+                android:startColor="#22D3EE" android:endColor="#EC4899" />
+        </aapt:attr>
+    </path>
+    <!-- scritta KAIROS -->
+    <path android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M128,74v32M128,90l15,-16M131,87l13,19 M152,106l10,-32l10,32M156,96h12 M183,74v32 M195,106v-32h10a8,8 0 0 1 0,16h-10M205,90l9,16 M234,74a9,16 0 1 0 0.1,0z M270,77a8,6 0 1 0 -8,11a8,6 0 1 1 -8,11">
+        <aapt:attr name="android:strokeColor">
+            <gradient android:type="linear" android:startX="128" android:startY="74" android:endX="280" android:endY="106"
+                android:startColor="#22D3EE" android:centerColor="#8B5CF6" android:endColor="#EC4899" />
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#8B97B5" android:pathData="M128,118h150v2h-150z" />
+</vector>
