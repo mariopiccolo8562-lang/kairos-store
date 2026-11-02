@@ -185,6 +185,46 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
 .top{order:1}.desc,.status{order:2}.code{order:3}.btn{order:4}.progress{order:5}
 .card.busy .desc{display:none}.card.busy .status{margin:0}
 
+/* ---------- autorizzazione del venditore ---------- */
+.ap{position:fixed;inset:0;z-index:65;display:grid;place-items:center;padding:20px;background:rgba(3,4,12,.8);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.ap[hidden]{display:none}
+body.ap-on{overflow:hidden}
+.ap-box{position:relative;width:min(560px,100%);max-height:100%;overflow:auto;border-radius:24px;padding:2px;
+  background:linear-gradient(160deg,rgba(34,211,238,.6),rgba(139,92,246,.35),rgba(236,72,153,.55));box-shadow:0 30px 90px -20px rgba(139,92,246,.75);animation:fadeUp .35s both}
+.ap-in{border-radius:22px;padding:26px 26px 22px;background:rgba(10,13,30,.97);display:flex;flex-direction:column;gap:14px;outline:none}
+.ap-head{display:flex;align-items:center;gap:16px}
+.ap-ic{width:58px;height:58px;flex:none;border-radius:16px;display:grid;place-items:center;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);color:var(--c1)}
+.ap-ic svg{width:28px;height:28px}
+.ap h2{margin:0;font:700 13px var(--display);letter-spacing:.28em;color:var(--c1)}
+.ap-app{margin:4px 0 0;font:700 22px/1.15 var(--display);letter-spacing:.04em;color:#fff;overflow:hidden;text-overflow:ellipsis}
+.ap-text{margin:0;color:#b8c3dc;font-size:17px}
+.ap-text b{color:#fff}
+.ap-step{display:flex;flex-direction:column;gap:14px}
+.ap-step[hidden]{display:none}
+.ap-lbl{display:block;font:600 11px var(--display);letter-spacing:.16em;color:var(--muted);margin-bottom:-6px}
+.ap-inp{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--edge);background:rgba(0,0,0,.35);color:#fff;font:600 18px var(--body);outline:none}
+.ap-code{width:100%;padding:12px 10px;border-radius:16px;border:1px solid var(--edge);background:rgba(0,0,0,.45);color:#fff;text-align:center;
+  font:900 40px var(--display);letter-spacing:.42em;text-indent:.42em;outline:none}
+.ap-code::placeholder{color:rgba(255,255,255,.16)}
+.ap-inp:focus,.ap-code:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.3)}
+.ap-pad{display:none;grid-template-columns:repeat(3,1fr);gap:10px}
+.ap-pad button{padding:12px 0;border-radius:14px;border:1px solid var(--edge);background:rgba(255,255,255,.04);cursor:pointer;outline:none;
+  font:700 22px var(--display);color:#fff}
+.ap-pad button.k-ok{background:var(--grad);color:#031018;border:0;font-size:16px;letter-spacing:.15em}
+.ap-pad button:focus,.ap-pad button:hover{border-color:var(--c1);background-color:rgba(34,211,238,.18);box-shadow:0 0 0 3px #fff}
+.ap-btns{display:flex;gap:12px}
+.ap .btn{order:0;flex:1;width:auto}
+.ap .btn:disabled{opacity:.55;cursor:wait}
+.ap-sec{flex:none;padding:15px 20px;border-radius:14px;border:1px solid var(--edge);background:transparent;cursor:pointer;outline:none;
+  font:700 13px var(--display);letter-spacing:.18em;color:var(--muted)}
+.ap-sec:focus,.ap-sec:hover{color:#fff;border-color:#fff;box-shadow:0 0 0 3px #fff}
+.ap-wait{margin:0;display:flex;align-items:center;gap:10px;color:var(--c1);font-size:16px}
+.ap-wait i{width:9px;height:9px;flex:none;border-radius:50%;background:var(--c1);box-shadow:0 0 10px var(--c1);animation:blink 1.2s infinite}
+.ap-msg{margin:0;font-size:16px;color:#fda4af}
+.ap-msg.ok{color:#6ee7b7}
+.ap-msg:empty{display:none}
+
 /* ---------- effetti click ---------- */
 .ring{position:fixed;z-index:60;pointer-events:none;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
   border:2px solid var(--c1);box-shadow:0 0 20px var(--c1);animation:ring .7s ease-out forwards}
@@ -270,6 +310,30 @@ html.tv footer{margin-top:2rem;font-size:1rem}
 html.tv .intro-logo g{filter:none}
 html.tv .intro-logo{animation:none}
 html.tv .intro-bar b{box-shadow:none}
+html.tv .ap{padding:2rem;-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(3,4,12,.9)}
+html.tv .ap-box{width:48rem;border-radius:1.8rem;padding:.2rem;box-shadow:none;animation:none}
+html.tv .ap-in{border-radius:1.65rem;padding:1.8rem 2rem 1.6rem;gap:1rem}
+html.tv .ap-head{gap:1.2rem}
+html.tv .ap-ic{width:4.4rem;height:4.4rem;border-radius:1.2rem}
+html.tv .ap-ic svg{width:2.2rem;height:2.2rem}
+html.tv .ap h2{font-size:1rem}
+html.tv .ap-app{font-size:2rem;margin-top:.3rem}
+html.tv .ap-text{font-size:1.45rem;line-height:1.35}
+html.tv .ap-step{gap:1rem}
+html.tv .ap-lbl{font-size:.85rem}
+html.tv .ap-inp{padding:.8rem 1.2rem;border-radius:1rem;font-size:1.5rem}
+html.tv .ap-code{padding:.6rem;border-radius:1.1rem;font-size:3rem}
+html.tv .ap-pad{display:grid;gap:.7rem}
+html.tv .ap-pad button{padding:.55rem 0;border-radius:1rem;font-size:1.9rem}
+html.tv .ap-pad button.k-ok{font-size:1.3rem}
+html.tv .ap-pad button:focus{box-shadow:0 0 0 .25rem #fff}
+html.tv .ap-btns{gap:1rem}
+html.tv #apOk{display:none}
+html.tv .ap-sec{padding:.85rem 1.6rem;border-radius:1rem;font-size:1.1rem}
+html.tv .ap-sec:focus{box-shadow:0 0 0 .25rem #fff}
+html.tv .ap-wait{font-size:1.3rem;gap:.8rem}
+html.tv .ap-wait i{width:.7rem;height:.7rem;box-shadow:none}
+html.tv .ap-msg{font-size:1.3rem}
 @media (max-width:640px){
   header{flex-wrap:wrap}.hud{margin-left:0;width:100%}.hud .chip{margin-right:auto}
   .grid{grid-template-columns:1fr}.logo-wrap{width:60px;height:60px}
@@ -359,6 +423,36 @@ html.tv .intro-bar b{box-shadow:none}
   <footer id="footer"></footer>
 </div>
 
+<!-- autorizzazione del venditore prima del download (si attiva con "approval" in apps.json) -->
+<div class="ap" id="ap" hidden>
+  <div class="ap-box" role="dialog" aria-modal="true" aria-labelledby="apTitle">
+    <div class="ap-in" id="apIn" tabindex="-1">
+      <div class="ap-head">
+        <div class="ap-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/></svg></div>
+        <div style="min-width:0"><h2 id="apTitle">AUTORIZZAZIONE</h2><p class="ap-app" id="apApp"></p></div>
+      </div>
+      <p class="ap-text" id="apText"></p>
+      <div class="ap-step" id="apStep1">
+        <label class="ap-lbl" for="apName">IL TUO NOME (FACOLTATIVO)</label>
+        <input class="ap-inp" id="apName" maxlength="40" autocomplete="name" placeholder="Così il venditore sa chi sei">
+        <div class="ap-btns"><button class="btn" type="button" id="apAsk"><span>RICHIEDI AUTORIZZAZIONE</span></button><button class="ap-sec" type="button" id="apNo1">ANNULLA</button></div>
+      </div>
+      <div class="ap-step" id="apStep2" hidden>
+        <input class="ap-code" id="apCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="––––––" aria-label="Codice di 6 cifre">
+        <div class="ap-pad" id="apPad">
+          <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+          <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+          <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+          <button type="button" data-k="del" aria-label="Cancella">⌫</button><button type="button" data-k="0">0</button><button type="button" class="k-ok" data-k="ok">OK</button>
+        </div>
+        <p class="ap-wait"><i></i>In attesa dell'autorizzazione del venditore…</p>
+        <div class="ap-btns"><button class="btn" type="button" id="apOk"><span>CONFERMA CODICE</span></button><button class="ap-sec" type="button" id="apNo2">CHIUDI</button></div>
+      </div>
+      <p class="ap-msg" id="apMsg" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =================================================================
    CONFIG — elenco di RISERVA. L'elenco vero è in apps.json e si
@@ -369,6 +463,10 @@ html.tv .intro-bar b{box-shadow:none}
    pkg   = (facoltativo) nome del pacchetto Android, es. "com.esempio.player":
            se lo indichi, il pulsante Disinstalla riconosce l'app con certezza
    glow  = colore del bagliore della scheda
+   Autorizzazione del venditore (in apps.json, dentro "store"):
+     "approval": { "server": "https://kairos-panel.TUO-NOME.workers.dev", "on": true }
+     → prima di ogni download il cliente chiede il permesso; tu lo ricevi
+       via email e nel pannello (pagina "Download store").
    ================================================================= */
 let STORE = {
   name: "KAIROS STORE",
@@ -552,6 +650,7 @@ const disabled = isIOS || isSmartTV;
 const label = isStoreApp || canInstall || isTV ? "INSTALLA" : "SCARICA";
 function renderCards() {
 grid.innerHTML = "";
+const gated = !!apServer(); // con l'autorizzazione attiva il link dell'APK non è nella pagina
 APPS.forEach((app, i) => {
   const card = document.createElement("article");
   card.className = "card";
@@ -566,7 +665,7 @@ APPS.forEach((app, i) => {
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
-      <a class="btn" href="${disabled ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
+      <a class="btn" href="${disabled || gated ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
       <button class="unbtn" type="button" id="un${i}" data-u="${i}" hidden>${TRASH}<span>DISINSTALLA</span></button>
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
@@ -620,6 +719,7 @@ grid.addEventListener("click", e => {
   const i = +a.dataset.i, app = APPS[i], r = a.getBoundingClientRect();
   burst(r.left + r.width / 2, r.top + r.height / 2, app.glow || "#22d3ee");
   Sound.whoosh();
+  if (apServer()) { e.preventDefault(); AP.open(i); return; } // serve l'ok del venditore
   if (isStoreApp) {
     e.preventDefault();
     window.KairosStore.install(downloadUrl(app), app.name, "st" + i);
@@ -642,7 +742,7 @@ function status(id, text) {
     if (/completato|Conferma/i.test(text)) { pg.classList.add("on"); pg.firstElementChild.style.width = "100%"; }
   }
   if (/completato/i.test(text)) Sound.done();
-  if (/non riuscito|non disponibile|annullata|Impossibile/i.test(text)) Sound.error();
+  if (/non riuscito|non disponibile|annullata|Impossibile|non valida|scaduta|autorizzazione del venditore/i.test(text)) Sound.error();
 }
 window.kairosStatus = status;
 
@@ -710,11 +810,260 @@ if (q.get("msg") === "ok") {
   setTimeout(() => toast("✓ Kairos Store è aggiornato" + v + ". Lista app aggiornata."), 500);
 }
 
+// ---------- autorizzazione del venditore prima del download ----------
+// In apps.json:  "store": { "approval": { "server": "https://kairos-panel.TUO-NOME.workers.dev", "on": true } }
+// Con "server" vuoto oppure "on": false i download partono come prima, senza chiedere nulla.
+let appsLoaded = false;
+function cleanServer(s) {
+  s = String(s || "").trim().replace(/\/+$/, "");
+  return /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(s) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(s) ? s : "";
+}
+function apServer() {
+  const a = STORE.approval;
+  if (a && typeof a === "object") return a.on === false ? "" : cleanServer(a.server);
+  // elenco di riserva (apps.json non caricato): vale il server ricordato dall'app dello store
+  if (!appsLoaded && isStoreApp) { try { return cleanServer(window.KairosStore.approvalServer && window.KairosStore.approvalServer()); } catch (e) {} }
+  return "";
+}
+// l'app Android ricorda il server: così blocca anche i download che non passano da questa pagina
+function tellApp() {
+  if (!isStoreApp || !appsLoaded || typeof window.KairosStore.setApprovalServer !== "function") return;
+  try { window.KairosStore.setApprovalServer(apServer()); } catch (e) {}
+}
+function installId() {
+  try { if (isStoreApp && window.KairosStore.deviceId) { const d = window.KairosStore.deviceId(); if (/^[A-Za-z0-9_-]{16,64}$/.test(d)) return d; } } catch (e) {}
+  let d = ""; try { d = localStorage.getItem("kairosDid") || ""; } catch (e) {}
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(d)) {
+    const b = new Uint8Array(18); crypto.getRandomValues(b);
+    d = btoa(String.fromCharCode.apply(null, b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    try { localStorage.setItem("kairosDid", d); } catch (e) {}
+  }
+  return d;
+}
+function deviceName() {
+  try { if (isStoreApp && window.KairosStore.deviceName) { const n = window.KairosStore.deviceName(); if (n) return String(n).slice(0, 80); } } catch (e) {}
+  const m = /Android [\d.]+; ([^;)]+?)(?: Build\/[^;)]*)?[;)]/.exec(ua);
+  let n = m ? m[1].trim() : isIOS ? "iPhone/iPad" : /Windows/.test(ua) ? "PC Windows" : /Macintosh/.test(ua) ? "Mac" : "Browser";
+  if (m && m[1].trim() === "K") n = "Android";
+  if (isFireTV) n += " (Fire TV)"; else if (isAndroidTV) n += " (Android TV)"; else if (!isStoreApp && m) n += " (browser)";
+  return n.slice(0, 80);
+}
+const AP = (() => {
+  const box = document.getElementById("ap"), $ = id => document.getElementById(id);
+  const LS = "kairosApproval", TTL = 24 * 3600e3;
+  const NET = "Server delle autorizzazioni non raggiungibile. Controlla la connessione e riprova.";
+  let cur = null, timer = 0, back = null, cfg = { s: "", t: 0, on: null };
+  if (isTV) { $("apCode").readOnly = true; $("apCode").tabIndex = -1; } // sul TV si usa il tastierino a schermo
+
+  // richieste in attesa ricordate sul dispositivo (lo store può ricaricarsi mentre si aspetta)
+  const saved = () => { try { return JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) { return {}; } };
+  function save(name, v) {
+    const s = saved(); if (v) s[name] = v; else delete s[name];
+    Object.keys(s).forEach(k => { if (!s[k] || !s[k].t || Date.now() - s[k].t > TTL) delete s[k]; });
+    try { localStorage.setItem(LS, JSON.stringify(s)); } catch (e) {}
+  }
+  function call(path, body, server) {
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const tm = setTimeout(() => { if (ctl) ctl.abort(); }, 15000);
+    const opt = { cache: "no-store", credentials: "omit" };
+    if (ctl) opt.signal = ctl.signal;
+    // text/plain = richiesta "semplice": niente preflight CORS, più veloce sui TV
+    if (body) { opt.method = "POST"; opt.headers = { "Content-Type": "text/plain;charset=UTF-8" }; opt.body = JSON.stringify(body); }
+    return fetch((server || apServer()) + "/api/store/" + path, opt)
+      .then(r => r.json().catch(() => ({})).then(j => { clearTimeout(tm); j.http = r.status; return j; }),
+            e => { clearTimeout(tm); throw e; });
+  }
+  function getCfg(force) {
+    const s = apServer(); if (!s) return Promise.resolve(null);
+    if (!force && cfg.s === s && Date.now() - cfg.t < 60000) return Promise.resolve(cfg.on);
+    return call("config", null, s).then(j => { cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null }; return cfg.on; }, () => null);
+  }
+
+  const isOpen = () => !box.hidden;
+  const items = () => [...box.querySelectorAll("button, input")].filter(el => !el.disabled && el.tabIndex >= 0 && el.offsetParent !== null);
+  function msg(t, ok) { const m = $("apMsg"); m.textContent = t || ""; m.className = "ap-msg" + (ok ? " ok" : ""); }
+  function focusFirst() {
+    const s2 = !$("apStep2").hidden;
+    let el = s2 ? (isTV ? box.querySelector('#apPad [data-k="1"]') : matchMedia("(hover:hover)").matches ? $("apCode") : null) : $("apAsk");
+    if (el && !el.disabled && el.offsetParent !== null) el.focus(); else $("apIn").focus();
+  }
+  function step(n) { $("apStep1").hidden = n !== 1; $("apStep2").hidden = n !== 2; }
+  function askStep() {
+    step(1); $("apAsk").disabled = false;
+    $("apText").innerHTML = "Per scaricare questa app serve l'<b>autorizzazione del venditore</b>. Premi il pulsante: il venditore riceve subito la richiesta.";
+    focusFirst();
+  }
+  function waitStep() {
+    step(2); $("apCode").value = "";
+    $("apText").innerHTML = "<b>Richiesta inviata.</b> Inserisci il codice che ti ha dato il venditore, oppure attendi: appena autorizza, il download parte da solo.";
+    focusFirst();
+  }
+  function reveal() { if (!isOpen()) { box.hidden = false; document.body.classList.add("ap-on"); } }
+  function start(app, url, visible) {
+    clearTimeout(timer);
+    if (!isOpen()) back = document.activeElement;
+    cur = { app: app.name, url, server: apServer(), id: "", did: installId(), busy: false };
+    $("apApp").textContent = app.name; msg("");
+    let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
+    $("apName").value = nm;
+    if (visible) reveal();
+  }
+  function close() {
+    const name = cur && cur.app;
+    clearTimeout(timer); cur = null;
+    if (!isOpen()) return;
+    box.hidden = true; document.body.classList.remove("ap-on");
+    let b = back && document.contains(back) && back.focus ? back : null;
+    if (!b && name) { const i = APPS.findIndex(a => a.name === name); b = document.querySelector('a.btn[data-i="' + i + '"]'); }
+    if (b) b.focus();
+  }
+
+  function open(i) {
+    const app = APPS[i]; if (!app) return;
+    const url = String(downloadUrl(app)).trim();
+    const s = saved()[app.name];
+    // approvazione spenta nel pannello: nessuna finestra, il server autorizza subito (e registra il download)
+    const auto = !(s && s.id) && cfg.s === apServer() && cfg.on === false && Date.now() - cfg.t < 120000;
+    start(app, url, !auto);
+    if (!cur.server) { askStep(); $("apAsk").disabled = true; msg("Download non disponibile: contatta il venditore."); return; }
+    if (auto) { status("st" + i, "Avvio del download…"); ask(true); return; }
+    if (s && s.id && Date.now() - s.t < TTL && s.url === url) { cur.id = s.id; waitStep(); check(true, 0); return; }
+    askStep();
+    getCfg(); // tiene aggiornato lo stato dell'approvazione per le prossime volte
+  }
+  function ask(silent) {
+    const c = cur; if (!c || c.busy) return;
+    const note = $("apName").value.trim().slice(0, 40);
+    if (!silent) { try { localStorage.setItem("kairosName", note); } catch (e) {} }
+    c.busy = true; $("apAsk").disabled = true; msg(silent ? "" : "Invio della richiesta…", true);
+    const fail = t => { c.busy = false; if (cur !== c) return; reveal(); askStep(); Sound.error(); msg(t); };
+    call("request", { app: c.app, appUrl: c.url, device: deviceName(), did: c.did, note }, c.server).then(j => {
+      if (cur !== c) return;
+      c.busy = false;
+      if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
+      if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now() }); msg(""); reveal(); waitStep(); poll(0); return; }
+      fail(j.error || NET);
+    }, () => fail(NET));
+  }
+  // controllo automatico: ogni 4 s per 2 minuti, poi ogni 8 s, poi ogni 15 s
+  function poll(n) { clearTimeout(timer); timer = setTimeout(() => check(false, n + 1), n < 30 ? 4000 : n < 60 ? 8000 : 15000); }
+  function check(first, n) {
+    const c = cur; if (!c || !c.id) return;
+    if (document.hidden) { poll(n); return; }
+    call("status?id=" + encodeURIComponent(c.id) + "&did=" + encodeURIComponent(c.did), null, c.server).then(j => {
+      if (cur !== c) return;
+      if (j.status === "approved" && j.token) { go(j.token); return; }
+      if (j.status === "pending") { poll(n); return; }
+      if (j.http === 429 || j.http >= 500) { poll(Math.max(n, 60)); return; }
+      if (j.status === "denied") { ended("Il venditore non ha autorizzato il download."); return; }
+      ended(first ? "" : "La richiesta è scaduta: richiedila di nuovo.");
+    }, () => { if (cur === c) poll(Math.max(n, 30)); });
+  }
+  function ended(t) {
+    clearTimeout(timer);
+    if (cur) { save(cur.app, null); cur.id = ""; }
+    askStep(); if (t) { Sound.error(); msg(t); }
+  }
+  function verify() {
+    const c = cur; if (!c || !c.id || c.busy) return;
+    const code = $("apCode").value.replace(/\D/g, "").slice(0, 6);
+    if (code.length !== 6) { Sound.error(); msg("Inserisci le 6 cifre del codice."); return; }
+    c.busy = true; msg("Verifica del codice…", true);
+    call("verify", { id: c.id, did: c.did, code }, c.server).then(j => {
+      c.busy = false; if (cur !== c) return;
+      if (j.ok && j.token) { go(j.token); return; }
+      if (j.status === "denied") { ended(j.error || "Troppi tentativi: richiesta annullata."); return; }
+      if (j.status === "expired" || j.status === "used" || j.http === 404) { ended("La richiesta è scaduta: richiedila di nuovo."); return; }
+      Sound.error(); $("apCode").value = ""; msg(j.error || NET);
+    }, () => { c.busy = false; if (cur === c) { Sound.error(); msg(NET); } });
+  }
+  function typeDigit(d) {
+    const inp = $("apCode");
+    if (d === "ok") { verify(); return; }
+    if (d === "del") inp.value = inp.value.slice(0, -1);
+    else if (inp.value.length < 6) inp.value += d;
+    Sound.hover(+d || 0);
+    if (d !== "del" && inp.value.length === 6) verify();
+  }
+  // autorizzazione ricevuta: parte il download
+  function go(token) {
+    const c = cur; if (!c) return;
+    clearTimeout(timer); save(c.app, null); close();
+    const i = APPS.findIndex(a => a.name === c.app), sid = i >= 0 ? "st" + i : "";
+    Sound.done(); toast("✓ Download autorizzato: " + c.app);
+    if (isStoreApp && typeof window.KairosStore.installApproved === "function") {
+      // l'app verifica di nuovo l'autorizzazione con il server prima di scaricare
+      window.KairosStore.installApproved(c.url, c.app, sid, c.server, c.id, token);
+    } else if (isStoreApp) {
+      window.KairosStore.install(c.url, c.app, sid);          // app dello store di una versione precedente
+    } else {
+      status(sid, "Autorizzato: avvio del download…");
+      call("consume", { id: c.id, did: c.did, token, url: c.url }, c.server).then(j => {
+        if (!j.ok) { status(sid, j.error || "Autorizzazione non valida o scaduta."); setTimeout(() => status(sid, ""), 6000); return; }
+        status(sid, "Download avviato…"); setTimeout(() => status(sid, ""), 5000);
+        location.href = c.url;
+      }, () => { status(sid, NET); setTimeout(() => status(sid, ""), 6000); });
+    }
+  }
+  // riapre la richiesta lasciata in sospeso (es. lo store si è ricaricato mentre si aspettava)
+  function resume() {
+    if (!entered) { setTimeout(resume, 800); return; }
+    if (!apServer() || isOpen()) return;
+    const s = saved(); let best = null;
+    Object.keys(s).forEach(k => { const v = s[k]; if (v && v.id && Date.now() - v.t < TTL && (!best || v.t > best.t)) best = Object.assign({ name: k }, v); });
+    if (!best) return;
+    const i = APPS.findIndex(a => a.name === best.name);
+    if (i < 0 || String(downloadUrl(APPS[i])).trim() !== best.url) { save(best.name, null); return; }
+    call("status?id=" + encodeURIComponent(best.id) + "&did=" + encodeURIComponent(installId()), null).then(j => {
+      if (isOpen()) return;
+      if (j.status === "approved" && j.token) { start(APPS[i], best.url, false); cur.id = best.id; go(j.token); }
+      else if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(); poll(0); }
+      else if (j.status) save(best.name, null);
+    }, () => {});
+  }
+  function key(e) {
+    const k = e.key, t = e.target, s2 = !$("apStep2").hidden;
+    if (k === "Escape" || k === "GoBack" || k === "BrowserBack") { e.preventDefault(); close(); return; }
+    if (s2 && t !== $("apCode")) {
+      if (/^[0-9]$/.test(k)) { e.preventDefault(); typeDigit(k); return; }        // tasti numerici del telecomando
+      if (k === "Backspace") { e.preventDefault(); typeDigit("del"); return; }
+    }
+    if (k === "Enter" && t === $("apCode")) { e.preventDefault(); verify(); return; }
+    if (k === "Enter" && t === $("apName")) { e.preventDefault(); ask(); return; }
+    if (k === "Tab") { const it = items(); if (it.length) { e.preventDefault(); const p = it.indexOf(t); it[(p + (e.shiftKey ? -1 : 1) + it.length) % it.length].focus(); } return; }
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)) {
+      if (t && t.tagName === "INPUT" && !isTV && (k === "ArrowLeft" || k === "ArrowRight")) return; // cursore nel testo
+      e.preventDefault(); moveFocus(k, items());
+    }
+  }
+
+  $("apAsk").addEventListener("click", () => { Sound.select(); ask(false); });
+  $("apOk").addEventListener("click", () => verify());
+  $("apNo1").addEventListener("click", () => { Sound.select(); close(); });
+  $("apNo2").addEventListener("click", () => { Sound.select(); close(); });
+  $("apPad").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) typeDigit(b.dataset.k); });
+  $("apCode").addEventListener("input", () => {
+    const inp = $("apCode"), v = inp.value.replace(/\D/g, "").slice(0, 6);
+    if (v !== inp.value) inp.value = v;
+    if (v.length === 6) verify();
+  });
+  box.addEventListener("click", e => { if (e.target === box) close(); });   // tocco fuori dalla finestra
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && cur && cur.id && !cur.busy) check(false, 0); });
+
+  // l'app Android: tasto Indietro e download bloccati perché non autorizzati
+  window.kairosBack = () => { if (isOpen()) { close(); return true; } return false; };
+  window.kairosNeedApproval = url => {
+    const i = APPS.findIndex(a => String(downloadUrl(a)).trim() === String(url).trim());
+    if (i >= 0 && !isOpen()) open(i);
+  };
+  return { open, close, isOpen, key, focusFirst, resume, prefetch: () => getCfg(true) };
+})();
+
 // ---------- navigazione con telecomando ----------
 const focusables = () => [updateBtn, soundBtn, ...document.querySelectorAll("a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
-function moveFocus(dir) {
-  const items = focusables(); const cur = document.activeElement;
-  if (!items.includes(cur)) { (items[1] || items[0]).focus(); return; }
+function moveFocus(dir, list) {
+  const items = list || focusables(); const cur = document.activeElement;
+  if (!items.includes(cur)) { const f = list ? items[0] : (items[1] || items[0]); if (f) f.focus(); return; }
   const r = cur.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   let best = null, bestD = Infinity;
   items.forEach(el => {
@@ -723,18 +1072,23 @@ function moveFocus(dir) {
     const ok = dir === "ArrowRight" ? dx > 5 : dir === "ArrowLeft" ? dx < -5 : dir === "ArrowDown" ? dy > 5 : dy < -5;
     if (!ok) return;
     const h = dir === "ArrowRight" || dir === "ArrowLeft";
+    // nella finestra di autorizzazione destra/sinistra restano sulla stessa riga
+    if (list && h && Math.min(q.bottom, r.bottom) - Math.max(q.top, r.top) <= 0) return;
     const d = h ? Math.abs(dx) + Math.abs(dy) * 3 : Math.abs(dy) + Math.abs(dx) * 3;
     if (d < bestD) { bestD = d; best = el; }
   });
   if (best) { best.focus(); best.scrollIntoView({ block: "nearest", behavior: (reduce || isTV) ? "auto" : "smooth" }); }
+  else if (list) return;
   else if (dir === "ArrowUp") window.scrollTo({ top: 0, behavior: isTV ? "auto" : "smooth" });
   else if (dir === "ArrowDown") window.scrollBy({ top: innerHeight * .5, behavior: isTV ? "auto" : "smooth" });
 }
 document.addEventListener("keydown", e => {
   if (!entered) { if (["Enter", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key) || e.keyCode === 23) { e.preventDefault(); enter(); } return; }
+  if (AP.isOpen()) { AP.key(e); return; }   // finestra di autorizzazione aperta: le frecce restano dentro
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); moveFocus(e.key); }
 });
 document.addEventListener("focusin", e => {
+  if (AP.isOpen() && !document.getElementById("ap").contains(e.target)) { AP.focusFirst(); return; }
   const c = e.target.closest(".card");
   setFocusCard(c);
   if (entered) Sound.hover(c ? [...grid.children].indexOf(c) : 0);
@@ -769,6 +1123,7 @@ if (ip && !isTV && !isStoreApp) ip.textContent = "TOCCA PER ENTRARE";
   const start = () => {
     if (done) return; done = true;
     renderTexts(); renderCards(); refreshInstalled();
+    tellApp(); AP.prefetch(); AP.resume();
     if (isTV && entered && !(document.activeElement && document.activeElement.closest && document.activeElement.closest(".card, .hud"))) {
       const f = document.querySelector("a.btn:not([aria-disabled='true'])"); if (f) f.focus();
     }
@@ -778,6 +1133,7 @@ if (ip && !isTV && !isStoreApp) ip.textContent = "TOCCA PER ENTRARE";
     .then(r => r.ok ? r.json() : null)
     .then(d => {
       if (done || !d || !Array.isArray(d.apps)) return;
+      appsLoaded = true;
       APPS = d.apps.filter(a => a && a.name && !a.hidden);
       if (d.store) STORE = Object.assign({}, STORE, d.store);
       if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
@@ -801,10 +1157,12 @@ function pollApps() {
       // ricorda quale card era selezionata per non far perdere la posizione col telecomando
       const act = document.activeElement, cards = [...document.querySelectorAll(".card")];
       const idx = act && act.closest ? cards.indexOf(act.closest(".card")) : -1;
+      appsLoaded = true;
       APPS = d.apps.filter(a => a && a.name && !a.hidden);
       if (d.store) STORE = Object.assign({}, STORE, d.store);
+      STORE.approval = d.store && d.store.approval; // tolta da apps.json = autorizzazione spenta
       if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
-      renderTexts(); renderCards(); refreshInstalled();
+      renderTexts(); renderCards(); refreshInstalled(); tellApp(); AP.prefetch();
       if (idx >= 0) { const c = document.querySelectorAll(".card")[Math.min(idx, APPS.length - 1)]; const b = c && c.querySelector("a.btn"); if (b) b.focus(); }
     })
     .catch(() => {});
