@@ -111,7 +111,18 @@ public class MainActivity extends Activity {
 
         loadStore(false, null);
         web.requestFocus();
+        poll.postDelayed(periodicCheck, PERIODIC_MS);
     }
+
+    // ---- controllo periodico della nuova versione dello store mentre resta aperto ----
+    private static final long PERIODIC_MS = 30 * 60 * 1000L;
+    private final Runnable periodicCheck = new Runnable() {
+        @Override
+        public void run() {
+            if (!busy && pendingApk == null) checkStoreUpdate(false);
+            poll.postDelayed(this, PERIODIC_MS);
+        }
+    };
 
     /** Carica sempre la versione più recente della lista app (niente copia vecchia in memoria). */
     private void loadStore(boolean skipIntro, String msg) {
@@ -516,6 +527,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        poll.removeCallbacks(periodicCheck);
         stopPermissionWatcher();
         super.onDestroy();
     }

@@ -1,0 +1,39 @@
+name = "kairos-panel"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+# Se usi un tuo dominio su Cloudflare (consigliato, serve per Cloudflare Access sul solo pannello):
+# routes = [{ pattern = "tv.tuodominio.it", custom_domain = true }]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kairos-iptv-db"
+database_id = "REPLACE_WITH_D1_ID"   # lo compila da solo la GitHub Action al primo deploy
+migrations_dir = "migrations"
+
+# Rate limiting nativo di Cloudflare
+[[ratelimits]]
+name = "RL_LOGIN"
+namespace_id = "7101"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "RL_DEVICE"
+namespace_id = "7102"
+simple = { limit = 30, period = 60 }
+
+# Pulizia notturna (sessioni scadute, log vecchi, dispositivi abbandonati)
+[triggers]
+crons = ["17 3 * * *"]
+
+[observability]
+enabled = true
+
+# Le variabili ACCESS_TEAM_DOMAIN, ACCESS_AUD e TURNSTILE_SITEKEY vengono passate
+# dalla GitHub Action (variabili del repository). I segreti ENC_KEY, ADMIN_BOOTSTRAP_PASS
+# e TURNSTILE_SECRET vengono caricati come "secrets" del Worker.

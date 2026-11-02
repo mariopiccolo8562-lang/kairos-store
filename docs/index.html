@@ -786,6 +786,32 @@ if (ip && !isTV && !isStoreApp) ip.textContent = "TOCCA PER ENTRARE";
     .then(start);
 })();
 
+// ---------- aggiornamento in tempo reale: ricontrolla apps.json ogni minuto ----------
+let appsSig = "";
+function pollApps() {
+  fetch("apps.json?t=" + Date.now(), { cache: "no-store" })
+    .then(r => r.ok ? r.text() : null)
+    .then(t => {
+      if (!t) return;
+      if (!appsSig) { appsSig = t; return; }
+      if (t === appsSig) return;
+      appsSig = t;
+      const d = JSON.parse(t);
+      if (!d || !Array.isArray(d.apps)) return;
+      // ricorda quale card era selezionata per non far perdere la posizione col telecomando
+      const act = document.activeElement, cards = [...document.querySelectorAll(".card")];
+      const idx = act && act.closest ? cards.indexOf(act.closest(".card")) : -1;
+      APPS = d.apps.filter(a => a && a.name && !a.hidden);
+      if (d.store) STORE = Object.assign({}, STORE, d.store);
+      if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
+      renderTexts(); renderCards(); refreshInstalled();
+      if (idx >= 0) { const c = document.querySelectorAll(".card")[Math.min(idx, APPS.length - 1)]; const b = c && c.querySelector("a.btn"); if (b) b.focus(); }
+    })
+    .catch(() => {});
+}
+pollApps();
+setInterval(pollApps, 60000);
+
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 </script>
 </body>
