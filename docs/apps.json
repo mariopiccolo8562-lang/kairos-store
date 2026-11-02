@@ -8,7 +8,7 @@
     ],
     "contact": "",
     "approval": {
-      "server": "",
+      "server": "https://kairos-panel.mariopiccolo8562.workers.dev",
       "on": true
     }
   },
