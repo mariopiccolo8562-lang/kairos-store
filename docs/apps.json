@@ -6,20 +6,16 @@
       "Installa con un clic.",
       "Sempre aggiornate."
     ],
-    "contact": "",
-    "approval": {
-      "server": "https://kairos-panel.mariopiccolo8562.workers.dev",
-      "on": true
-    }
+    "contact": ""
   },
   "apps": [
     {
       "name": "Kairos App",
       "tag": "Kairos",
       "description": "La nostra app originale, con: stile intuitivo, moderno, futuristico e con un effetto Wow",
-      "url": "https://github.com/mariopiccolo8562-lang/kairos-iptv/releases/download/v1.1.0/kairos.apk",
-      "code": "1069194",
-      "icon": "icons/kairos-app-mvyfgrl7.webp",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-iptv/releases/download/v1.7.1/kairos.apk",
+      "code": "",
+      "icon": "icons/kairos-app-mvze0skh.webp",
       "glow": "#ff0000",
       "pkg": "",
       "light": false,
