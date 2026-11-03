@@ -12,11 +12,23 @@
     {
       "name": "Kairos App",
       "tag": "Kairos",
-      "description": "La nostra app originale, con: stile intuitivo, moderno, futuristico e con un effetto Wow",
+      "description": "La nostra app originale, con: stile a tema Netflix",
       "url": "https://github.com/mariopiccolo8562-lang/kairos-store/releases/download/kairos-tv/kairos-tv.apk",
       "code": "",
       "icon": "icons/kairos-app-mvze0skh.webp",
       "glow": "#ff0000",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "Kairos-Lite",
+      "tag": "Lite",
+      "description": "La nostra app originale lite",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-lite/releases/latest/download/kairos-lite.apk",
+      "code": "",
+      "icon": "",
+      "glow": "#ec4899",
       "pkg": "",
       "light": false,
       "hidden": false
