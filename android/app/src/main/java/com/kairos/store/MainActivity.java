@@ -261,6 +261,12 @@ public class MainActivity extends Activity {
             return findPackage(name, hint);
         }
 
+        /** App distribuite solo dagli store ufficiali: Amazon Appstore su Fire TV, Google Play sugli altri */
+        @JavascriptInterface
+        public void openStore(String pkg, String asin, String statusId) {
+            runOnUiThread(() -> openOfficialStore(pkg, asin, statusId));
+        }
+
         /** Apre la richiesta di disinstallazione del sistema */
         @JavascriptInterface
         public void uninstall(String pkg) {
@@ -743,6 +749,33 @@ public class MainActivity extends Activity {
                 status(pendingStatusId, "Permesso non concesso: installazione annullata.");
             }
         }
+    }
+
+    // ------------------------------------------------------------ store ufficiali
+
+    private void openOfficialStore(String pkg, String asin, String statusId) {
+        if (pkg == null || !pkg.matches("[A-Za-z0-9._]{3,150}")) { status(statusId, "App non disponibile"); return; }
+        boolean amazon = "Amazon".equalsIgnoreCase(Build.MANUFACTURER);
+        boolean validAsin = asin != null && asin.matches("[A-Z0-9]{10}");
+        java.util.ArrayList<String[]> tries = new java.util.ArrayList<>();
+        if (amazon) {
+            tries.add(new String[]{"amzn://apps/android?p=" + pkg, "Apro Amazon Appstore…"});
+            if (validAsin) tries.add(new String[]{"amzn://apps/android?asin=" + asin, "Apro Amazon Appstore…"});
+        }
+        tries.add(new String[]{"market://details?id=" + pkg, "Apro lo store…"});
+        if (!amazon) tries.add(new String[]{"amzn://apps/android?p=" + pkg, "Apro Amazon Appstore…"});
+        tries.add(new String[]{"https://play.google.com/store/apps/details?id=" + pkg, "Apro Google Play…"});
+        for (String[] t : tries) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(t[0]));
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+                status(statusId, t[1]);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> status(statusId, ""), 6000);
+                return;
+            } catch (ActivityNotFoundException | SecurityException ignored) { }
+        }
+        status(statusId, "Store non disponibile su questo dispositivo");
     }
 
     // ------------------------------------------------------------ varie

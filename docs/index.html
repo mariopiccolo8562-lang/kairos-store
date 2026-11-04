@@ -486,7 +486,15 @@ let APPS = [
 ];
 /* ======================== fine CONFIG ======================== */
 
-const downloadUrl = app => app.url || ("https://aftv.news/" + encodeURIComponent(String(app.code).trim()));
+// App presenti solo sugli store ufficiali: nel pannello si mette il link di Google Play
+// (es. https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV — "asin" facoltativo, per Amazon)
+const storePkg = app => { const m = /^https:\/\/play\.google\.com\/store\/apps\/details\?(?:[^#]*&)?id=([A-Za-z0-9._]+)/.exec(app.url || ""); return m ? m[1] : ""; };
+const storeAsin = app => { const m = /[?&]asin=([A-Z0-9]{10})(?:&|$)/.exec(app.url || ""); return m ? m[1] : ""; };
+const downloadUrl = app => {
+  const pkg = storePkg(app);
+  if (pkg) return /AFT[A-Z0-9]|Silk.*TV/i.test(navigator.userAgent || "") ? "amzn://apps/android?p=" + pkg : "https://play.google.com/store/apps/details?id=" + pkg;
+  return app.url || ("https://aftv.news/" + encodeURIComponent(String(app.code).trim()));
+};
 
 // ---------- dispositivo ----------
 const ua = navigator.userAgent || "";
@@ -665,7 +673,7 @@ APPS.forEach((app, i) => {
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
-      <a class="btn" href="${disabled || gated ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
+      <a class="btn" href="${disabled || (gated && !storePkg(app)) ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
       <button class="unbtn" type="button" id="un${i}" data-u="${i}" hidden>${TRASH}<span>DISINSTALLA</span></button>
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
@@ -719,6 +727,14 @@ grid.addEventListener("click", e => {
   const i = +a.dataset.i, app = APPS[i], r = a.getBoundingClientRect();
   burst(r.left + r.width / 2, r.top + r.height / 2, app.glow || "#22d3ee");
   Sound.whoosh();
+  if (storePkg(app)) { // app degli store ufficiali (Amazon Appstore / Google Play): niente download dallo store
+    if (isStoreApp) {
+      e.preventDefault();
+      if (typeof window.KairosStore.openStore === "function") window.KairosStore.openStore(storePkg(app), storeAsin(app), "st" + i);
+      else status("st" + i, "Aggiorna Kairos Store (pulsante AGGIORNA) per installare questa app");
+    } else { status("st" + i, "Apro lo store ufficiale…"); setTimeout(() => status("st" + i, ""), 5000); }
+    return;
+  }
   if (apServer()) { e.preventDefault(); AP.open(i); return; } // serve l'ok del venditore
   if (isStoreApp) {
     e.preventDefault();
