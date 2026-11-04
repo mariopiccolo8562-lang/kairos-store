@@ -34,6 +34,18 @@
       "hidden": false
     },
     {
+      "name": "Kairos-XC",
+      "tag": "Kairos",
+      "description": "La nostra app originale XC",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-xc/releases/latest/download/kairos-xc.apk",
+      "code": "",
+      "icon": "icons/kairos-xc-mw2qqo36.webp",
+      "glow": "#fe6422",
+      "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
       "name": "Kairos-Lite",
       "tag": "Lite",
       "description": "La nostra app originale lite",
