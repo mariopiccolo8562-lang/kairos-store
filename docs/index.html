@@ -490,6 +490,7 @@ let APPS = [
 // (es. https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV — "asin" facoltativo, per Amazon)
 const storePkg = app => { const m = /^https:\/\/play\.google\.com\/store\/apps\/details\?(?:[^#]*&)?id=([A-Za-z0-9._]+)/.exec(app.url || ""); return m ? m[1] : ""; };
 const storeAsin = app => { const m = /[?&]asin=([A-Z0-9]{10})(?:&|$)/.exec(app.url || ""); return m ? m[1] : ""; };
+const apUrl = app => storePkg(app) ? "https://play.google.com/store/apps/details?id=" + storePkg(app) : String(downloadUrl(app)).trim();
 const downloadUrl = app => {
   const pkg = storePkg(app);
   if (pkg) return /AFT[A-Z0-9]|Silk.*TV/i.test(navigator.userAgent || "") ? "amzn://apps/android?p=" + pkg : "https://play.google.com/store/apps/details?id=" + pkg;
@@ -673,7 +674,7 @@ APPS.forEach((app, i) => {
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
-      <a class="btn" href="${disabled || (gated && !storePkg(app)) ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
+      <a class="btn" href="${disabled || gated ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
       <button class="unbtn" type="button" id="un${i}" data-u="${i}" hidden>${TRASH}<span>DISINSTALLA</span></button>
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
@@ -727,6 +728,7 @@ grid.addEventListener("click", e => {
   const i = +a.dataset.i, app = APPS[i], r = a.getBoundingClientRect();
   burst(r.left + r.width / 2, r.top + r.height / 2, app.glow || "#22d3ee");
   Sound.whoosh();
+  if (apServer()) { e.preventDefault(); AP.open(i); return; } // serve l'ok del venditore (anche per le app degli store ufficiali)
   if (storePkg(app)) { // app degli store ufficiali (Amazon Appstore / Google Play): niente download dallo store
     if (isStoreApp) {
       e.preventDefault();
@@ -735,7 +737,6 @@ grid.addEventListener("click", e => {
     } else { status("st" + i, "Apro lo store ufficiale…"); setTimeout(() => status("st" + i, ""), 5000); }
     return;
   }
-  if (apServer()) { e.preventDefault(); AP.open(i); return; } // serve l'ok del venditore
   if (isStoreApp) {
     e.preventDefault();
     window.KairosStore.install(downloadUrl(app), app.name, "st" + i);
@@ -950,7 +951,7 @@ const AP = (() => {
 
   function open(i) {
     const app = APPS[i]; if (!app) return;
-    const url = String(downloadUrl(app)).trim();
+    const url = apUrl(app);
     const s = saved()[app.name];
     // approvazione spenta nel pannello: nessuna finestra, il server autorizza subito (e registra il download)
     const auto = !(s && s.id) && cfg.s === apServer() && cfg.on === false && Date.now() - cfg.t < 120000;
@@ -1025,6 +1026,18 @@ const AP = (() => {
     clearTimeout(timer); save(c.app, null); close();
     const i = APPS.findIndex(a => a.name === c.app), sid = i >= 0 ? "st" + i : "";
     Sound.done(); toast("✓ Download autorizzato: " + c.app);
+    const sa = i >= 0 ? APPS[i] : null;
+    if (sa && storePkg(sa)) { // app degli store ufficiali: si usa l'autorizzazione, poi si apre lo store
+      status(sid, "Autorizzato: apro lo store…");
+      call("consume", { id: c.id, did: c.did, token, url: c.url }, c.server).then(j => {
+        if (!j.ok) { status(sid, j.status === "revoked" ? "Autorizzazione revocata dal venditore." : j.error || "Autorizzazione non valida o scaduta."); setTimeout(() => status(sid, ""), 6000); return; }
+        if (isStoreApp) {
+          if (typeof window.KairosStore.openStore === "function") window.KairosStore.openStore(storePkg(sa), storeAsin(sa), sid);
+          else status(sid, "Aggiorna Kairos Store (pulsante AGGIORNA) per installare questa app");
+        } else { status(sid, "Apro lo store ufficiale…"); setTimeout(() => status(sid, ""), 5000); location.href = downloadUrl(sa); }
+      }, () => { status(sid, NET); setTimeout(() => status(sid, ""), 6000); });
+      return;
+    }
     if (isStoreApp && typeof window.KairosStore.installApproved === "function") {
       // l'app verifica di nuovo l'autorizzazione con il server prima di scaricare
       window.KairosStore.installApproved(c.url, c.app, sid, c.server, c.id, token);
@@ -1049,7 +1062,7 @@ const AP = (() => {
     Object.keys(s).forEach(k => { const v = s[k]; if (v && v.id && Date.now() - v.t < TTL && (!best || v.t > best.t)) best = Object.assign({ name: k }, v); });
     if (!best) return;
     const i = APPS.findIndex(a => a.name === best.name);
-    if (i < 0 || String(downloadUrl(APPS[i])).trim() !== best.url) { save(best.name, null); return; }
+    if (i < 0 || apUrl(APPS[i]) !== best.url) { save(best.name, null); return; }
     call("status?id=" + encodeURIComponent(best.id) + "&did=" + encodeURIComponent(installId()), null).then(j => {
       if (isOpen()) return;
       if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(); poll(0); }
@@ -1088,7 +1101,7 @@ const AP = (() => {
   // l'app Android: tasto Indietro e download bloccati perché non autorizzati
   window.kairosBack = () => { if (isOpen()) { close(); return true; } return false; };
   window.kairosNeedApproval = url => {
-    const i = APPS.findIndex(a => String(downloadUrl(a)).trim() === String(url).trim());
+    const i = APPS.findIndex(a => apUrl(a) === String(url).trim());
     if (i >= 0 && !isOpen()) open(i);
   };
   return { open, close, isOpen, key, focusFirst, resume, prefetch: () => getCfg(true) };
