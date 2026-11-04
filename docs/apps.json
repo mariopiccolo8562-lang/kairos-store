@@ -60,7 +60,7 @@
     {
       "name": "MaxPlayer",
       "tag": "PLAYER",
-      "description": "Player IPTV ufficiale, si installa dallo store Amazon o Google o Apple.",
+      "description": "Player IPTV ufficiale, si installa dallo store Amazon-Google-Apple.",
       "url": "https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV",
       "code": "",
       "icon": "icons/maxplayer-mw1htxz1.webp",
