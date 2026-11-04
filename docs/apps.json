@@ -28,7 +28,7 @@
       "url": "https://github.com/mariopiccolo8562-lang/kairos-lite/releases/latest/download/kairos-lite.apk",
       "code": "",
       "icon": "",
-      "glow": "#ec4899",
+      "glow": "#ffb546",
       "pkg": "",
       "light": false,
       "hidden": false
@@ -54,6 +54,18 @@
       "icon": "icons/iboone.webp",
       "glow": "#22c55e",
       "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "MaxPlayer",
+      "tag": "PLAYER",
+      "description": "Player IPTV ufficiale, si installa dallo store Amazon o Google.",
+      "url": "https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV",
+      "code": "",
+      "icon": "icons/maxplayer-mw1htxz1.webp",
+      "glow": "#ee9d00",
+      "pkg": "tv.maxplayer.android",
       "light": false,
       "hidden": false
     },
@@ -126,18 +138,6 @@
       "icon": "icons/selling.webp",
       "glow": "#e11d48",
       "pkg": "",
-      "light": false,
-      "hidden": false
-    },
-    {
-      "name": "MaxPlayer",
-      "tag": "PLAYER",
-      "description": "Player IPTV ufficiale, si installa dallo store Amazon o Google.",
-      "url": "https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV",
-      "code": "",
-      "icon": "icons/maxplayer.webp",
-      "glow": "#2563eb",
-      "pkg": "tv.maxplayer.android",
       "light": false,
       "hidden": false
     }
