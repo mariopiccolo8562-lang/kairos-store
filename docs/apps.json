@@ -58,6 +58,18 @@
       "hidden": false
     },
     {
+      "name": "Kairos Flutter",
+      "tag": "ANTEPRIMA",
+      "description": "La nuova app Kairos: stile Netflix, fluida su Fire TV e Android TV.",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-flutter/releases/latest/download/kairos-flutter.apk",
+      "code": "",
+      "icon": "",
+      "glow": "#00b4ff",
+      "pkg": "com.kairos.streaming_tv",
+      "light": false,
+      "hidden": false
+    },
+    {
       "name": "OrbixPlay",
       "tag": "PLAYER",
       "description": "Player moderno e veloce per TV e smartphone.",
