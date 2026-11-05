@@ -34,6 +34,18 @@
       "hidden": false
     },
     {
+      "name": "Kairos Plus",
+      "tag": "ANTEPRIMA",
+      "description": "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-flutter/releases/latest/download/kairos-plus.apk",
+      "code": "",
+      "icon": "icons/kairos-plus.webp",
+      "glow": "#a855f7",
+      "pkg": "com.kairos.plus",
+      "light": false,
+      "hidden": false
+    },
+    {
       "name": "Kairos-XC",
       "tag": "Kairos",
       "description": "La nostra app originale XC",
@@ -54,18 +66,6 @@
       "icon": "",
       "glow": "#ffb546",
       "pkg": "",
-      "light": false,
-      "hidden": false
-    },
-    {
-      "name": "Kairos Plus",
-      "tag": "ANTEPRIMA",
-      "description": "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.",
-      "url": "https://github.com/mariopiccolo8562-lang/kairos-flutter/releases/latest/download/kairos-plus.apk",
-      "code": "",
-      "icon": "icons/kairos-plus.webp",
-      "glow": "#a855f7",
-      "pkg": "com.kairos.plus",
       "light": false,
       "hidden": false
     },
