@@ -45,9 +45,14 @@ jobs:
             echo "::error::CLOUDFLARE_ACCOUNT_ID non è un Account ID: deve essere di 32 caratteri tra 0-9 e a-f; quello inserito ne ha ${#acc} e ha questa forma: $forma (? = carattere non valido). Lo trovi su Cloudflare in Workers & Pages → Overview, colonna di destra «Account ID» (Click to copy), oppure nell'indirizzo del pannello: dash.cloudflare.com/<ACCOUNT ID>/..."
             exit 1
           fi
-          v=$(curl -sS -H "Authorization: Bearer $tok" https://api.cloudflare.com/client/v4/user/tokens/verify)
-          if [ "$(echo "$v" | jq -r '.success')" != "true" ] || [ "$(echo "$v" | jq -r '.result.status')" != "active" ]; then
-            echo "::error::CLOUDFLARE_API_TOKEN non valido o non attivo: $(echo "$v" | jq -c '[.errors[]?.message]'). Crea un token con il modello «Edit Cloudflare Workers» (My Profile → API Tokens) e incollalo per intero."
+          # il token può essere di account (Account API Tokens) o di utente (My Profile → API Tokens): si verifica in entrambi i modi
+          st=""
+          for ep in "accounts/$acc/tokens/verify" "user/tokens/verify"; do
+            v=$(curl -sS -H "Authorization: Bearer $tok" "https://api.cloudflare.com/client/v4/$ep")
+            if [ "$(echo "$v" | jq -r '.success')" = "true" ]; then st=$(echo "$v" | jq -r '.result.status'); break; fi
+          done
+          if [ "$st" != "active" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN non valido o non attivo (stato: ${st:-rifiutato}): $(echo "$v" | jq -c '[.errors[]?.message]'). Crea un token con il modello «Edit Cloudflare Workers» e incollalo per intero."
             exit 1
           fi
           echo "CLOUDFLARE_API_TOKEN=$tok" >> "$GITHUB_ENV"
