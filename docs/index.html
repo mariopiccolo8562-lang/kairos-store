@@ -204,6 +204,7 @@ body.ap-on{overflow:hidden}
 .ap-step[hidden]{display:none}
 .ap-lbl{display:block;font:600 11px var(--display);letter-spacing:.16em;color:var(--muted);margin-bottom:-6px}
 .ap-inp{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--edge);background:rgba(0,0,0,.35);color:#fff;font:600 18px var(--body);outline:none}
+.ap-hint{display:block;margin-top:-8px;font:500 12px var(--body);color:var(--muted);min-height:14px}
 .ap-code{width:100%;padding:12px 10px;border-radius:16px;border:1px solid var(--edge);background:rgba(0,0,0,.45);color:#fff;text-align:center;
   font:900 40px var(--display);letter-spacing:.42em;text-indent:.42em;outline:none}
 .ap-code::placeholder{color:rgba(255,255,255,.16)}
@@ -435,6 +436,9 @@ html.tv .ap-msg{font-size:1.3rem}
       <div class="ap-step" id="apStep1">
         <label class="ap-lbl" for="apName">IL TUO NOME (FACOLTATIVO)</label>
         <input class="ap-inp" id="apName" maxlength="40" autocomplete="name" placeholder="Così il venditore sa chi sei">
+        <label class="ap-lbl" for="apSeller">CODICE DEL VENDITORE (SE TE L'HA DATO)</label>
+        <input class="ap-inp" id="apSeller" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="4 lettere o cifre, es. K7M4" style="letter-spacing:.2em;text-transform:uppercase">
+        <small class="ap-hint" id="apSellerHint"></small>
         <div class="ap-btns"><button class="btn" type="button" id="apAsk"><span>RICHIEDI AUTORIZZAZIONE</span></button><button class="ap-sec" type="button" id="apNo1">ANNULLA</button></div>
       </div>
       <div class="ap-step" id="apStep2" hidden>
@@ -937,8 +941,25 @@ const AP = (() => {
     $("apApp").textContent = app.name; msg("");
     let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
     $("apName").value = nm;
+    $("apSeller").value = sellerSaved(); sellerHint();
     if (visible) reveal();
   }
+  // codice del venditore: 4 caratteri, ricordato sul dispositivo; può arrivare anche dal link dello store (?v=CODE)
+  function sellerNorm(v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4); }
+  function sellerSaved() { try { return sellerNorm(localStorage.getItem("kairosSeller")); } catch (e) { return ""; } }
+  function sellerSave(v) { try { if (v) localStorage.setItem("kairosSeller", v); else localStorage.removeItem("kairosSeller"); } catch (e) {} }
+  let sellerName = "";
+  function sellerHint(t) {
+    const h = $("apSellerHint"); if (!h) return;
+    const v = sellerNorm($("apSeller").value);
+    h.textContent = t || (v.length === 4 ? (sellerName ? "Venditore: " + sellerName : "") : v ? "" : "Le tue richieste arrivano solo al tuo venditore.");
+  }
+  function sellerCheck() {
+    const v = sellerNorm($("apSeller").value); sellerName = "";
+    if (v.length !== 4 || !cur || !cur.server) { sellerHint(); return; }
+    call("seller?c=" + encodeURIComponent(v), null, cur.server).then(j => { if (sellerNorm($("apSeller").value) !== v) return; sellerName = j && j.ok ? j.name : ""; sellerHint(j && j.ok ? "" : "Codice venditore non riconosciuto: controllalo"); });
+  }
+  try { const pv = sellerNorm(new URLSearchParams(location.search).get("v")); if (pv.length === 4) sellerSave(pv); } catch (e) {}
   function close() {
     const name = cur && cur.app;
     clearTimeout(timer); cur = null;
@@ -967,12 +988,15 @@ const AP = (() => {
   function ask(silent) {
     const c = cur; if (!c || c.busy) return;
     const note = $("apName").value.trim().slice(0, 40);
-    if (!silent) { try { localStorage.setItem("kairosName", note); } catch (e) {} }
+    const seller = sellerNorm($("apSeller").value);
+    if (seller && seller.length !== 4) { sellerHint("Il codice del venditore ha 4 caratteri: controllalo o lascialo vuoto"); Sound.error(); return; }
+    if (!silent) { try { localStorage.setItem("kairosName", note); } catch (e) {} sellerSave(seller); }
     c.busy = true; $("apAsk").disabled = true; msg(silent ? "" : "Invio della richiesta…", true);
     const fail = t => { c.busy = false; if (cur !== c) return; reveal(); askStep(); Sound.error(); msg(t); };
-    call("request", { app: c.app, appUrl: c.url, device: deviceName(), did: c.did, note }, c.server).then(j => {
+    call("request", { app: c.app, appUrl: c.url, device: deviceName(), did: c.did, note, seller }, c.server).then(j => {
       if (cur !== c) return;
       c.busy = false;
+      if (j.http === 400 && /venditore/i.test(j.error || "")) { reveal(); askStep(); sellerHint(j.error); Sound.error(); return; }
       if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
       if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now() }); msg(""); reveal(); waitStep(); poll(0); return; }
       if (j.http === 403 && /bloccato/i.test(j.error || "")) { c.busy = false; reveal(); askStep(); $("apAsk").disabled = true; Sound.error(); msg("Dispositivo bloccato dal venditore: non puoi più scaricare app da questo store. Contatta il venditore."); return; }
@@ -1090,6 +1114,7 @@ const AP = (() => {
   $("apNo1").addEventListener("click", () => { Sound.select(); close(); });
   $("apNo2").addEventListener("click", () => { Sound.select(); close(); });
   $("apPad").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) typeDigit(b.dataset.k); });
+  $("apSeller").addEventListener("input", () => { const v = sellerNorm($("apSeller").value); if ($("apSeller").value !== v) $("apSeller").value = v; sellerCheck(); });
   $("apCode").addEventListener("input", () => {
     const inp = $("apCode"), v = inp.value.replace(/\D/g, "").slice(0, 6);
     if (v !== inp.value) inp.value = v;
