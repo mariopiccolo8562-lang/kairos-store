@@ -10,18 +10,6 @@
   },
   "apps": [
     {
-      "name": "Kairos Premium",
-      "tag": "PLAYER",
-      "description": "La nostra app più bella: stile Netflix in nero e oro, fluidissima e antibuffering, si adatta alle connessioni lente",
-      "url": "https://github.com/mariopiccolo8562-lang/kairos-premium/releases/latest/download/kairos-premium.apk",
-      "code": "",
-      "icon": "icons/kairos-premium.webp",
-      "glow": "#d4af37",
-      "pkg": "com.kairos.premium",
-      "light": false,
-      "hidden": false
-    },
-    {
       "name": "Kairos Pro",
       "tag": "Kairos",
       "description": "La nostra app più bella: stile Netflix in nero e rosso, fluidissima e antibuffering, si adatta alle connessioni lente con tutte le nuove tecnologie",
@@ -30,6 +18,18 @@
       "icon": "icons/kairos-pro-mw2kwyma.webp",
       "glow": "#ff0000",
       "pkg": "",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "Kairos Premium",
+      "tag": "PLAYER",
+      "description": "La nostra app più bella: stile Netflix in nero e oro, fluidissima e antibuffering, si adatta alle connessioni lente",
+      "url": "https://github.com/mariopiccolo8562-lang/kairos-premium/releases/latest/download/kairos-premium.apk",
+      "code": "",
+      "icon": "icons/kairos-premium.webp",
+      "glow": "#d4af37",
+      "pkg": "com.kairos.premium",
       "light": false,
       "hidden": false
     },
