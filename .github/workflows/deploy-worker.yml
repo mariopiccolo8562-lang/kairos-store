@@ -1,0 +1,61 @@
+# Pubblica il PANNELLO KAIROS STORE (worker/index.js) su Cloudflare.
+# Parte da solo a ogni modifica dentro worker/ oppure a mano (Run workflow).
+# Servono i segreti del repository: CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID.
+name: Deploy pannello (Worker)
+
+on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/deploy-worker.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Controllo segreti
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Mancano i segreti CLOUDFLARE_API_TOKEN e/o CLOUDFLARE_ACCOUNT_ID (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: Controllo sintassi
+        run: node --check worker/index.js
+
+      - name: Trova il KV «pannello-store»
+        run: |
+          r=$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces?per_page=100")
+          if [ "$(echo "$r" | jq -r '.success')" != "true" ]; then
+            echo "::error::Cloudflare ha rifiutato il token: $(echo "$r" | jq -c '[.errors[]?.message]'). Il token deve avere i permessi Workers Scripts (Edit) e Workers KV Storage (Edit) sull'account."
+            exit 1
+          fi
+          id=$(echo "$r" | jq -r '[.result[] | select((.title | ascii_downcase) == "pannello-store")][0].id // empty')
+          if [ -z "$id" ]; then
+            echo "::error::Nessun KV chiamato «pannello-store» nell'account. KV presenti: $(echo "$r" | jq -c '[.result[].title]')"
+            exit 1
+          fi
+          sed -i "s/KV_ID/$id/" worker/wrangler.toml
+          echo "KV trovato."
+
+      - name: Deploy su Cloudflare
+        working-directory: worker
+        run: npx --yes wrangler@4 deploy

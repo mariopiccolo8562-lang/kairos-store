@@ -1,0 +1,19 @@
+# PANNELLO KAIROS STORE — configurazione del Worker Cloudflare.
+#
+# Il deploy lo fa GitHub Actions (.github/workflows/deploy-worker.yml) a ogni
+# modifica dentro worker/: cerca il KV per nome («pannello-store») e mette il
+# suo id al posto di KV_ID prima di lanciare `wrangler deploy`.
+#
+# I segreti del Worker (GITHUB_TOKEN, SETUP_KEY, TURNSTILE_*, TELEGRAM_*) restano
+# su Cloudflare: wrangler non li tocca. keep_vars tiene anche le variabili di
+# testo (GITHUB_REPO, STORE_URL, ALLOWED_COUNTRIES) impostate dal pannello Cloudflare.
+
+name = "kairos-store"
+main = "index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+keep_vars = true
+
+[[kv_namespaces]]
+binding = "DB"
+id = "KV_ID"

@@ -20,3 +20,10 @@ Puoi fare in modo che nessuno scarichi un'app dallo store senza il tuo ok.
 L'app Kairos Store (dalla nuova versione, che si aggiorna da sola) controlla anche lei l'autorizzazione con il server prima di scaricare: un download non autorizzato viene bloccato anche se arriva da un link. L'aggiornamento dello store stesso non chiede autorizzazione.
 
 > I link degli APK e i codici Downloader scritti in `apps.json` restano pubblici (il repository è pubblico): chi li copia può scaricare fuori dallo store. Con l'autorizzazione attiva i link non compaiono più nei pulsanti della pagina, ma restano leggibili in `apps.json`.
+
+## Pannello (worker/)
+
+Il **PANNELLO KAIROS STORE** (`https://kairos-store.<account>.workers.dev`) è il Worker Cloudflare in `worker/index.js`.
+Ogni modifica a quella cartella viene pubblicata da sola da GitHub Actions (*Deploy pannello (Worker)*), che usa i
+segreti del repository `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID`. Da ora il codice si cambia qui, non in
+*Edit code* su Cloudflare: una modifica fatta lì verrebbe sovrascritta al deploy successivo.
