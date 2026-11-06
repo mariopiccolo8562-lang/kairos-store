@@ -40,7 +40,9 @@ jobs:
             exit 1
           fi
           if ! printf %s "$acc" | grep -Eq '^[0-9a-f]{32}$'; then
-            echo "::error::CLOUDFLARE_ACCOUNT_ID non è un Account ID: deve essere di 32 caratteri tra 0-9 e a-f (quello inserito ne ha ${#acc}). Lo trovi su Cloudflare in Workers & Pages → Overview, colonna di destra «Account ID» (Click to copy), oppure nell'indirizzo del pannello: dash.cloudflare.com/<ACCOUNT ID>/..."
+            # forma del valore senza rivelarlo: x = cifra o lettera a-f, ? = altro carattere
+            forma=$(printf %s "$acc" | sed -E 's/[0-9a-f]/x/g; s/[^x]/?/g')
+            echo "::error::CLOUDFLARE_ACCOUNT_ID non è un Account ID: deve essere di 32 caratteri tra 0-9 e a-f; quello inserito ne ha ${#acc} e ha questa forma: $forma (? = carattere non valido). Lo trovi su Cloudflare in Workers & Pages → Overview, colonna di destra «Account ID» (Click to copy), oppure nell'indirizzo del pannello: dash.cloudflare.com/<ACCOUNT ID>/..."
             exit 1
           fi
           v=$(curl -sS -H "Authorization: Bearer $tok" https://api.cloudflare.com/client/v4/user/tokens/verify)
