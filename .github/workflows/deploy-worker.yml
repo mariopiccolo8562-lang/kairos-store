@@ -32,10 +32,25 @@ jobs:
 
       - name: Controllo segreti
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+          tok=$(printf %s "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')
+          acc=$(printf %s "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]' | tr 'A-F' 'a-f')
+          echo "::add-mask::$tok"; echo "::add-mask::$acc"
+          if [ -z "$tok" ] || [ -z "$acc" ]; then
             echo "::error::Mancano i segreti CLOUDFLARE_API_TOKEN e/o CLOUDFLARE_ACCOUNT_ID (Settings → Secrets and variables → Actions)."
             exit 1
           fi
+          if ! printf %s "$acc" | grep -Eq '^[0-9a-f]{32}$'; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID non è un Account ID: deve essere di 32 caratteri tra 0-9 e a-f (quello inserito ne ha ${#acc}). Lo trovi su Cloudflare in Workers & Pages → Overview, colonna di destra «Account ID» (Click to copy), oppure nell'indirizzo del pannello: dash.cloudflare.com/<ACCOUNT ID>/..."
+            exit 1
+          fi
+          v=$(curl -sS -H "Authorization: Bearer $tok" https://api.cloudflare.com/client/v4/user/tokens/verify)
+          if [ "$(echo "$v" | jq -r '.success')" != "true" ] || [ "$(echo "$v" | jq -r '.result.status')" != "active" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN non valido o non attivo: $(echo "$v" | jq -c '[.errors[]?.message]'). Crea un token con il modello «Edit Cloudflare Workers» (My Profile → API Tokens) e incollalo per intero."
+            exit 1
+          fi
+          echo "CLOUDFLARE_API_TOKEN=$tok" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$acc" >> "$GITHUB_ENV"
+          echo "Segreti presenti, token attivo."
 
       - name: Controllo sintassi
         run: node --check worker/index.js
