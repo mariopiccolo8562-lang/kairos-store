@@ -12,6 +12,7 @@ name = "kairos-store"
 main = "index.js"
 compatibility_date = "2025-01-01"
 workers_dev = true
+preview_urls = false   # un solo indirizzo per il pannello, niente URL di anteprima per versione
 keep_vars = true
 
 [[kv_namespaces]]
