@@ -437,7 +437,7 @@ html.tv .ap-msg{font-size:1.3rem}
         <label class="ap-lbl" for="apName">IL TUO NOME (FACOLTATIVO)</label>
         <input class="ap-inp" id="apName" maxlength="40" autocomplete="name" placeholder="Così il venditore sa chi sei">
         <label class="ap-lbl" for="apSeller">CODICE DEL VENDITORE (SE TE L'HA DATO)</label>
-        <input class="ap-inp" id="apSeller" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="4 lettere o cifre, es. K7M4" style="letter-spacing:.2em;text-transform:uppercase">
+        <input class="ap-inp" id="apSeller" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="es. MARIO o K7M4" style="letter-spacing:.14em;text-transform:uppercase">
         <small class="ap-hint" id="apSellerHint"></small>
         <div class="ap-btns"><button class="btn" type="button" id="apAsk"><span>RICHIEDI AUTORIZZAZIONE</span></button><button class="ap-sec" type="button" id="apNo1">ANNULLA</button></div>
       </div>
@@ -945,21 +945,21 @@ const AP = (() => {
     if (visible) reveal();
   }
   // codice del venditore: 4 caratteri, ricordato sul dispositivo; può arrivare anche dal link dello store (?v=CODE)
-  function sellerNorm(v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4); }
+  function sellerNorm(v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8); }
   function sellerSaved() { try { return sellerNorm(localStorage.getItem("kairosSeller")); } catch (e) { return ""; } }
   function sellerSave(v) { try { if (v) localStorage.setItem("kairosSeller", v); else localStorage.removeItem("kairosSeller"); } catch (e) {} }
   let sellerName = "";
   function sellerHint(t) {
     const h = $("apSellerHint"); if (!h) return;
     const v = sellerNorm($("apSeller").value);
-    h.textContent = t || (v.length === 4 ? (sellerName ? "Venditore: " + sellerName : "") : v ? "" : "Le tue richieste arrivano solo al tuo venditore.");
+    h.textContent = t || (v.length >= 3 ? (sellerName ? "Venditore: " + sellerName : "") : v ? "" : "Le tue richieste arrivano solo al tuo venditore.");
   }
   function sellerCheck() {
     const v = sellerNorm($("apSeller").value); sellerName = "";
-    if (v.length !== 4 || !cur || !cur.server) { sellerHint(); return; }
+    if (v.length < 3 || !cur || !cur.server) { sellerHint(); return; }
     call("seller?c=" + encodeURIComponent(v), null, cur.server).then(j => { if (sellerNorm($("apSeller").value) !== v) return; sellerName = j && j.ok ? j.name : ""; sellerHint(j && j.ok ? "" : "Codice venditore non riconosciuto: controllalo"); });
   }
-  try { const pv = sellerNorm(new URLSearchParams(location.search).get("v")); if (pv.length === 4) sellerSave(pv); } catch (e) {}
+  try { const pv = sellerNorm(new URLSearchParams(location.search).get("v")); if (pv.length >= 3) sellerSave(pv); } catch (e) {}
   function close() {
     const name = cur && cur.app;
     clearTimeout(timer); cur = null;
@@ -989,7 +989,7 @@ const AP = (() => {
     const c = cur; if (!c || c.busy) return;
     const note = $("apName").value.trim().slice(0, 40);
     const seller = sellerNorm($("apSeller").value);
-    if (seller && seller.length !== 4) { sellerHint("Il codice del venditore ha 4 caratteri: controllalo o lascialo vuoto"); Sound.error(); return; }
+    if (seller && seller.length < 3) { sellerHint("Il codice del venditore ha da 3 a 8 caratteri: controllalo o lascialo vuoto"); Sound.error(); return; }
     if (!silent) { try { localStorage.setItem("kairosName", note); } catch (e) {} sellerSave(seller); }
     c.busy = true; $("apAsk").disabled = true; msg(silent ? "" : "Invio della richiesta…", true);
     const fail = t => { c.busy = false; if (cur !== c) return; reveal(); askStep(); Sound.error(); msg(t); };
