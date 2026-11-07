@@ -444,16 +444,12 @@ html.tv .ap-msg{font-size:1.3rem}
       </div>
       <p class="ap-text" id="apText"></p>
       <div class="ap-step" id="apStep0" hidden>
-        <label class="ap-lbl" for="actName">NOME DEL CLIENTE (FACOLTATIVO)</label>
-        <input class="ap-inp" id="actName" maxlength="40" autocomplete="off" placeholder="Così sai di chi è questo store">
         <label class="ap-lbl" for="actCode">CODICE DEL VENDITORE</label>
         <input class="ap-inp" id="actCode" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="es. MARIO o K7M4" style="letter-spacing:.14em;text-transform:uppercase">
         <small class="ap-hint" id="actHint"></small>
         <div class="ap-btns"><button class="btn" type="button" id="actGo"><span>ATTIVA LO STORE</span></button><button class="ap-sec" type="button" id="apNo0">CHIUDI</button></div>
       </div>
       <div class="ap-step" id="apStep1">
-        <label class="ap-lbl" for="apName">IL TUO NOME (FACOLTATIVO)</label>
-        <input class="ap-inp" id="apName" maxlength="40" autocomplete="name" placeholder="Così il venditore sa chi sei">
         <label class="ap-lbl" for="apSeller">CODICE DEL VENDITORE (SE TE L'HA DATO)</label>
         <input class="ap-inp" id="apSeller" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="es. MARIO o K7M4" style="letter-spacing:.14em;text-transform:uppercase">
         <small class="ap-hint" id="apSellerHint"></small>
@@ -965,7 +961,7 @@ const AP = (() => {
     $("apApp").textContent = app ? app.name : (STORE.name || document.getElementById("storeName").textContent);
     $("apNo0").hidden = gate && gateNeeded(); // porta d'ingresso: non si chiude finché non si entra con il codice
     const blk = cfg.blocked === true;
-    ["actName", "actCode", "actGo", "actHint"].forEach(id => { $(id).hidden = blk; });
+    ["actCode", "actGo", "actHint"].forEach(id => { $(id).hidden = blk; });
     box.querySelectorAll("#apStep0 .ap-lbl").forEach(l => { l.hidden = blk; });
     if (blk) { $("apText").innerHTML = "<b>Store bloccato.</b> Sono stati scritti troppi codici venditore sbagliati: può sbloccarlo <b>solo il titolare</b> dal suo pannello. Appena lo sblocca, questa finestra si riapre da sola per il codice."; blkPoll(); $("apIn").focus(); return; }
     $("apText").innerHTML = cfg.suspended ? "Il venditore di questo store" + (sellerOfStore() ? " (<b>" + esc(sellerOfStore()) + "</b>)" : "") + " è <b>sospeso</b>: per continuare a scaricare serve il codice di un <b>altro venditore</b>."
@@ -974,8 +970,8 @@ const AP = (() => {
       : gate ? "<b>Benvenuto!</b> Per usare questo store scrivi il <b>codice del venditore</b> che te l'ha installato: serve una volta sola." + (cfg.activation ? " Poi le app si scaricano senza altre conferme." : "")
       : app ? "Questo store non è ancora attivato: le app si scaricano solo dopo. Scrivi il <b>codice del venditore</b> (una volta sola): da quel momento ogni download parte da solo." 
       : "Scrivi il <b>codice del venditore</b> che ti ha installato lo store: serve una volta sola.";
-    let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
-    $("actName").value = nm; $("actCode").value = gate && cfg.gate !== "every" ? sellerSaved() : ""; $("actHint").textContent = ""; // «a ogni avvio»: il codice va scritto davvero
+    $("actCode").value = gate && cfg.gate !== "every" ? sellerSaved() : ""; $("actHint").textContent = ""; // «a ogni avvio»: il codice va scritto davvero
+    $("actGo").querySelector("span").textContent = gate && cfg.gate === "every" && !cfg.suspended ? "ENTRA" : "ATTIVA LO STORE";
     if ($("actCode").value) actCheck();
     focusFirst();
   }
@@ -985,14 +981,13 @@ const AP = (() => {
     call("seller?c=" + encodeURIComponent(v), null).then(j => { if (sellerNorm($("actCode").value) !== v) return; h.textContent = j && j.ok ? "Venditore: " + j.name : "Codice venditore non riconosciuto"; }, () => {});
   }
   function activate() {
-    const c = cur, code = sellerNorm($("actCode").value), note = $("actName").value.trim().slice(0, 40);
+    const c = cur, code = sellerNorm($("actCode").value), note = "";
     if (code.length < 3) { $("actHint").textContent = "Il codice del venditore ha da 3 a 8 caratteri"; Sound.error(); return; }
     $("actGo").disabled = true; msg("Attivazione in corso…", true);
     call("activate", { did: installId(), device: deviceName(), note, seller: code }).then(j => {
       $("actGo").disabled = false;
       if (j.ok) {
         cfg.activated = true; cfg.suspended = false; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); sellerSave(code); sessionPass(); actChip(); gate = false; document.body.classList.remove("ap-gate");
-        try { if (note) localStorage.setItem("kairosName", note); } catch (e) {}
         Sound.done(); toast("Store attivato: " + (j.seller || "venditore"));
         // se si stava installando un'app, il download parte adesso (senza finestra)
         if (c && cur === c && c.url) { msg(""); const i = APPS.findIndex(a => a.name === c.app); close(); if (i >= 0) open2(i); return; }
@@ -1044,11 +1039,8 @@ const AP = (() => {
     if (!isOpen()) back = document.activeElement;
     cur = { app: app.name, url, server: apServer(), id: "", did: installId(), busy: false };
     $("apApp").textContent = app.name; msg("");
-    let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
-    $("apName").value = nm;
     const own = activated() && sellerOfStore();
     $("apSeller").value = own ? "" : sellerSaved(); $("apSeller").parentNode.querySelector('label[for="apSeller"]').hidden = !!own; $("apSeller").hidden = !!own;
-    $("apName").hidden = !!own; $("apName").parentNode.querySelector('label[for="apName"]').hidden = !!own; // il nome è già stato scritto all'avvio
     if (own) $("apSellerHint").textContent = ""; else sellerHint();
     if (visible) reveal();
   }
@@ -1105,10 +1097,10 @@ const AP = (() => {
   }
   function ask(silent) {
     const c = cur; if (!c || c.busy) return;
-    const note = $("apName").value.trim().slice(0, 40);
+    const note = ""; // nessun nome: il venditore riconosce il cliente dal dispositivo e dal codice
     const seller = sellerNorm($("apSeller").value);
     if (seller && seller.length < 3) { sellerHint("Il codice del venditore ha da 3 a 8 caratteri: controllalo o lascialo vuoto"); Sound.error(); return; }
-    if (!silent) { try { localStorage.setItem("kairosName", note); } catch (e) {} sellerSave(seller); }
+    if (!silent) sellerSave(seller);
     c.busy = true; $("apAsk").disabled = true; msg(silent ? "" : "Invio della richiesta…", true);
     const fail = t => { c.busy = false; if (cur !== c) return; reveal(); askStep(); Sound.error(); msg(t); };
     call("request", { app: c.app, appUrl: c.url, device: deviceName(), did: c.did, note, seller }, c.server).then(j => {
@@ -1220,7 +1212,6 @@ const AP = (() => {
       if (k === "Backspace") { e.preventDefault(); typeDigit("del"); return; }
     }
     if (k === "Enter" && t === $("apCode")) { e.preventDefault(); verify(); return; }
-    if (k === "Enter" && t === $("apName")) { e.preventDefault(); ask(); return; }
     if (k === "Tab") { const it = items(); if (it.length) { e.preventDefault(); const p = it.indexOf(t); it[(p + (e.shiftKey ? -1 : 1) + it.length) % it.length].focus(); } return; }
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)) {
       if (t && t.tagName === "INPUT" && !isTV && (k === "ArrowLeft" || k === "ArrowRight")) return; // cursore nel testo
