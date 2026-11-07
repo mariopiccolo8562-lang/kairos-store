@@ -449,7 +449,7 @@ html.tv .ap-msg{font-size:1.3rem}
           <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
           <button type="button" data-k="del" aria-label="Cancella">⌫</button><button type="button" data-k="0">0</button><button type="button" class="k-ok" data-k="ok">OK</button>
         </div>
-        <p class="ap-wait"><i></i>In attesa dell'autorizzazione del venditore…</p>
+        <p class="ap-wait"><i></i><span>In attesa dell'autorizzazione del venditore…</span></p>
         <div class="ap-btns"><button class="btn" type="button" id="apOk"><span>CONFERMA CODICE</span></button><button class="ap-sec" type="button" id="apNo2">CHIUDI</button></div>
       </div>
       <p class="ap-msg" id="apMsg" aria-live="polite"></p>
@@ -928,9 +928,11 @@ const AP = (() => {
     $("apText").innerHTML = again ? "Per scaricare di nuovo serve una <b>nuova autorizzazione del venditore</b>: ogni download ne richiede una." : "Per scaricare questa app serve l'<b>autorizzazione del venditore</b>. Premi il pulsante: il venditore riceve subito la richiesta.";
     focusFirst();
   }
-  function waitStep() {
+  function waitStep(to) {
+    // to = nome del venditore a cui è andata la richiesta (dal codice scritto): così si vede subito a chi è arrivata
     step(2); $("apCode").value = "";
-    $("apText").innerHTML = "<b>Richiesta inviata.</b> Inserisci il codice che ti ha dato il venditore, oppure attendi: appena autorizza, il download parte da solo.";
+    const w = box.querySelector(".ap-wait"); if (w) w.innerHTML = "<i></i><span>In attesa dell'autorizzazione " + (to ? "di <b>" + esc(to) + "</b>" : "del venditore") + "…</span>";
+    $("apText").innerHTML = (to ? "<b>Richiesta inviata a " + esc(to) + ".</b>" : "<b>Richiesta inviata.</b>") + " Inserisci il codice che ti ha dato il venditore, oppure attendi: appena autorizza, il download parte da solo.";
     focusFirst();
   }
   function reveal() { if (!isOpen()) { box.hidden = false; document.body.classList.add("ap-on"); } }
@@ -980,7 +982,7 @@ const AP = (() => {
     if (!cur.server) { askStep(); $("apAsk").disabled = true; msg("Download non disponibile: contatta il venditore."); return; }
     if (auto) { status("st" + i, "Avvio del download…"); ask(true); return; }
     // si riprende solo una richiesta ancora in attesa per QUESTA app (stesso link); tutto il resto riparte da zero
-    if (s && s.id && Date.now() - s.t < TTL && s.url === url) { cur.id = s.id; waitStep(); check(true, 0); return; }
+    if (s && s.id && Date.now() - s.t < TTL && s.url === url) { cur.id = s.id; waitStep(s.to); check(true, 0); return; }
     if (s) save(app.name, null);
     askStep();
     getCfg(); // tiene aggiornato lo stato dell'approvazione per le prossime volte
@@ -998,7 +1000,7 @@ const AP = (() => {
       c.busy = false;
       if (j.http === 400 && /venditore/i.test(j.error || "")) { reveal(); askStep(); sellerHint(j.error); Sound.error(); return; }
       if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
-      if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now() }); msg(""); reveal(); waitStep(); poll(0); return; }
+      if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now(), to: j.seller || "" }); msg(""); reveal(); waitStep(j.seller); poll(0); return; }
       if (j.http === 403 && /bloccato/i.test(j.error || "")) { c.busy = false; reveal(); askStep(); $("apAsk").disabled = true; Sound.error(); msg("Dispositivo bloccato dal venditore: non puoi più scaricare app da questo store. Contatta il venditore."); return; }
       fail(j.error || NET);
     }, () => fail(NET));
@@ -1089,7 +1091,7 @@ const AP = (() => {
     if (i < 0 || apUrl(APPS[i]) !== best.url) { save(best.name, null); return; }
     call("status?id=" + encodeURIComponent(best.id) + "&did=" + encodeURIComponent(installId()), null).then(j => {
       if (isOpen()) return;
-      if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(); poll(0); }
+      if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(best.to); poll(0); }
       else if (j.status || j.http === 404) save(best.name, null);
     }, () => {});
   }
