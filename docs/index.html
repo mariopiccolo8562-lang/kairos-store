@@ -185,6 +185,11 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
 .top{order:1}.desc,.status{order:2}.code{order:3}.btn{order:4}.progress{order:5}
 .card.busy .desc{display:none}.card.busy .status{margin:0}
 
+/* chip «store di …» nello header: pulsante con lo stesso stile dei chip */
+.chip.act{cursor:pointer;font:inherit;color:inherit;background:transparent}
+.chip.act.no .dot{background:#fbbf24;box-shadow:0 0 10px #fbbf24}
+.chip.act:focus{outline:none;box-shadow:0 0 0 .2rem #fff}
+html.tv .chip.act{font-size:1rem}
 /* ---------- autorizzazione del venditore ---------- */
 .ap{position:fixed;inset:0;z-index:65;display:grid;place-items:center;padding:20px;background:rgba(3,4,12,.8);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -380,6 +385,7 @@ html.tv .ap-msg{font-size:1.3rem}
     </div>
     <div class="hud">
       <span class="chip"><span class="dot"></span><span id="count">0</span> APP ONLINE</span>
+      <button class="chip act" id="actChip" type="button" hidden title="Store intestato a un venditore: tocca per cambiarlo"><span class="dot"></span><span id="actChipTxt">STORE DA ATTIVARE</span></button>
       <button class="update" id="updateBtn" type="button" aria-label="Aggiorna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>AGGIORNA</span></button>
       <button class="sound" id="soundBtn" type="button" aria-label="Effetti sonori"></button>
     </div>
@@ -433,6 +439,14 @@ html.tv .ap-msg{font-size:1.3rem}
         <div style="min-width:0"><h2 id="apTitle">AUTORIZZAZIONE</h2><p class="ap-app" id="apApp"></p></div>
       </div>
       <p class="ap-text" id="apText"></p>
+      <div class="ap-step" id="apStep0" hidden>
+        <label class="ap-lbl" for="actName">NOME DEL CLIENTE (FACOLTATIVO)</label>
+        <input class="ap-inp" id="actName" maxlength="40" autocomplete="off" placeholder="Così sai di chi è questo store">
+        <label class="ap-lbl" for="actCode">CODICE DEL VENDITORE</label>
+        <input class="ap-inp" id="actCode" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="es. MARIO o K7M4" style="letter-spacing:.14em;text-transform:uppercase">
+        <small class="ap-hint" id="actHint"></small>
+        <div class="ap-btns"><button class="btn" type="button" id="actGo"><span>ATTIVA LO STORE</span></button><button class="ap-sec" type="button" id="apNo0">CHIUDI</button></div>
+      </div>
       <div class="ap-step" id="apStep1">
         <label class="ap-lbl" for="apName">IL TUO NOME (FACOLTATIVO)</label>
         <input class="ap-inp" id="apName" maxlength="40" autocomplete="name" placeholder="Così il venditore sa chi sei">
@@ -910,18 +924,72 @@ const AP = (() => {
   function getCfg(force) {
     const s = apServer(); if (!s) return Promise.resolve(null);
     if (!force && cfg.s === s && Date.now() - cfg.t < 60000) return Promise.resolve(cfg.on);
-    return call("config", null, s).then(j => { cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null }; return cfg.on; }, () => null);
+    // ?did= : il server dice anche se QUESTO store è già intestato a un venditore (e a chi)
+    return call("config?did=" + encodeURIComponent(installId()), null, s).then(j => {
+      cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, activated: j.activated === true, seller: j.seller || "" };
+      if (j.activated === true) actSave(j.seller || ""); else if (j.activated === false && typeof j.activation === "boolean") actSave(null);
+      actChip(); return cfg.on;
+    }, () => { actChip(); return null; });
+  }
+  // stato di attivazione ricordato sul dispositivo (per mostrare il chip anche prima della risposta del server)
+  const actSaved = () => { try { return JSON.parse(localStorage.getItem("kairosAct") || "null"); } catch (e) { return null; } };
+  function actSave(seller) { try { if (seller === null) localStorage.removeItem("kairosAct"); else localStorage.setItem("kairosAct", JSON.stringify({ seller, t: Date.now() })); } catch (e) {} }
+  const activated = () => cfg.activated === true || (cfg.activated !== false && !!actSaved());
+  const sellerOfStore = () => cfg.seller || (actSaved() || {}).seller || "";
+  function actChip() {
+    const c = $("actChip"); if (!c) return;
+    const on = activated(), show = !!apServer() && (on || cfg.activation === true);
+    c.hidden = !show; if (!show) return;
+    c.classList.toggle("no", !on);
+    $("actChipTxt").textContent = on ? "STORE DI " + (sellerOfStore() || "…").toUpperCase() : "STORE DA ATTIVARE";
+    c.title = on ? "Questo store è intestato a " + sellerOfStore() + ": tocca per cambiarlo con un altro codice" : "Questo store non è ancora attivato: tocca e scrivi il codice del venditore";
   }
 
   const isOpen = () => !box.hidden;
   const items = () => [...box.querySelectorAll("button, input")].filter(el => !el.disabled && el.tabIndex >= 0 && el.offsetParent !== null);
   function msg(t, ok) { const m = $("apMsg"); m.textContent = t || ""; m.className = "ap-msg" + (ok ? " ok" : ""); }
   function focusFirst() {
-    const s2 = !$("apStep2").hidden;
-    let el = s2 ? (isTV ? box.querySelector('#apPad [data-k="1"]') : matchMedia("(hover:hover)").matches ? $("apCode") : null) : $("apAsk");
+    const s2 = !$("apStep2").hidden, s0 = !$("apStep0").hidden;
+    let el = s0 ? $("actCode") : s2 ? (isTV ? box.querySelector('#apPad [data-k="1"]') : matchMedia("(hover:hover)").matches ? $("apCode") : null) : $("apAsk");
     if (el && !el.disabled && el.offsetParent !== null) el.focus(); else $("apIn").focus();
   }
-  function step(n) { $("apStep1").hidden = n !== 1; $("apStep2").hidden = n !== 2; }
+  function step(n) { $("apStep0").hidden = n !== 0; $("apStep1").hidden = n !== 1; $("apStep2").hidden = n !== 2; $("apTitle").textContent = n === 0 ? "ATTIVA LO STORE" : "AUTORIZZAZIONE"; }
+  // passo 0: lo store si intesta a un venditore (una volta sola); poi, con «solo store attivati», scarica senza conferma
+  function actStep(app) {
+    step(0); $("actGo").disabled = false;
+    const on = activated();
+    $("apApp").textContent = app ? app.name : (STORE.name || document.getElementById("storeName").textContent);
+    $("apText").innerHTML = on ? "Questo store è intestato a <b>" + esc(sellerOfStore()) + "</b>. Per passarlo a un altro venditore scrivi il suo codice."
+      : app ? "Questo store non è ancora attivato: le app si scaricano solo dopo. Scrivi il <b>codice del venditore</b> (una volta sola): da quel momento ogni download parte da solo." 
+      : "Scrivi il <b>codice del venditore</b> che ti ha installato lo store: serve una volta sola.";
+    let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
+    $("actName").value = nm; $("actCode").value = ""; $("actHint").textContent = "";
+    focusFirst();
+  }
+  function actCheck() {
+    const v = sellerNorm($("actCode").value), h = $("actHint"); h.textContent = "";
+    if (v.length < 3 || !apServer()) return;
+    call("seller?c=" + encodeURIComponent(v), null).then(j => { if (sellerNorm($("actCode").value) !== v) return; h.textContent = j && j.ok ? "Venditore: " + j.name : "Codice venditore non riconosciuto"; }, () => {});
+  }
+  function activate() {
+    const c = cur, code = sellerNorm($("actCode").value), note = $("actName").value.trim().slice(0, 40);
+    if (code.length < 3) { $("actHint").textContent = "Il codice del venditore ha da 3 a 8 caratteri"; Sound.error(); return; }
+    $("actGo").disabled = true; msg("Attivazione in corso…", true);
+    call("activate", { did: installId(), device: deviceName(), note, seller: code }).then(j => {
+      $("actGo").disabled = false;
+      if (j.ok) {
+        cfg.activated = true; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); actChip();
+        try { if (note) localStorage.setItem("kairosName", note); } catch (e) {}
+        Sound.done(); toast("Store attivato: " + (j.seller || "venditore"));
+        // se si stava installando un'app, il download parte adesso (senza finestra)
+        if (c && cur === c && c.url) { msg(""); const i = APPS.findIndex(a => a.name === c.app); close(); if (i >= 0) open2(i); return; }
+        close(); return;
+      }
+      Sound.error(); msg(j.error || NET);
+      if (j.http === 429) $("actGo").disabled = true;
+    }, () => { $("actGo").disabled = false; Sound.error(); msg(NET); });
+  }
+  function openActivation() { if (!apServer()) return; const was = cur; if (!isOpen()) back = document.activeElement; cur = { app: "", url: "", server: apServer(), id: "", did: installId(), busy: false }; if (was && was.id) cur = was; msg(""); reveal(); actStep(null); }
   function askStep(again) {
     step(1); $("apAsk").disabled = false;
     $("apAsk").querySelector("span").textContent = again ? "RICHIEDI DI NUOVO" : "RICHIEDI AUTORIZZAZIONE";
@@ -943,7 +1011,9 @@ const AP = (() => {
     $("apApp").textContent = app.name; msg("");
     let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
     $("apName").value = nm;
-    $("apSeller").value = sellerSaved(); sellerHint();
+    const own = activated() && sellerOfStore();
+    $("apSeller").value = own ? "" : sellerSaved(); $("apSeller").parentNode.querySelector('label[for="apSeller"]').hidden = !!own; $("apSeller").hidden = !!own;
+    if (own) $("apSellerHint").textContent = "Store di " + own + ": la richiesta arriva a lui."; else sellerHint();
     if (visible) reveal();
   }
   // codice del venditore: 4 caratteri, ricordato sul dispositivo; può arrivare anche dal link dello store (?v=CODE)
@@ -973,11 +1043,20 @@ const AP = (() => {
   }
 
   function open(i) {
+    // stato dello store (attivazione, approvazione) non recente: lo chiede prima, così la finestra giusta compare subito
+    const fresh = cfg.s === apServer() && Date.now() - cfg.t < 120000;
+    if (!fresh && apServer() && !isOpen()) { status("st" + i, "Controllo…"); getCfg(true).then(() => { status("st" + i, ""); open2(i); }); return; }
+    open2(i);
+  }
+  function open2(i) {
     const app = APPS[i]; if (!app) return;
     const url = apUrl(app);
     const s = saved()[app.name];
-    // approvazione spenta nel pannello: nessuna finestra, il server autorizza subito (e registra il download)
-    const auto = !(s && s.id) && cfg.s === apServer() && cfg.on === false && Date.now() - cfg.t < 120000;
+    const fresh = cfg.s === apServer() && Date.now() - cfg.t < 120000;
+    // store da attivare (il titolare ha scelto «solo store attivati»): prima il codice del venditore, poi il download
+    if (fresh && cfg.activation && !activated()) { start(app, url, true); actStep(app); getCfg(true); return; }
+    // approvazione spenta nel pannello, o store già intestato con «solo store attivati»: nessuna finestra, il server autorizza subito
+    const auto = !(s && s.id) && fresh && (cfg.on === false || (cfg.activation && activated()));
     start(app, url, !auto);
     if (!cur.server) { askStep(); $("apAsk").disabled = true; msg("Download non disponibile: contatta il venditore."); return; }
     if (auto) { status("st" + i, "Avvio del download…"); ask(true); return; }
@@ -999,6 +1078,7 @@ const AP = (() => {
       if (cur !== c) return;
       c.busy = false;
       if (j.http === 400 && /venditore/i.test(j.error || "")) { reveal(); askStep(); sellerHint(j.error); Sound.error(); return; }
+      if (j.http === 403 && j.needActivation) { cfg.activation = true; cfg.activated = false; cfg.t = Date.now(); actSave(null); actChip(); reveal(); actStep({ name: c.app }); return; }
       if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
       if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now(), to: j.seller || "" }); msg(""); reveal(); waitStep(j.seller); poll(0); return; }
       if (j.http === 403 && /bloccato/i.test(j.error || "")) { c.busy = false; reveal(); askStep(); $("apAsk").disabled = true; Sound.error(); msg("Dispositivo bloccato dal venditore: non puoi più scaricare app da questo store. Contatta il venditore."); return; }
@@ -1114,6 +1194,11 @@ const AP = (() => {
   $("apAsk").addEventListener("click", () => { Sound.select(); ask(false); });
   $("apOk").addEventListener("click", () => verify());
   $("apNo1").addEventListener("click", () => { Sound.select(); close(); });
+  $("apNo0").addEventListener("click", () => { Sound.select(); close(); });
+  $("actGo").addEventListener("click", () => { Sound.select(); activate(); });
+  $("actCode").addEventListener("input", () => { const v = sellerNorm($("actCode").value); if ($("actCode").value !== v) $("actCode").value = v; actCheck(); });
+  $("actCode").addEventListener("keydown", e => { if (e.key === "Enter") activate(); });
+  const chip = $("actChip"); if (chip) chip.addEventListener("click", () => { Sound.select(); openActivation(); });
   $("apNo2").addEventListener("click", () => { Sound.select(); close(); });
   $("apPad").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) typeDigit(b.dataset.k); });
   $("apSeller").addEventListener("input", () => { const v = sellerNorm($("apSeller").value); if ($("apSeller").value !== v) $("apSeller").value = v; sellerCheck(); });
@@ -1131,7 +1216,7 @@ const AP = (() => {
     const i = APPS.findIndex(a => apUrl(a) === String(url).trim());
     if (i >= 0 && !isOpen()) open(i);
   };
-  return { open, close, isOpen, key, focusFirst, resume, prefetch: () => getCfg(true) };
+  return { open, close, isOpen, key, focusFirst, resume, prefetch: () => getCfg(true), openActivation };
 })();
 
 // ---------- navigazione con telecomando ----------

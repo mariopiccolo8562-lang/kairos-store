@@ -21,6 +21,10 @@ L'app Kairos Store (dalla nuova versione, che si aggiorna da sola) controlla anc
 
 > I link degli APK e i codici Downloader scritti in `apps.json` restano pubblici (il repository è pubblico): chi li copia può scaricare fuori dallo store. Con l'autorizzazione attiva i link non compaiono più nei pulsanti della pagina, ma restano leggibili in `apps.json`.
 
+## Store intestati ai venditori (attivazione)
+
+Se nel pannello Kairos Control scegli **Solo store attivati, senza conferma**, alla prima apertura lo store mostra **«Attiva lo store»**: si scrive una volta il **codice del venditore** (quello dell'agente o del titolare) e da lì ogni download parte da solo, intestato a quel venditore; nello header compare *«Store di <nome>»* (toccalo per cambiare venditore). Uno store non attivato non scarica. Il link `?v=CODICE` precompila il codice nelle richieste ma **non attiva** lo store. Guida completa nel README di **kairos-iptv**, sezione *Store intestati ai venditori*.
+
 ## Pannello (worker/)
 
 Il **PANNELLO KAIROS STORE** (`https://kairos-store.<account>.workers.dev`) è il Worker Cloudflare in `worker/index.js`.
