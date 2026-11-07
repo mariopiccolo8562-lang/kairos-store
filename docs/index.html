@@ -926,7 +926,7 @@ const AP = (() => {
     if (!force && cfg.s === s && Date.now() - cfg.t < 60000) return Promise.resolve(cfg.on);
     // ?did= : il server dice anche se QUESTO store è già intestato a un venditore (e a chi)
     return call("config?did=" + encodeURIComponent(installId()), null, s).then(j => {
-      cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, activated: j.activated === true, suspended: j.suspended === true, seller: j.seller || "" };
+      cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, activated: j.activated === true, suspended: j.suspended === true, blocked: j.blocked === true, seller: j.seller || "" };
       if (j.activated === true) actSave(j.seller || ""); else if (j.activated === false && typeof j.activation === "boolean") actSave(null);
       actChip(); gateCheck(); return cfg.on;
     }, () => { actChip(); return null; });
@@ -938,11 +938,11 @@ const AP = (() => {
   const sellerOfStore = () => cfg.seller || (actSaved() || {}).seller || "";
   function actChip() {
     const c = $("actChip"); if (!c) return;
-    const on = activated(), susp = cfg.suspended === true, show = !!apServer() && (on || susp || cfg.activation === true);
+    const on = activated(), susp = cfg.suspended === true, blk = cfg.blocked === true, show = !!apServer() && (on || susp || blk || cfg.activation === true);
     c.hidden = !show; if (!show) return;
-    c.classList.toggle("no", !on || susp);
-    $("actChipTxt").textContent = susp ? "STORE SOSPESO" : on ? "STORE DI " + (sellerOfStore() || "…").toUpperCase() : "STORE DA ATTIVARE";
-    c.title = susp ? "Il venditore di questo store è sospeso: tocca e scrivi il codice di un altro venditore" : on ? "Questo store è intestato a " + sellerOfStore() + ": tocca per cambiarlo con un altro codice" : "Questo store non è ancora attivato: tocca e scrivi il codice del venditore";
+    c.classList.toggle("no", !on || susp || blk);
+    $("actChipTxt").textContent = blk ? "STORE BLOCCATO" : susp ? "STORE SOSPESO" : on ? "STORE DI " + (sellerOfStore() || "…").toUpperCase() : "STORE DA ATTIVARE";
+    c.title = blk ? "Questo store è bloccato: può sbloccarlo solo il titolare" : susp ? "Il venditore di questo store è sospeso: tocca e scrivi il codice di un altro venditore" : on ? "Questo store è intestato a " + sellerOfStore() + ": tocca per cambiarlo con un altro codice" : "Questo store non è ancora attivato: tocca e scrivi il codice del venditore";
   }
 
   const isOpen = () => !box.hidden;
@@ -960,6 +960,10 @@ const AP = (() => {
     const on = activated();
     $("apApp").textContent = app ? app.name : (STORE.name || document.getElementById("storeName").textContent);
     $("apNo0").hidden = gate && !on; // porta d'ingresso: non si chiude finché lo store non è attivato
+    const blk = cfg.blocked === true;
+    ["actName", "actCode", "actGo", "actHint"].forEach(id => { $(id).hidden = blk; });
+    box.querySelectorAll("#apStep0 .ap-lbl").forEach(l => { l.hidden = blk; });
+    if (blk) { $("apText").innerHTML = "<b>Store bloccato.</b> Sono stati scritti troppi codici venditore sbagliati: può sbloccarlo <b>solo il titolare</b> dal suo pannello. Appena lo sblocca, questa finestra si riapre da sola per il codice."; blkPoll(); $("apIn").focus(); return; }
     $("apText").innerHTML = cfg.suspended ? "Il venditore di questo store" + (sellerOfStore() ? " (<b>" + esc(sellerOfStore()) + "</b>)" : "") + " è <b>sospeso</b>: per continuare a scaricare serve il codice di un <b>altro venditore</b>."
       : on ? "Questo store è intestato a <b>" + esc(sellerOfStore()) + "</b>. Per passarlo a un altro venditore scrivi il suo codice."
       : gate ? "<b>Benvenuto!</b> Per usare questo store scrivi il <b>codice del venditore</b> che te l'ha installato: serve una volta sola. Poi le app si scaricano senza altre conferme."
@@ -989,12 +993,20 @@ const AP = (() => {
         close(); return;
       }
       Sound.error(); msg(j.error || NET);
+      if (j.http === 403 && j.blocked) { cfg.blocked = true; cfg.t = Date.now(); actChip(); actStep(c && c.app ? { name: c.app } : null); msg(j.error); return; }
       if (j.http === 429) $("actGo").disabled = true;
     }, () => { $("actGo").disabled = false; Sound.error(); msg(NET); });
   }
   // porta d'ingresso: appena installato (o scollegato/sospeso) lo store chiede il codice del venditore prima di tutto il resto
   let gate = false;
-  const gateNeeded = () => !!apServer() && cfg.s === apServer() && ((cfg.activation === true && !activated()) || cfg.suspended === true);
+  const gateNeeded = () => !!apServer() && cfg.s === apServer() && ((cfg.activation === true && !activated()) || cfg.suspended === true || cfg.blocked === true);
+  // store bloccato (tre codici sbagliati): finestra senza campi; ogni 30 s ricontrolla se il titolare l'ha sbloccato
+  let blkTimer = 0;
+  function blkPoll() {
+    clearTimeout(blkTimer);
+    if (!(cfg.blocked && isOpen() && !$("apStep0").hidden)) return;
+    blkTimer = setTimeout(() => getCfg(true).then(() => { if (isOpen() && !$("apStep0").hidden) { if (!cfg.blocked) actStep(cur && cur.app ? { name: cur.app } : null); else blkPoll(); } }), 30000);
+  }
   function gateCheck() {
     if (!gateNeeded()) { if (gate && isOpen()) { gate = false; close(); } gate = false; return; }
     if (!entered) { setTimeout(gateCheck, 400); return; }
