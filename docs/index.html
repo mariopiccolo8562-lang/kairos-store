@@ -341,6 +341,11 @@ html.tv .ap-msg{font-size:1.3rem}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01s!important;animation-iteration-count:1!important;transition:none!important}
 }
+.recwrap{display:flex;justify-content:center;margin:4px 0 12px}
+.rec{font:inherit;font-weight:800;letter-spacing:.06em;font-size:clamp(13px,1.3vw,17px);padding:12px 22px;border-radius:999px;border:1px solid rgba(34,211,238,.55);background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(168,85,247,.18));color:#e8fbff;cursor:pointer;box-shadow:0 0 24px rgba(34,211,238,.18)}
+.rec:focus,.rec:hover{outline:none;border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.35),0 0 30px rgba(34,211,238,.35)}
+.rec-box{display:block}.rec-box .rb-app{font-size:1.25em;font-weight:900}.rec-box .rb-act{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:#22d3ee;color:#04141a;font-weight:900;text-decoration:none}
+.rec-box .rb-act:focus{outline:3px solid #fff}.card.rec-hi{outline:3px solid #22d3ee;outline-offset:4px}
 </style>
 </head>
 <body>
@@ -388,6 +393,9 @@ html.tv .ap-msg{font-size:1.3rem}
   <div class="notice" id="noticeSmartTV"><b>Sei sul browser di una smart TV (Samsung, LG o simile).</b> Queste TV non installano file APK. Usa una Fire TV Stick, un box Android TV o uno smartphone Android.</div>
   <div class="notice info" id="noticeFire"><b>Fire TV / Android TV:</b> scegli l'app con le frecce e premi <b>OK</b> sul pulsante Installa.</div>
   <div class="notice" id="noticeDesktop"><b>Sei su un computer.</b> Apri questa pagina dal dispositivo Android, Fire TV o Android TV per installare le app.</div>
+
+  <div class="recwrap"><button class="rec" id="recBtn" type="button">✦ APP CONSIGLIATA PER QUESTO DISPOSITIVO</button></div>
+  <div class="notice info rec-box" id="recBox" hidden></div>
 
   <div class="section-title">LE APP</div>
   <main class="grid" id="grid" aria-label="App disponibili"></main>
@@ -1108,7 +1116,7 @@ const AP = (() => {
 })();
 
 // ---------- navigazione con telecomando ----------
-const focusables = () => [updateBtn, soundBtn, ...document.querySelectorAll("a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
+const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
 function moveFocus(dir, list) {
   const items = list || focusables(); const cur = document.activeElement;
   if (!items.includes(cur)) { const f = list ? items[0] : (items[1] || items[0]); if (f) f.focus(); return; }
@@ -1164,6 +1172,53 @@ intro.focus();
 setTimeout(() => { if (!entered) enter(); }, isTV ? 6000 : 4200);
 const ip = document.getElementById("introPress");
 if (ip && !isTV && !isStoreApp) ip.textContent = "TOCCA PER ENTRARE";
+
+// ---------- app consigliata per il dispositivo (regole dal pannello: App e Store → App consigliata) ----------
+const REC_DEF = { weakApp: 'Kairos Tv', weakMb: 1536, oldApp: 'Kairos-Lite', oldSdk: 7, strongApp: 'Kairos Pro', text: 'Per questo dispositivo è consigliata {app}: stesso abbonamento e stesse liste, con la migliore fluidità su questo apparecchio.' };
+function recDevice() {
+  let ram = 0;
+  try { if (isStoreApp && typeof KairosStore.totalRamMb === "function") ram = +KairosStore.totalRamMb() || 0; } catch (_) {}
+  if (!ram && navigator.deviceMemory) ram = navigator.deviceMemory * 1024; // browser: valore approssimato
+  const am = /Android (\d+)/.exec(ua), andr = am ? +am[1] : 0;
+  const stick = /AFT(M|T|SS|MM|KA|KRT|KM|SSS|B)\b/.test(ua); // Fire TV Stick (le Cube sono AFTA/AFTR/AFTGAZL)
+  let name = ""; try { if (isStoreApp && KairosStore.deviceName) name = KairosStore.deviceName(); } catch (_) {}
+  return { ram, andr, stick, fire: isFireTV, tv: isTV, name };
+}
+function recPick(R, d) {
+  if (d.stick || (d.ram && d.ram < R.weakMb) || (!d.ram && d.tv)) return { app: R.weakApp, why: "weak" };
+  if (d.andr && d.andr < R.oldSdk) return { app: R.oldApp, why: "old" };
+  return { app: R.strongApp, why: "strong" };
+}
+const recApp = name => { const n = String(name).toLowerCase().replace(/[\s-]/g, ""); return APPS.findIndex(a => String(a.name).toLowerCase().replace(/[\s-]/g, "") === n); };
+async function recRules() {
+  let R = Object.assign({}, REC_DEF, STORE.recommend || {});
+  try {
+    const srv = apServer() || AP_DEFAULT;
+    const c = new AbortController(); setTimeout(() => c.abort(), 4000);
+    const d = await fetch(srv + "/api/store/config", { cache: "no-store", signal: c.signal }).then(r => r.ok ? r.json() : null);
+    if (d && d.recommend) R = Object.assign(R, d.recommend);
+  } catch (_) {}
+  return R;
+}
+async function recommend() {
+  const box = document.getElementById("recBox"), btn = document.getElementById("recBtn");
+  box.hidden = false; box.innerHTML = "Sto esaminando il dispositivo…"; btn.disabled = true;
+  const R = await recRules(), d = recDevice(), p = recPick(R, d), i = recApp(p.app);
+  btn.disabled = false;
+  document.querySelectorAll(".card.rec-hi").forEach(c => c.classList.remove("rec-hi"));
+  if (i < 0) { box.innerHTML = "<b>Per questo dispositivo è consigliata " + esc(p.app) + "</b>, al momento non presente in questo Store. Scegli un'app dall'elenco qui sotto."; return; }
+  const inst = document.getElementById("in" + i), installed = inst && !inst.hidden;
+  const dev = d.name || (d.fire ? "Fire TV" : d.tv ? "Android TV" : "questo dispositivo");
+  let html = "<span class='rb-app'>✦ " + esc(p.app) + "</span><br>" + esc(R.text.replace("{app}", p.app));
+  if (d.name) html += "<br><small>Dispositivo: " + esc(dev) + (d.ram ? " · " + Math.round(d.ram / 1024 * 10) / 10 + " GB di memoria" : "") + (d.andr ? " · Android " + d.andr : "") + "</small>";
+  if (p.why === "weak") { const pi = recApp(R.strongApp), pin = pi >= 0 && document.getElementById("in" + pi); if (pin && !pin.hidden && pi !== i) html += "<br><small>Su questo apparecchio " + esc(R.strongApp) + " è già installata: resta utilizzabile, ma " + esc(p.app) + " offre una fluidità migliore con lo stesso abbonamento.</small>"; }
+  html += installed ? "<br><b>" + esc(p.app) + " è già installata su questo dispositivo.</b>" : "<br><a class='rb-act' href='#' id='recGo'>INSTALLA " + esc(p.app).toUpperCase() + "</a>";
+  box.innerHTML = html;
+  const card = document.querySelector('a.btn[data-i="' + i + '"]'); if (card) { card.closest(".card").classList.add("rec-hi"); card.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); }
+  const go = document.getElementById("recGo");
+  if (go) { go.onclick = e => { e.preventDefault(); if (card) { card.focus(); card.click(); } }; if (isTV) go.focus(); }
+}
+document.getElementById("recBtn").addEventListener("click", () => { recommend().catch(() => {}); });
 
 // ---------- elenco app da apps.json (modificabile dal pannello di gestione) ----------
 (function loadApps() {

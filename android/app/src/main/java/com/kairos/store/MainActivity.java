@@ -225,6 +225,17 @@ public class MainActivity extends Activity {
             return m;
         }
 
+        /** Memoria totale del dispositivo in MB: serve allo Store per consigliare l'app adatta */
+        @JavascriptInterface
+        public long totalRamMb() {
+            try {
+                android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+                am.getMemoryInfo(mi);
+                return mi.totalMem / (1024L * 1024L);
+            } catch (Throwable t) { return 0; }
+        }
+
         /** Server delle autorizzazioni indicato in apps.json ("" = nessuna autorizzazione richiesta) */
         @JavascriptInterface
         public void setApprovalServer(String server) {
