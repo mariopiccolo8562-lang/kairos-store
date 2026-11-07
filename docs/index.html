@@ -926,7 +926,7 @@ const AP = (() => {
     if (!force && cfg.s === s && Date.now() - cfg.t < 60000) return Promise.resolve(cfg.on);
     // ?did= : il server dice anche se QUESTO store è già intestato a un venditore (e a chi)
     return call("config?did=" + encodeURIComponent(installId()), null, s).then(j => {
-      cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, activated: j.activated === true, seller: j.seller || "" };
+      cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, activated: j.activated === true, suspended: j.suspended === true, seller: j.seller || "" };
       if (j.activated === true) actSave(j.seller || ""); else if (j.activated === false && typeof j.activation === "boolean") actSave(null);
       actChip(); return cfg.on;
     }, () => { actChip(); return null; });
@@ -938,11 +938,11 @@ const AP = (() => {
   const sellerOfStore = () => cfg.seller || (actSaved() || {}).seller || "";
   function actChip() {
     const c = $("actChip"); if (!c) return;
-    const on = activated(), show = !!apServer() && (on || cfg.activation === true);
+    const on = activated(), susp = cfg.suspended === true, show = !!apServer() && (on || susp || cfg.activation === true);
     c.hidden = !show; if (!show) return;
-    c.classList.toggle("no", !on);
-    $("actChipTxt").textContent = on ? "STORE DI " + (sellerOfStore() || "…").toUpperCase() : "STORE DA ATTIVARE";
-    c.title = on ? "Questo store è intestato a " + sellerOfStore() + ": tocca per cambiarlo con un altro codice" : "Questo store non è ancora attivato: tocca e scrivi il codice del venditore";
+    c.classList.toggle("no", !on || susp);
+    $("actChipTxt").textContent = susp ? "STORE SOSPESO" : on ? "STORE DI " + (sellerOfStore() || "…").toUpperCase() : "STORE DA ATTIVARE";
+    c.title = susp ? "Il venditore di questo store è sospeso: tocca e scrivi il codice di un altro venditore" : on ? "Questo store è intestato a " + sellerOfStore() + ": tocca per cambiarlo con un altro codice" : "Questo store non è ancora attivato: tocca e scrivi il codice del venditore";
   }
 
   const isOpen = () => !box.hidden;
@@ -959,7 +959,8 @@ const AP = (() => {
     step(0); $("actGo").disabled = false;
     const on = activated();
     $("apApp").textContent = app ? app.name : (STORE.name || document.getElementById("storeName").textContent);
-    $("apText").innerHTML = on ? "Questo store è intestato a <b>" + esc(sellerOfStore()) + "</b>. Per passarlo a un altro venditore scrivi il suo codice."
+    $("apText").innerHTML = cfg.suspended ? "Il venditore di questo store" + (sellerOfStore() ? " (<b>" + esc(sellerOfStore()) + "</b>)" : "") + " è <b>sospeso</b>: per continuare a scaricare serve il codice di un <b>altro venditore</b>."
+      : on ? "Questo store è intestato a <b>" + esc(sellerOfStore()) + "</b>. Per passarlo a un altro venditore scrivi il suo codice."
       : app ? "Questo store non è ancora attivato: le app si scaricano solo dopo. Scrivi il <b>codice del venditore</b> (una volta sola): da quel momento ogni download parte da solo." 
       : "Scrivi il <b>codice del venditore</b> che ti ha installato lo store: serve una volta sola.";
     let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
@@ -978,7 +979,7 @@ const AP = (() => {
     call("activate", { did: installId(), device: deviceName(), note, seller: code }).then(j => {
       $("actGo").disabled = false;
       if (j.ok) {
-        cfg.activated = true; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); actChip();
+        cfg.activated = true; cfg.suspended = false; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); actChip();
         try { if (note) localStorage.setItem("kairosName", note); } catch (e) {}
         Sound.done(); toast("Store attivato: " + (j.seller || "venditore"));
         // se si stava installando un'app, il download parte adesso (senza finestra)
@@ -1054,7 +1055,7 @@ const AP = (() => {
     const s = saved()[app.name];
     const fresh = cfg.s === apServer() && Date.now() - cfg.t < 120000;
     // store da attivare (il titolare ha scelto «solo store attivati»): prima il codice del venditore, poi il download
-    if (fresh && cfg.activation && !activated()) { start(app, url, true); actStep(app); getCfg(true); return; }
+    if (fresh && ((cfg.activation && !activated()) || cfg.suspended)) { start(app, url, true); actStep(app); getCfg(true); return; }
     // approvazione spenta nel pannello, o store già intestato con «solo store attivati»: nessuna finestra, il server autorizza subito
     const auto = !(s && s.id) && fresh && (cfg.on === false || (cfg.activation && activated()));
     start(app, url, !auto);
@@ -1078,7 +1079,7 @@ const AP = (() => {
       if (cur !== c) return;
       c.busy = false;
       if (j.http === 400 && /venditore/i.test(j.error || "")) { reveal(); askStep(); sellerHint(j.error); Sound.error(); return; }
-      if (j.http === 403 && j.needActivation) { cfg.activation = true; cfg.activated = false; cfg.t = Date.now(); actSave(null); actChip(); reveal(); actStep({ name: c.app }); return; }
+      if (j.http === 403 && j.needActivation) { if (!j.suspended) cfg.activation = true; cfg.suspended = j.suspended === true; cfg.activated = false; cfg.t = Date.now(); actSave(null); actChip(); reveal(); actStep({ name: c.app }); return; }
       if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
       if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now(), to: j.seller || "" }); msg(""); reveal(); waitStep(j.seller); poll(0); return; }
       if (j.http === 403 && /bloccato/i.test(j.error || "")) { c.busy = false; reveal(); askStep(); $("apAsk").disabled = true; Sound.error(); msg("Dispositivo bloccato dal venditore: non puoi più scaricare app da questo store. Contatta il venditore."); return; }
