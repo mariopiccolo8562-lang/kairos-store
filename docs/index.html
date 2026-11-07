@@ -928,7 +928,7 @@ const AP = (() => {
     return call("config?did=" + encodeURIComponent(installId()), null, s).then(j => {
       cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, activated: j.activated === true, suspended: j.suspended === true, seller: j.seller || "" };
       if (j.activated === true) actSave(j.seller || ""); else if (j.activated === false && typeof j.activation === "boolean") actSave(null);
-      actChip(); return cfg.on;
+      actChip(); gateCheck(); return cfg.on;
     }, () => { actChip(); return null; });
   }
   // stato di attivazione ricordato sul dispositivo (per mostrare il chip anche prima della risposta del server)
@@ -959,8 +959,10 @@ const AP = (() => {
     step(0); $("actGo").disabled = false;
     const on = activated();
     $("apApp").textContent = app ? app.name : (STORE.name || document.getElementById("storeName").textContent);
+    $("apNo0").hidden = gate && !on; // porta d'ingresso: non si chiude finché lo store non è attivato
     $("apText").innerHTML = cfg.suspended ? "Il venditore di questo store" + (sellerOfStore() ? " (<b>" + esc(sellerOfStore()) + "</b>)" : "") + " è <b>sospeso</b>: per continuare a scaricare serve il codice di un <b>altro venditore</b>."
       : on ? "Questo store è intestato a <b>" + esc(sellerOfStore()) + "</b>. Per passarlo a un altro venditore scrivi il suo codice."
+      : gate ? "<b>Benvenuto!</b> Per usare questo store scrivi il <b>codice del venditore</b> che te l'ha installato: serve una volta sola. Poi le app si scaricano senza altre conferme."
       : app ? "Questo store non è ancora attivato: le app si scaricano solo dopo. Scrivi il <b>codice del venditore</b> (una volta sola): da quel momento ogni download parte da solo." 
       : "Scrivi il <b>codice del venditore</b> che ti ha installato lo store: serve una volta sola.";
     let nm = ""; try { nm = localStorage.getItem("kairosName") || ""; } catch (e) {}
@@ -979,7 +981,7 @@ const AP = (() => {
     call("activate", { did: installId(), device: deviceName(), note, seller: code }).then(j => {
       $("actGo").disabled = false;
       if (j.ok) {
-        cfg.activated = true; cfg.suspended = false; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); actChip();
+        cfg.activated = true; cfg.suspended = false; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); actChip(); gate = false;
         try { if (note) localStorage.setItem("kairosName", note); } catch (e) {}
         Sound.done(); toast("Store attivato: " + (j.seller || "venditore"));
         // se si stava installando un'app, il download parte adesso (senza finestra)
@@ -989,6 +991,15 @@ const AP = (() => {
       Sound.error(); msg(j.error || NET);
       if (j.http === 429) $("actGo").disabled = true;
     }, () => { $("actGo").disabled = false; Sound.error(); msg(NET); });
+  }
+  // porta d'ingresso: appena installato (o scollegato/sospeso) lo store chiede il codice del venditore prima di tutto il resto
+  let gate = false;
+  const gateNeeded = () => !!apServer() && cfg.s === apServer() && ((cfg.activation === true && !activated()) || cfg.suspended === true);
+  function gateCheck() {
+    if (!gateNeeded()) { if (gate && isOpen()) { gate = false; close(); } gate = false; return; }
+    if (!entered) { setTimeout(gateCheck, 400); return; }
+    if (isOpen()) { if (!$("apStep0").hidden) gate = true; return; }
+    gate = true; openActivation();
   }
   function openActivation() { if (!apServer()) return; const was = cur; if (!isOpen()) back = document.activeElement; cur = { app: "", url: "", server: apServer(), id: "", did: installId(), busy: false }; if (was && was.id) cur = was; msg(""); reveal(); actStep(null); }
   function askStep(again) {
@@ -1034,6 +1045,7 @@ const AP = (() => {
   }
   try { const pv = sellerNorm(new URLSearchParams(location.search).get("v")); if (pv.length >= 3) sellerSave(pv); } catch (e) {}
   function close() {
+    if (gate && gateNeeded() && !$("apStep0").hidden) { focusFirst(); return; } // porta d'ingresso: prima il codice
     const name = cur && cur.app;
     clearTimeout(timer); cur = null;
     if (!isOpen()) return;
@@ -1212,7 +1224,7 @@ const AP = (() => {
   document.addEventListener("visibilitychange", () => { if (!document.hidden && cur && cur.id && !cur.busy) check(false, 0); });
 
   // l'app Android: tasto Indietro e download bloccati perché non autorizzati
-  window.kairosBack = () => { if (isOpen()) { close(); return true; } return false; };
+  window.kairosBack = () => { if (isOpen()) { if (gate && gateNeeded() && !$("apStep0").hidden) return false; close(); return true; } return false; };
   window.kairosNeedApproval = url => {
     const i = APPS.findIndex(a => apUrl(a) === String(url).trim());
     if (i >= 0 && !isOpen()) open(i);
