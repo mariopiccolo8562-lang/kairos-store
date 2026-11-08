@@ -185,55 +185,6 @@ body.tv .inner,body.lite .inner{-webkit-backdrop-filter:none;backdrop-filter:non
 .top{order:1}.desc,.status{order:2}.code{order:3}.btn{order:4}.progress{order:5}
 .card.busy .desc{display:none}.card.busy .status{margin:0}
 
-/* nella finestra, hidden vince sempre (etichette e campi hanno display:block) */
-.ap [hidden]{display:none!important}
-/* porta d'ingresso (codice del venditore all'avvio): la pagina resta nascosta finché non si entra */
-body.ap-gate .grid,body.ap-gate .section-title,body.ap-gate .notice,body.ap-gate footer{visibility:hidden}
-/* chip «store di …» nello header: pulsante con lo stesso stile dei chip */
-.chip.act{cursor:pointer;font:inherit;color:inherit;background:transparent}
-.chip.act.no .dot{background:#fbbf24;box-shadow:0 0 10px #fbbf24}
-.chip.act:focus{outline:none;box-shadow:0 0 0 .2rem #fff}
-html.tv .chip.act{font-size:1rem}
-/* ---------- autorizzazione del venditore ---------- */
-.ap{position:fixed;inset:0;z-index:65;display:grid;place-items:center;padding:20px;background:rgba(3,4,12,.8);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.ap[hidden]{display:none}
-body.ap-on{overflow:hidden}
-.ap-box{position:relative;width:min(560px,100%);max-height:100%;overflow:auto;border-radius:24px;padding:2px;
-  background:linear-gradient(160deg,rgba(34,211,238,.6),rgba(139,92,246,.35),rgba(236,72,153,.55));box-shadow:0 30px 90px -20px rgba(139,92,246,.75);animation:fadeUp .35s both}
-.ap-in{border-radius:22px;padding:26px 26px 22px;background:rgba(10,13,30,.97);display:flex;flex-direction:column;gap:14px;outline:none}
-.ap-head{display:flex;align-items:center;gap:16px}
-.ap-ic{width:58px;height:58px;flex:none;border-radius:16px;display:grid;place-items:center;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);color:var(--c1)}
-.ap-ic svg{width:28px;height:28px}
-.ap h2{margin:0;font:700 13px var(--display);letter-spacing:.28em;color:var(--c1)}
-.ap-app{margin:4px 0 0;font:700 22px/1.15 var(--display);letter-spacing:.04em;color:#fff;overflow:hidden;text-overflow:ellipsis}
-.ap-text{margin:0;color:#b8c3dc;font-size:17px}
-.ap-text b{color:#fff}
-.ap-step{display:flex;flex-direction:column;gap:14px}
-.ap-step[hidden]{display:none}
-.ap-lbl{display:block;font:600 11px var(--display);letter-spacing:.16em;color:var(--muted);margin-bottom:-6px}
-.ap-inp{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--edge);background:rgba(0,0,0,.35);color:#fff;font:600 18px var(--body);outline:none}
-.ap-hint{display:block;margin-top:-8px;font:500 12px var(--body);color:var(--muted);min-height:14px}
-.ap-code{width:100%;padding:12px 10px;border-radius:16px;border:1px solid var(--edge);background:rgba(0,0,0,.45);color:#fff;text-align:center;
-  font:900 40px var(--display);letter-spacing:.42em;text-indent:.42em;outline:none}
-.ap-code::placeholder{color:rgba(255,255,255,.16)}
-.ap-inp:focus,.ap-code:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.3)}
-.ap-pad{display:none;grid-template-columns:repeat(3,1fr);gap:10px}
-.ap-pad button{padding:12px 0;border-radius:14px;border:1px solid var(--edge);background:rgba(255,255,255,.04);cursor:pointer;outline:none;
-  font:700 22px var(--display);color:#fff}
-.ap-pad button.k-ok{background:var(--grad);color:#031018;border:0;font-size:16px;letter-spacing:.15em}
-.ap-pad button:focus,.ap-pad button:hover{border-color:var(--c1);background-color:rgba(34,211,238,.18);box-shadow:0 0 0 3px #fff}
-.ap-btns{display:flex;gap:12px}
-.ap .btn{order:0;flex:1;width:auto}
-.ap .btn:disabled{opacity:.55;cursor:wait}
-.ap-sec{flex:none;padding:15px 20px;border-radius:14px;border:1px solid var(--edge);background:transparent;cursor:pointer;outline:none;
-  font:700 13px var(--display);letter-spacing:.18em;color:var(--muted)}
-.ap-sec:focus,.ap-sec:hover{color:#fff;border-color:#fff;box-shadow:0 0 0 3px #fff}
-.ap-wait{margin:0;display:flex;align-items:center;gap:10px;color:var(--c1);font-size:16px}
-.ap-wait i{width:9px;height:9px;flex:none;border-radius:50%;background:var(--c1);box-shadow:0 0 10px var(--c1);animation:blink 1.2s infinite}
-.ap-msg{margin:0;font-size:16px;color:#fda4af}
-.ap-msg.ok{color:#6ee7b7}
-.ap-msg:empty{display:none}
 
 /* ---------- effetti click ---------- */
 .ring{position:fixed;z-index:60;pointer-events:none;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
@@ -320,30 +271,6 @@ html.tv footer{margin-top:2rem;font-size:1rem}
 html.tv .intro-logo g{filter:none}
 html.tv .intro-logo{animation:none}
 html.tv .intro-bar b{box-shadow:none}
-html.tv .ap{padding:2rem;-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(3,4,12,.9)}
-html.tv .ap-box{width:48rem;border-radius:1.8rem;padding:.2rem;box-shadow:none;animation:none}
-html.tv .ap-in{border-radius:1.65rem;padding:1.8rem 2rem 1.6rem;gap:1rem}
-html.tv .ap-head{gap:1.2rem}
-html.tv .ap-ic{width:4.4rem;height:4.4rem;border-radius:1.2rem}
-html.tv .ap-ic svg{width:2.2rem;height:2.2rem}
-html.tv .ap h2{font-size:1rem}
-html.tv .ap-app{font-size:2rem;margin-top:.3rem}
-html.tv .ap-text{font-size:1.45rem;line-height:1.35}
-html.tv .ap-step{gap:1rem}
-html.tv .ap-lbl{font-size:.85rem}
-html.tv .ap-inp{padding:.8rem 1.2rem;border-radius:1rem;font-size:1.5rem}
-html.tv .ap-code{padding:.6rem;border-radius:1.1rem;font-size:3rem}
-html.tv .ap-pad{display:grid;gap:.7rem}
-html.tv .ap-pad button{padding:.55rem 0;border-radius:1rem;font-size:1.9rem}
-html.tv .ap-pad button.k-ok{font-size:1.3rem}
-html.tv .ap-pad button:focus{box-shadow:0 0 0 .25rem #fff}
-html.tv .ap-btns{gap:1rem}
-html.tv #apOk{display:none}
-html.tv .ap-sec{padding:.85rem 1.6rem;border-radius:1rem;font-size:1.1rem}
-html.tv .ap-sec:focus{box-shadow:0 0 0 .25rem #fff}
-html.tv .ap-wait{font-size:1.3rem;gap:.8rem}
-html.tv .ap-wait i{width:.7rem;height:.7rem;box-shadow:none}
-html.tv .ap-msg{font-size:1.3rem}
 @media (max-width:640px){
   header{flex-wrap:wrap}.hud{margin-left:0;width:100%}.hud .chip{margin-right:auto}
   .grid{grid-template-columns:1fr}.logo-wrap{width:60px;height:60px}
@@ -354,7 +281,7 @@ html.tv .ap-msg{font-size:1.3rem}
 .recwrap{display:flex;justify-content:center;margin:4px 0 12px}
 .rec{font:inherit;font-weight:800;letter-spacing:.06em;font-size:clamp(13px,1.3vw,17px);padding:12px 22px;border-radius:999px;border:1px solid rgba(34,211,238,.55);background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(168,85,247,.18));color:#e8fbff;cursor:pointer;box-shadow:0 0 24px rgba(34,211,238,.18)}
 .rec:focus,.rec:hover{outline:none;border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.35),0 0 30px rgba(34,211,238,.35)}
-.rec-box{display:block}.rec-box .rb-app{font-size:1.25em;font-weight:900}.rec-box .rb-act{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:#22d3ee;color:#04141a;font-weight:900;text-decoration:none}
+.rec-box{display:block}.rec-box[hidden]{display:none}.rec-box .rb-app{font-size:1.25em;font-weight:900}.rec-box .rb-act{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:#22d3ee;color:#04141a;font-weight:900;text-decoration:none}
 .rec-box .rb-act:focus{outline:3px solid #fff}.card.rec-hi{outline:3px solid #22d3ee;outline-offset:4px}
 </style>
 </head>
@@ -394,7 +321,6 @@ html.tv .ap-msg{font-size:1.3rem}
     </div>
     <div class="hud">
       <span class="chip"><span class="dot"></span><span id="count">0</span> APP ONLINE</span>
-      <button class="chip act" id="actChip" type="button" hidden title="Store intestato a un venditore: tocca per cambiarlo"><span class="dot"></span><span id="actChipTxt">STORE DA ATTIVARE</span></button>
       <button class="update" id="updateBtn" type="button" aria-label="Aggiorna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>AGGIORNA</span></button>
       <button class="sound" id="soundBtn" type="button" aria-label="Effetti sonori"></button>
     </div>
@@ -442,43 +368,6 @@ html.tv .ap-msg{font-size:1.3rem}
   <footer id="footer"></footer>
 </div>
 
-<!-- autorizzazione del venditore prima del download (si attiva con "approval" in apps.json) -->
-<div class="ap" id="ap" hidden>
-  <div class="ap-box" role="dialog" aria-modal="true" aria-labelledby="apTitle">
-    <div class="ap-in" id="apIn" tabindex="-1">
-      <div class="ap-head">
-        <div class="ap-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/></svg></div>
-        <div style="min-width:0"><h2 id="apTitle">AUTORIZZAZIONE</h2><p class="ap-app" id="apApp"></p></div>
-      </div>
-      <p class="ap-text" id="apText"></p>
-      <div class="ap-step" id="apStep0" hidden>
-        <label class="ap-lbl" for="actCode">CODICE DEL VENDITORE</label>
-        <input class="ap-inp" id="actCode" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="es. MARIO o K7M4" style="letter-spacing:.14em;text-transform:uppercase">
-        <small class="ap-hint" id="actHint"></small>
-        <div class="ap-btns"><button class="btn" type="button" id="actGo"><span>ATTIVA LO STORE</span></button><button class="ap-sec" type="button" id="apNo0">CHIUDI</button></div>
-      </div>
-      <div class="ap-step" id="apStep1">
-        <label class="ap-lbl" for="apSeller">CODICE DEL VENDITORE (SE TE L'HA DATO)</label>
-        <input class="ap-inp" id="apSeller" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="es. MARIO o K7M4" style="letter-spacing:.14em;text-transform:uppercase">
-        <small class="ap-hint" id="apSellerHint"></small>
-        <div class="ap-btns"><button class="btn" type="button" id="apAsk"><span>RICHIEDI AUTORIZZAZIONE</span></button><button class="ap-sec" type="button" id="apNo1">ANNULLA</button></div>
-      </div>
-      <div class="ap-step" id="apStep2" hidden>
-        <input class="ap-code" id="apCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="––––––" aria-label="Codice di 6 cifre">
-        <div class="ap-pad" id="apPad">
-          <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
-          <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
-          <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
-          <button type="button" data-k="del" aria-label="Cancella">⌫</button><button type="button" data-k="0">0</button><button type="button" class="k-ok" data-k="ok">OK</button>
-        </div>
-        <p class="ap-wait"><i></i><span>In attesa dell'autorizzazione del venditore…</span></p>
-        <div class="ap-btns"><button class="btn" type="button" id="apOk"><span>CONFERMA CODICE</span></button><button class="ap-sec" type="button" id="apNo2">CHIUDI</button></div>
-      </div>
-      <p class="ap-msg" id="apMsg" aria-live="polite"></p>
-    </div>
-  </div>
-</div>
-
 <script>
 /* =================================================================
    CONFIG — elenco di RISERVA. L'elenco vero è in apps.json e si
@@ -489,10 +378,9 @@ html.tv .ap-msg{font-size:1.3rem}
    pkg   = (facoltativo) nome del pacchetto Android, es. "com.esempio.player":
            se lo indichi, il pulsante Disinstalla riconosce l'app con certezza
    glow  = colore del bagliore della scheda
-   Autorizzazione del venditore (in apps.json, dentro "store"):
-     "approval": { "server": "https://kairos-panel.TUO-NOME.workers.dev", "on": true }
-     → prima di ogni download il cliente chiede il permesso; tu lo ricevi
-       via email e nel pannello (pagina "Download store").
+   Lo store è APERTO (come IBO Player): Installa scarica subito, senza
+   codice del venditore né autorizzazione. Il pannello conta solo store
+   e download (pagina «Riepilogo store»).
    ================================================================= */
 let STORE = {
   name: "KAIROS STORE",
@@ -516,7 +404,6 @@ let APPS = [
 // (es. https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV — "asin" facoltativo, per Amazon)
 const storePkg = app => { const m = /^https:\/\/play\.google\.com\/store\/apps\/details\?(?:[^#]*&)?id=([A-Za-z0-9._]+)/.exec(app.url || ""); return m ? m[1] : ""; };
 const storeAsin = app => { const m = /[?&]asin=([A-Z0-9]{10})(?:&|$)/.exec(app.url || ""); return m ? m[1] : ""; };
-const apUrl = app => storePkg(app) ? "https://play.google.com/store/apps/details?id=" + storePkg(app) : String(downloadUrl(app)).trim();
 const downloadUrl = app => {
   const pkg = storePkg(app);
   if (pkg) return /AFT[A-Z0-9]|Silk.*TV/i.test(navigator.userAgent || "") ? "amzn://apps/android?p=" + pkg : "https://play.google.com/store/apps/details?id=" + pkg;
@@ -685,7 +572,6 @@ const disabled = isIOS || isSmartTV;
 const label = isStoreApp || canInstall || isTV ? "INSTALLA" : "SCARICA";
 function renderCards() {
 grid.innerHTML = "";
-const gated = !!apServer(); // con l'autorizzazione attiva il link dell'APK non è nella pagina
 APPS.forEach((app, i) => {
   const card = document.createElement("article");
   card.className = "card";
@@ -700,7 +586,7 @@ APPS.forEach((app, i) => {
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
-      <a class="btn" href="${disabled || gated ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
+      <a class="btn" href="${disabled ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
       <button class="unbtn" type="button" id="un${i}" data-u="${i}" hidden>${TRASH}<span>DISINSTALLA</span></button>
       <div class="progress" id="pg${i}"><b></b></div>
       <p class="status" id="st${i}" aria-live="polite"></p>
@@ -754,7 +640,7 @@ grid.addEventListener("click", e => {
   const i = +a.dataset.i, app = APPS[i], r = a.getBoundingClientRect();
   burst(r.left + r.width / 2, r.top + r.height / 2, app.glow || "#22d3ee");
   Sound.whoosh();
-  if (apServer()) { e.preventDefault(); AP.open(i); return; } // serve l'ok del venditore (anche per le app degli store ufficiali)
+  track(app, downloadUrl(app)); // il pannello conta il download (non blocca nulla)
   if (storePkg(app)) { // app degli store ufficiali (Amazon Appstore / Google Play): niente download dallo store
     if (isStoreApp) {
       e.preventDefault();
@@ -765,6 +651,7 @@ grid.addEventListener("click", e => {
   }
   if (isStoreApp) {
     e.preventDefault();
+    unlockNative(); // l'APK vecchio non deve più chiedere l'autorizzazione
     window.KairosStore.install(downloadUrl(app), app.name, "st" + i);
   } else {
     status("st" + i, "Download avviato…");
@@ -785,7 +672,7 @@ function status(id, text) {
     if (/completato|Conferma/i.test(text)) { pg.classList.add("on"); pg.firstElementChild.style.width = "100%"; }
   }
   if (/completato/i.test(text)) Sound.done();
-  if (/non riuscito|non disponibile|annullata|Impossibile|non valida|scaduta|autorizzazione del venditore/i.test(text)) Sound.error();
+  if (/non riuscito|non disponibile|annullata|Impossibile/i.test(text)) Sound.error();
 }
 window.kairosStatus = status;
 
@@ -853,30 +740,10 @@ if (q.get("msg") === "ok") {
   setTimeout(() => toast("✓ Kairos Store è aggiornato" + v + ". Lista app aggiornata."), 500);
 }
 
-// ---------- autorizzazione del venditore prima del download ----------
-// In apps.json:  "store": { "approval": { "server": "https://kairos-panel.TUO-NOME.workers.dev", "on": true } }
-// Con "server" vuoto oppure "on": false i download partono come prima, senza chiedere nulla.
-let appsLoaded = false;
-function cleanServer(s) {
-  s = String(s || "").trim().replace(/\/+$/, "");
-  return /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(s) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(s) ? s : "";
-}
-// Server predefinito: l'autorizzazione resta attiva anche se un altro programma riscrive apps.json
-// senza il blocco "approval". Per spegnerla: "approval": { "on": false } in apps.json, oppure
-// "Approvazione" spenta nel pannello Kairos Control (il server autorizza da solo e registra il download).
-const AP_DEFAULT = "https://kairos-panel.mariopiccolo8562.workers.dev";
-function apServer() {
-  const a = STORE.approval;
-  if (a && typeof a === "object") return a.on === false ? "" : cleanServer(a.server) || cleanServer(AP_DEFAULT);
-  // elenco di riserva (apps.json non caricato): vale il server ricordato dall'app dello store
-  if (!appsLoaded && isStoreApp) { try { const s = cleanServer(window.KairosStore.approvalServer && window.KairosStore.approvalServer()); if (s) return s; } catch (e) {} }
-  return cleanServer(AP_DEFAULT);
-}
-// l'app Android ricorda il server: così blocca anche i download che non passano da questa pagina
-function tellApp() {
-  if (!isStoreApp || !appsLoaded || typeof window.KairosStore.setApprovalServer !== "function") return;
-  try { window.KairosStore.setApprovalServer(apServer()); } catch (e) {}
-}
+// ---------- store APERTO (come IBO Player): niente codice del venditore, niente autorizzazione, niente blocchi ----------
+// Il pannello Kairos serve solo a contare quanti store ci sono e quanti download partono, e a dare le regole
+// dell'«App consigliata». Se il pannello non risponde lo store funziona lo stesso: si scarica comunque.
+const PANEL = ["https://panel-kairos.com", "https://kairos-panel.mariopiccolo8562.workers.dev"]; // il secondo solo di riserva
 function installId() {
   try { if (isStoreApp && window.KairosStore.deviceId) { const d = window.KairosStore.deviceId(); if (/^[A-Za-z0-9_-]{16,64}$/.test(d)) return d; } } catch (e) {}
   let d = ""; try { d = localStorage.getItem("kairosDid") || ""; } catch (e) {}
@@ -895,365 +762,42 @@ function deviceName() {
   if (isFireTV) n += " (Fire TV)"; else if (isAndroidTV) n += " (Android TV)"; else if (!isStoreApp && m) n += " (browser)";
   return n.slice(0, 80);
 }
-const AP = (() => {
-  const box = document.getElementById("ap"), $ = id => document.getElementById(id);
-  const LS = "kairosApproval", TTL = 24 * 3600e3;
-  const NET = "Server delle autorizzazioni non raggiungibile. Controlla la connessione e riprova.";
-  let cur = null, timer = 0, back = null, cfg = { s: "", t: 0, on: null };
-  if (isTV) { $("apCode").readOnly = true; $("apCode").tabIndex = -1; } // sul TV si usa il tastierino a schermo
-
-  // richieste IN ATTESA ricordate sul dispositivo (lo store può ricaricarsi mentre si aspetta).
-  // Ogni autorizzazione vale per una sola app e un solo download: una richiesta già autorizzata,
-  // usata, scaduta o revocata non viene mai riusata per un'installazione successiva.
-  const ENDED = {
-    denied: "Il venditore non ha autorizzato il download.",
-    revoked: "Il venditore ha revocato l'autorizzazione per questa app. Se ti serve ancora, richiedila di nuovo.",
-    used: "Questa autorizzazione è già stata usata: ogni download richiede un nuovo permesso del venditore.",
-    expired: "La richiesta è scaduta: richiedila di nuovo.",
-    unknown: "La richiesta non è più valida: richiedila di nuovo.",
-  };
-  const saved = () => { try { return JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) { return {}; } };
-  function save(name, v) {
-    const s = saved(); if (v) s[name] = v; else delete s[name];
-    Object.keys(s).forEach(k => { if (!s[k] || !s[k].t || Date.now() - s[k].t > TTL) delete s[k]; });
-    try { localStorage.setItem(LS, JSON.stringify(s)); } catch (e) {}
-  }
-  function call(path, body, server) {
-    const ctl = typeof AbortController === "function" ? new AbortController() : null;
-    const tm = setTimeout(() => { if (ctl) ctl.abort(); }, 15000);
-    const opt = { cache: "no-store", credentials: "omit" };
-    if (ctl) opt.signal = ctl.signal;
-    // text/plain = richiesta "semplice": niente preflight CORS, più veloce sui TV
-    if (body) { opt.method = "POST"; opt.headers = { "Content-Type": "text/plain;charset=UTF-8" }; opt.body = JSON.stringify(body); }
-    return fetch((server || apServer()) + "/api/store/" + path, opt)
-      .then(r => r.json().catch(() => ({})).then(j => { clearTimeout(tm); j.http = r.status; return j; }),
-            e => { clearTimeout(tm); throw e; });
-  }
-  function getCfg(force) {
-    const s = apServer(); if (!s) return Promise.resolve(null);
-    if (!force && cfg.s === s && Date.now() - cfg.t < 60000) return Promise.resolve(cfg.on);
-    // ?did= : il server dice anche se QUESTO store è già intestato a un venditore (e a chi)
-    return call("config?did=" + encodeURIComponent(installId()), null, s).then(j => {
-      cfg = { s, t: Date.now(), on: typeof j.on === "boolean" ? j.on : null, activation: j.activation === true, gate: j.gate === "every" || j.gate === "once" ? j.gate : (j.activation === true ? "once" : "none"), activated: j.activated === true, suspended: j.suspended === true, blocked: j.blocked === true, seller: j.seller || "" };
-      if (j.activated === true) actSave(j.seller || ""); else if (j.activated === false && typeof j.activation === "boolean") actSave(null);
-      actChip(); gateCheck(); return cfg.on;
-    }, () => { actChip(); return null; });
-  }
-  // stato di attivazione ricordato sul dispositivo (per mostrare il chip anche prima della risposta del server)
-  const actSaved = () => { try { return JSON.parse(localStorage.getItem("kairosAct") || "null"); } catch (e) { return null; } };
-  function actSave(seller) { try { if (seller === null) localStorage.removeItem("kairosAct"); else localStorage.setItem("kairosAct", JSON.stringify({ seller, t: Date.now() })); } catch (e) {} }
-  const activated = () => cfg.activated === true || (cfg.activated !== false && !!actSaved());
-  const sellerOfStore = () => cfg.seller || (actSaved() || {}).seller || "";
-  function actChip() {
-    const c = $("actChip"); if (!c) return;
-    const on = activated(), susp = cfg.suspended === true, blk = cfg.blocked === true, show = !!apServer() && (on || susp || blk || cfg.activation === true);
-    c.hidden = !show; if (!show) return;
-    c.classList.toggle("no", !on || susp || blk);
-    $("actChipTxt").textContent = blk ? "STORE BLOCCATO" : susp ? "STORE SOSPESO" : on ? "STORE DI " + (sellerOfStore() || "…").toUpperCase() : "STORE DA ATTIVARE";
-    c.title = blk ? "Questo store è bloccato: può sbloccarlo solo il titolare" : susp ? "Il venditore di questo store è sospeso: tocca e scrivi il codice di un altro venditore" : on ? "Questo store è intestato a " + sellerOfStore() + ": tocca per cambiarlo con un altro codice" : "Questo store non è ancora attivato: tocca e scrivi il codice del venditore";
-  }
-
-  const isOpen = () => !box.hidden;
-  const items = () => [...box.querySelectorAll("button, input")].filter(el => !el.disabled && el.tabIndex >= 0 && el.offsetParent !== null);
-  function msg(t, ok) { const m = $("apMsg"); m.textContent = t || ""; m.className = "ap-msg" + (ok ? " ok" : ""); }
-  function focusFirst() {
-    const s2 = !$("apStep2").hidden, s0 = !$("apStep0").hidden;
-    let el = s0 ? $("actCode") : s2 ? (isTV ? box.querySelector('#apPad [data-k="1"]') : matchMedia("(hover:hover)").matches ? $("apCode") : null) : $("apAsk");
-    if (el && !el.disabled && el.offsetParent !== null) el.focus(); else $("apIn").focus();
-  }
-  function step(n) { $("apStep0").hidden = n !== 0; $("apStep1").hidden = n !== 1; $("apStep2").hidden = n !== 2; $("apTitle").textContent = n === 0 ? (gate && cfg.gate === "every" && !cfg.suspended && !cfg.blocked ? "CODICE DEL VENDITORE" : "ATTIVA LO STORE") : "AUTORIZZAZIONE"; }
-  // passo 0: lo store si intesta a un venditore (una volta sola); poi, con «solo store attivati», scarica senza conferma
-  function actStep(app) {
-    step(0); $("actGo").disabled = false;
-    const on = activated();
-    $("apApp").textContent = app ? app.name : (STORE.name || document.getElementById("storeName").textContent);
-    $("apNo0").hidden = gate && gateNeeded(); // porta d'ingresso: non si chiude finché non si entra con il codice
-    const blk = cfg.blocked === true;
-    ["actCode", "actGo", "actHint"].forEach(id => { $(id).hidden = blk; });
-    box.querySelectorAll("#apStep0 .ap-lbl").forEach(l => { l.hidden = blk; });
-    if (blk) { $("apText").innerHTML = "<b>Store bloccato.</b> Sono stati scritti troppi codici venditore sbagliati: può sbloccarlo <b>solo il titolare</b> dal suo pannello. Appena lo sblocca, questa finestra si riapre da sola per il codice."; blkPoll(); $("apIn").focus(); return; }
-    $("apText").innerHTML = cfg.suspended ? "Il venditore di questo store" + (sellerOfStore() ? " (<b>" + esc(sellerOfStore()) + "</b>)" : "") + " è <b>sospeso</b>: per continuare a scaricare serve il codice di un <b>altro venditore</b>."
-      : gate && cfg.gate === "every" ? "Per entrare nello store scrivi il <b>codice del tuo venditore</b>." + (on ? "" : " Così lo store sa a chi mandare le richieste.")
-      : on ? "Questo store è intestato a <b>" + esc(sellerOfStore()) + "</b>. Per passarlo a un altro venditore scrivi il suo codice."
-      : gate ? "<b>Benvenuto!</b> Per usare questo store scrivi il <b>codice del venditore</b> che te l'ha installato: serve una volta sola." + (cfg.activation ? " Poi le app si scaricano senza altre conferme." : "")
-      : app ? "Questo store non è ancora attivato: le app si scaricano solo dopo. Scrivi il <b>codice del venditore</b> (una volta sola): da quel momento ogni download parte da solo." 
-      : "Scrivi il <b>codice del venditore</b> che ti ha installato lo store: serve una volta sola.";
-    $("actCode").value = gate && cfg.gate !== "every" ? sellerSaved() : ""; $("actHint").textContent = ""; // «a ogni avvio»: il codice va scritto davvero
-    $("actGo").querySelector("span").textContent = gate && cfg.gate === "every" && !cfg.suspended ? "ENTRA" : "ATTIVA LO STORE";
-    if ($("actCode").value) actCheck();
-    focusFirst();
-  }
-  function actCheck() {
-    const v = sellerNorm($("actCode").value), h = $("actHint"); h.textContent = "";
-    if (v.length < 3 || !apServer()) return;
-    call("seller?c=" + encodeURIComponent(v), null).then(j => { if (sellerNorm($("actCode").value) !== v) return; h.textContent = j && j.ok ? "Venditore: " + j.name : "Codice venditore non riconosciuto"; }, () => {});
-  }
-  function activate() {
-    const c = cur, code = sellerNorm($("actCode").value), note = "";
-    if (code.length < 3) { $("actHint").textContent = "Il codice del venditore ha da 3 a 8 caratteri"; Sound.error(); return; }
-    $("actGo").disabled = true; msg("Attivazione in corso…", true);
-    call("activate", { did: installId(), device: deviceName(), note, seller: code }).then(j => {
-      $("actGo").disabled = false;
-      if (j.ok) {
-        cfg.activated = true; cfg.suspended = false; cfg.seller = j.seller || ""; cfg.t = Date.now(); actSave(cfg.seller); sellerSave(code); sessionPass(); actChip(); gate = false; document.body.classList.remove("ap-gate");
-        Sound.done(); toast("Store attivato: " + (j.seller || "venditore"));
-        // se si stava installando un'app, il download parte adesso (senza finestra)
-        if (c && cur === c && c.url) { msg(""); const i = APPS.findIndex(a => a.name === c.app); close(); if (i >= 0) open2(i); return; }
-        close(); return;
-      }
-      Sound.error(); msg(j.error || NET);
-      if (j.http === 403 && j.blocked) { cfg.blocked = true; cfg.t = Date.now(); actChip(); actStep(c && c.app ? { name: c.app } : null); msg(j.error); return; }
-      if (j.http === 429) $("actGo").disabled = true;
-    }, () => { $("actGo").disabled = false; Sound.error(); msg(NET); });
-  }
-  // porta d'ingresso: appena installato (o scollegato/sospeso) lo store chiede il codice del venditore prima di tutto il resto
-  let gate = false;
-  // «a ogni avvio»: vale finché la pagina resta aperta (riapertura dell'app = nuovo avvio)
-  const sessionOk = () => { try { return sessionStorage.getItem("kairosGateOk") === "1"; } catch (e) { return false; } };
-  const sessionPass = () => { try { sessionStorage.setItem("kairosGateOk", "1"); } catch (e) {} };
-  const gateNeeded = () => !!apServer() && cfg.s === apServer() && ((cfg.gate === "every" && !sessionOk()) || (cfg.gate === "once" && !activated()) || (cfg.activation === true && !activated()) || cfg.suspended === true || cfg.blocked === true);
-  // store bloccato (tre codici sbagliati): finestra senza campi; ogni 30 s ricontrolla se il titolare l'ha sbloccato
-  let blkTimer = 0;
-  function blkPoll() {
-    clearTimeout(blkTimer);
-    if (!(cfg.blocked && isOpen() && !$("apStep0").hidden)) return;
-    blkTimer = setTimeout(() => getCfg(true).then(() => { if (isOpen() && !$("apStep0").hidden) { if (!cfg.blocked) actStep(cur && cur.app ? { name: cur.app } : null); else blkPoll(); } }), 30000);
-  }
-  function gateCheck() {
-    if (!gateNeeded()) { if (gate && isOpen()) { gate = false; close(); } gate = false; document.body.classList.remove("ap-gate"); return; }
-    document.body.classList.add("ap-gate");
-    if (!entered) { setTimeout(gateCheck, 400); return; }
-    if (isOpen()) { if (!$("apStep0").hidden) gate = true; return; }
-    gate = true; openActivation();
-  }
-  function openActivation() { if (!apServer()) return; const was = cur; if (!isOpen()) back = document.activeElement; cur = { app: "", url: "", server: apServer(), id: "", did: installId(), busy: false }; if (was && was.id) cur = was; msg(""); reveal(); actStep(null); }
-  function askStep(again) {
-    step(1); $("apAsk").disabled = false;
-    $("apAsk").querySelector("span").textContent = again ? "RICHIEDI DI NUOVO" : "RICHIEDI AUTORIZZAZIONE";
-    const who = activated() && sellerOfStore() ? "di <b>" + esc(sellerOfStore()) + "</b>" : "del <b>venditore</b>";
-    $("apText").innerHTML = again ? "Per scaricare di nuovo serve una <b>nuova autorizzazione</b> " + who + ": ogni download ne richiede una." : "Per scaricare questa app serve l'autorizzazione " + who + ". Premi il pulsante: riceve subito la richiesta.";
-    focusFirst();
-  }
-  function waitStep(to) {
-    // to = nome del venditore a cui è andata la richiesta (dal codice scritto): così si vede subito a chi è arrivata
-    step(2); $("apCode").value = "";
-    const w = box.querySelector(".ap-wait"); if (w) w.innerHTML = "<i></i><span>In attesa dell'autorizzazione " + (to ? "di <b>" + esc(to) + "</b>" : "del venditore") + "…</span>";
-    $("apText").innerHTML = (to ? "<b>Richiesta inviata a " + esc(to) + ".</b>" : "<b>Richiesta inviata.</b>") + " Inserisci il codice che ti ha dato il venditore, oppure attendi: appena autorizza, il download parte da solo.";
-    focusFirst();
-  }
-  function reveal() { if (!isOpen()) { box.hidden = false; document.body.classList.add("ap-on"); } }
-  function start(app, url, visible) {
-    clearTimeout(timer);
-    if (!isOpen()) back = document.activeElement;
-    cur = { app: app.name, url, server: apServer(), id: "", did: installId(), busy: false };
-    $("apApp").textContent = app.name; msg("");
-    const own = activated() && sellerOfStore();
-    $("apSeller").value = own ? "" : sellerSaved(); $("apSeller").parentNode.querySelector('label[for="apSeller"]').hidden = !!own; $("apSeller").hidden = !!own;
-    if (own) $("apSellerHint").textContent = ""; else sellerHint();
-    if (visible) reveal();
-  }
-  // codice del venditore: 4 caratteri, ricordato sul dispositivo; può arrivare anche dal link dello store (?v=CODE)
-  function sellerNorm(v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8); }
-  function sellerSaved() { try { return sellerNorm(localStorage.getItem("kairosSeller")); } catch (e) { return ""; } }
-  function sellerSave(v) { try { if (v) localStorage.setItem("kairosSeller", v); else localStorage.removeItem("kairosSeller"); } catch (e) {} }
-  let sellerName = "";
-  function sellerHint(t) {
-    const h = $("apSellerHint"); if (!h) return;
-    const v = sellerNorm($("apSeller").value);
-    h.textContent = t || (v.length >= 3 ? (sellerName ? "Venditore: " + sellerName : "") : v ? "" : "Le tue richieste arrivano solo al tuo venditore.");
-  }
-  function sellerCheck() {
-    const v = sellerNorm($("apSeller").value); sellerName = "";
-    if (v.length < 3 || !cur || !cur.server) { sellerHint(); return; }
-    call("seller?c=" + encodeURIComponent(v), null, cur.server).then(j => { if (sellerNorm($("apSeller").value) !== v) return; sellerName = j && j.ok ? j.name : ""; sellerHint(j && j.ok ? "" : "Codice venditore non riconosciuto: controllalo"); });
-  }
-  try { const pv = sellerNorm(new URLSearchParams(location.search).get("v")); if (pv.length >= 3) sellerSave(pv); } catch (e) {}
-  function close() {
-    if (gate && gateNeeded() && !$("apStep0").hidden) { focusFirst(); return; } // porta d'ingresso: prima il codice
-    const name = cur && cur.app;
-    clearTimeout(timer); cur = null;
-    if (!isOpen()) return;
-    box.hidden = true; document.body.classList.remove("ap-on");
-    let b = back && document.contains(back) && back.focus ? back : null;
-    if (!b && name) { const i = APPS.findIndex(a => a.name === name); b = document.querySelector('a.btn[data-i="' + i + '"]'); }
-    if (b) b.focus();
-  }
-
-  function open(i) {
-    // stato dello store (attivazione, approvazione) non recente: lo chiede prima, così la finestra giusta compare subito
-    const fresh = cfg.s === apServer() && Date.now() - cfg.t < 120000;
-    if (!fresh && apServer() && !isOpen()) { status("st" + i, "Controllo…"); getCfg(true).then(() => { status("st" + i, ""); open2(i); }); return; }
-    open2(i);
-  }
-  function open2(i) {
-    const app = APPS[i]; if (!app) return;
-    const url = apUrl(app);
-    const s = saved()[app.name];
-    const fresh = cfg.s === apServer() && Date.now() - cfg.t < 120000;
-    // store da attivare (il titolare ha scelto «solo store attivati»): prima il codice del venditore, poi il download
-    if (fresh && ((cfg.activation && !activated()) || cfg.suspended)) { start(app, url, true); actStep(app); getCfg(true); return; }
-    // approvazione spenta nel pannello, o store già intestato con «solo store attivati»: nessuna finestra, il server autorizza subito
-    const auto = !(s && s.id) && fresh && (cfg.on === false || (cfg.activation && activated()));
-    start(app, url, !auto);
-    if (!cur.server) { askStep(); $("apAsk").disabled = true; msg("Download non disponibile: contatta il venditore."); return; }
-    if (auto) { status("st" + i, "Avvio del download…"); ask(true); return; }
-    // si riprende solo una richiesta ancora in attesa per QUESTA app (stesso link); tutto il resto riparte da zero
-    if (s && s.id && Date.now() - s.t < TTL && s.url === url) { cur.id = s.id; waitStep(s.to); check(true, 0); return; }
-    if (s) save(app.name, null);
-    askStep();
-    getCfg(); // tiene aggiornato lo stato dell'approvazione per le prossime volte
-  }
-  function ask(silent) {
-    const c = cur; if (!c || c.busy) return;
-    const note = ""; // nessun nome: il venditore riconosce il cliente dal dispositivo e dal codice
-    const seller = sellerNorm($("apSeller").value);
-    if (seller && seller.length < 3) { sellerHint("Il codice del venditore ha da 3 a 8 caratteri: controllalo o lascialo vuoto"); Sound.error(); return; }
-    if (!silent) sellerSave(seller);
-    c.busy = true; $("apAsk").disabled = true; msg(silent ? "" : "Invio della richiesta…", true);
-    const fail = t => { c.busy = false; if (cur !== c) return; reveal(); askStep(); Sound.error(); msg(t); };
-    call("request", { app: c.app, appUrl: c.url, device: deviceName(), did: c.did, note, seller }, c.server).then(j => {
-      if (cur !== c) return;
-      c.busy = false;
-      if (j.http === 400 && /venditore/i.test(j.error || "")) { reveal(); askStep(); sellerHint(j.error); Sound.error(); return; }
-      if (j.http === 403 && j.needActivation) { if (!j.suspended) cfg.activation = true; cfg.suspended = j.suspended === true; cfg.activated = false; cfg.t = Date.now(); actSave(null); actChip(); reveal(); actStep({ name: c.app }); return; }
-      if (j.status === "approved" && j.token && j.id) { c.id = j.id; go(j.token); return; }
-      if (j.status === "pending" && j.id) { c.id = j.id; save(c.app, { id: j.id, url: c.url, t: Date.now(), to: j.seller || "" }); msg(""); reveal(); waitStep(j.seller); poll(0); return; }
-      if (j.http === 403 && /bloccato/i.test(j.error || "")) { c.busy = false; reveal(); askStep(); $("apAsk").disabled = true; Sound.error(); msg("Dispositivo bloccato dal venditore: non puoi più scaricare app da questo store. Contatta il venditore."); return; }
-      fail(j.error || NET);
-    }, () => fail(NET));
-  }
-  // controllo automatico: ogni 4 s per 2 minuti, poi ogni 8 s, poi ogni 15 s
-  function poll(n) { clearTimeout(timer); timer = setTimeout(() => check(false, n + 1), n < 30 ? 4000 : n < 60 ? 8000 : 15000); }
-  function check(first, n) {
-    const c = cur; if (!c || !c.id) return;
-    if (document.hidden) { poll(n); return; }
-    call("status?id=" + encodeURIComponent(c.id) + "&did=" + encodeURIComponent(c.did), null, c.server).then(j => {
-      if (cur !== c) return;
-      if (j.status === "approved" && j.token) { go(j.token); return; }
-      if (j.status === "pending") { poll(n); return; }
-      if (j.http === 429 || j.http >= 500) { poll(Math.max(n, 60)); return; }
-      // rifiutata, revocata, già usata o scaduta: si può solo chiedere una nuova autorizzazione
-      ended(first && (j.status === "expired" || j.http === 404) ? "" : ENDED[j.status] || ENDED.unknown, j.status);
-    }, () => { if (cur === c) poll(Math.max(n, 30)); });
-  }
-  function ended(t, st) {
-    clearTimeout(timer);
-    if (cur) { save(cur.app, null); cur.id = ""; }
-    askStep(!!t); if (t) { Sound.error(); msg(t); }
-    if (st === "revoked" || st === "used") $("apText").innerHTML = (st === "revoked" ? "<b>Autorizzazione revocata.</b> " : "<b>Autorizzazione già usata.</b> ") + "Per scaricare serve una nuova autorizzazione del venditore.";
-  }
-  function verify() {
-    const c = cur; if (!c || !c.id || c.busy) return;
-    const code = $("apCode").value.replace(/\D/g, "").slice(0, 6);
-    if (code.length !== 6) { Sound.error(); msg("Inserisci le 6 cifre del codice."); return; }
-    c.busy = true; msg("Verifica del codice…", true);
-    call("verify", { id: c.id, did: c.did, code }, c.server).then(j => {
-      c.busy = false; if (cur !== c) return;
-      if (j.ok && j.token) { go(j.token); return; }
-      if (j.status === "denied") { ended(j.error || "Troppi tentativi: richiesta annullata.", "denied"); return; }
-      if (j.status === "revoked" || j.status === "used" || j.status === "expired" || j.http === 404) { ended(ENDED[j.status] || ENDED.unknown, j.status); return; }
-      Sound.error(); $("apCode").value = ""; msg(j.error || NET);
-    }, () => { c.busy = false; if (cur === c) { Sound.error(); msg(NET); } });
-  }
-  function typeDigit(d) {
-    const inp = $("apCode");
-    if (d === "ok") { verify(); return; }
-    if (d === "del") inp.value = inp.value.slice(0, -1);
-    else if (inp.value.length < 6) inp.value += d;
-    Sound.hover(+d || 0);
-    if (d !== "del" && inp.value.length === 6) verify();
-  }
-  // autorizzazione ricevuta: parte il download
-  function go(token) {
-    const c = cur; if (!c) return;
-    clearTimeout(timer); save(c.app, null); close();
-    const i = APPS.findIndex(a => a.name === c.app), sid = i >= 0 ? "st" + i : "";
-    Sound.done(); toast("✓ Download autorizzato: " + c.app);
-    const sa = i >= 0 ? APPS[i] : null;
-    if (sa && storePkg(sa)) { // app degli store ufficiali: si usa l'autorizzazione, poi si apre lo store
-      status(sid, "Autorizzato: apro lo store…");
-      call("consume", { id: c.id, did: c.did, token, url: c.url }, c.server).then(j => {
-        if (!j.ok) { status(sid, j.status === "revoked" ? "Autorizzazione revocata dal venditore." : j.error || "Autorizzazione non valida o scaduta."); setTimeout(() => status(sid, ""), 6000); return; }
-        if (isStoreApp) {
-          if (typeof window.KairosStore.openStore === "function") window.KairosStore.openStore(storePkg(sa), storeAsin(sa), sid);
-          else status(sid, "Aggiorna Kairos Store (pulsante AGGIORNA) per installare questa app");
-        } else { status(sid, "Apro lo store ufficiale…"); setTimeout(() => status(sid, ""), 5000); location.href = downloadUrl(sa); }
-      }, () => { status(sid, NET); setTimeout(() => status(sid, ""), 6000); });
-      return;
-    }
-    if (isStoreApp && typeof window.KairosStore.installApproved === "function") {
-      // l'app verifica di nuovo l'autorizzazione con il server prima di scaricare
-      window.KairosStore.installApproved(c.url, c.app, sid, c.server, c.id, token);
-    } else if (isStoreApp) {
-      window.KairosStore.install(c.url, c.app, sid);          // app dello store di una versione precedente
-    } else {
-      status(sid, "Autorizzato: avvio del download…");
-      call("consume", { id: c.id, did: c.did, token, url: c.url }, c.server).then(j => {
-        if (!j.ok) { status(sid, j.status === "revoked" ? "Autorizzazione revocata dal venditore." : j.error || "Autorizzazione non valida o scaduta."); setTimeout(() => status(sid, ""), 6000); return; }
-        status(sid, "Download avviato…"); setTimeout(() => status(sid, ""), 5000);
-        location.href = c.url;
-      }, () => { status(sid, NET); setTimeout(() => status(sid, ""), 6000); });
-    }
-  }
-  // riapre la richiesta lasciata in sospeso (es. lo store si è ricaricato mentre si aspettava).
-  // Solo se è ANCORA in attesa: una richiesta già autorizzata non fa mai partire un download da sola
-  // dopo un ricaricamento, e non viene riusata per la prossima installazione.
-  function resume() {
-    if (!entered) { setTimeout(resume, 800); return; }
-    if (!apServer() || isOpen()) return;
-    const s = saved(); let best = null;
-    Object.keys(s).forEach(k => { const v = s[k]; if (v && v.id && Date.now() - v.t < TTL && (!best || v.t > best.t)) best = Object.assign({ name: k }, v); });
-    if (!best) return;
-    const i = APPS.findIndex(a => a.name === best.name);
-    if (i < 0 || apUrl(APPS[i]) !== best.url) { save(best.name, null); return; }
-    call("status?id=" + encodeURIComponent(best.id) + "&did=" + encodeURIComponent(installId()), null).then(j => {
-      if (isOpen()) return;
-      if (j.status === "pending") { start(APPS[i], best.url, true); cur.id = best.id; waitStep(best.to); poll(0); }
-      else if (j.status || j.http === 404) save(best.name, null);
-    }, () => {});
-  }
-  function key(e) {
-    const k = e.key, t = e.target, s2 = !$("apStep2").hidden;
-    if (k === "Escape" || k === "GoBack" || k === "BrowserBack") { e.preventDefault(); close(); return; }
-    if (s2 && t !== $("apCode")) {
-      if (/^[0-9]$/.test(k)) { e.preventDefault(); typeDigit(k); return; }        // tasti numerici del telecomando
-      if (k === "Backspace") { e.preventDefault(); typeDigit("del"); return; }
-    }
-    if (k === "Enter" && t === $("apCode")) { e.preventDefault(); verify(); return; }
-    if (k === "Tab") { const it = items(); if (it.length) { e.preventDefault(); const p = it.indexOf(t); it[(p + (e.shiftKey ? -1 : 1) + it.length) % it.length].focus(); } return; }
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)) {
-      if (t && t.tagName === "INPUT" && !isTV && (k === "ArrowLeft" || k === "ArrowRight")) return; // cursore nel testo
-      e.preventDefault(); moveFocus(k, items());
-    }
-  }
-
-  $("apAsk").addEventListener("click", () => { Sound.select(); ask(false); });
-  $("apOk").addEventListener("click", () => verify());
-  $("apNo1").addEventListener("click", () => { Sound.select(); close(); });
-  $("apNo0").addEventListener("click", () => { Sound.select(); close(); });
-  $("actGo").addEventListener("click", () => { Sound.select(); activate(); });
-  $("actCode").addEventListener("input", () => { const v = sellerNorm($("actCode").value); if ($("actCode").value !== v) $("actCode").value = v; actCheck(); });
-  $("actCode").addEventListener("keydown", e => { if (e.key === "Enter") activate(); });
-  const chip = $("actChip"); if (chip) chip.addEventListener("click", () => { Sound.select(); openActivation(); });
-  $("apNo2").addEventListener("click", () => { Sound.select(); close(); });
-  $("apPad").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) typeDigit(b.dataset.k); });
-  $("apSeller").addEventListener("input", () => { const v = sellerNorm($("apSeller").value); if ($("apSeller").value !== v) $("apSeller").value = v; sellerCheck(); });
-  $("apCode").addEventListener("input", () => {
-    const inp = $("apCode"), v = inp.value.replace(/\D/g, "").slice(0, 6);
-    if (v !== inp.value) inp.value = v;
-    if (v.length === 6) verify();
-  });
-  box.addEventListener("click", e => { if (e.target === box) close(); });   // tocco fuori dalla finestra
-  document.addEventListener("visibilitychange", () => { if (!document.hidden && cur && cur.id && !cur.busy) check(false, 0); });
-
-  // l'app Android: tasto Indietro e download bloccati perché non autorizzati
-  window.kairosBack = () => { if (isOpen()) { if (gate && gateNeeded() && !$("apStep0").hidden) return false; close(); return true; } return false; };
-  window.kairosNeedApproval = url => {
-    const i = APPS.findIndex(a => apUrl(a) === String(url).trim());
-    if (i >= 0 && !isOpen()) open(i);
-  };
-  return { open, close, isOpen, key, focusFirst, resume, prefetch: () => getCfg(true), openActivation };
-})();
+/** POST al pannello (richiesta «semplice», senza preflight): prova il dominio, poi l'indirizzo di riserva */
+function panelPost(path, body, i) {
+  i = i || 0; if (i >= PANEL.length) return Promise.resolve(null);
+  const opt = { method: "POST", cache: "no-store", credentials: "omit", keepalive: true, headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify(body) };
+  return fetch(PANEL[i] + "/api/store/" + path, opt).then(r => r.json().catch(() => ({})).then(j => (j.http = r.status, j)), () => panelPost(path, body, i + 1));
+}
+function appVer() { try { return isStoreApp && window.KairosStore.appVersion ? String(window.KairosStore.appVersion()) : "web"; } catch (e) { return ""; } }
+/** l'APK dello store di una versione vecchia ricorda «serve l'autorizzazione» e blocca i download: si spegne qui */
+function unlockNative() {
+  if (!isStoreApp || typeof window.KairosStore.setApprovalServer !== "function") return;
+  try { window.KairosStore.setApprovalServer(""); } catch (e) {}
+}
+unlockNative();
+// via i ricordi della vecchia autorizzazione (richieste in attesa, store «intestato», codice del venditore)
+try { ["kairosApproval", "kairosAct", "kairosSeller"].forEach(k => localStorage.removeItem(k)); sessionStorage.removeItem("kairosGateOk"); } catch (e) {}
+let helloSent = false;
+function hello() { if (helloSent || !isStoreApp) return; // conta solo le app Kairos Store installate, non le visite dal browser
+  helloSent = true; panelPost("hello", { did: installId(), device: deviceName(), v: appVer() }).catch(() => {}); }
+/** download partito: il pannello lo conta (non blocca mai nulla) */
+function track(app, url) { panelPost("download", { did: installId(), app: app.name, url: String(url || ""), device: deviceName(), src: isStoreApp ? "app" : "web" }).catch(() => {}); }
+// riserva per l'APK vecchio: se nonostante tutto dice ancora «serve l'autorizzazione», la si prende al volo dal pannello
+// (che ora approva tutto subito) e il download parte lo stesso, senza finestre
+window.kairosNeedApproval = url => {
+  const i = APPS.findIndex(a => String(downloadUrl(a)).trim() === String(url).trim()), app = APPS[i], sid = i >= 0 ? "st" + i : "";
+  if (!app) return;
+  let srv = ""; try { srv = String(window.KairosStore.approvalServer && window.KairosStore.approvalServer() || ""); } catch (e) {}
+  srv = /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(srv) ? srv : PANEL[0];
+  status(sid, "Avvio del download…");
+  fetch(srv + "/api/store/request", { method: "POST", cache: "no-store", credentials: "omit", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify({ app: app.name, appUrl: String(url).trim(), device: deviceName(), did: installId(), note: "" }) })
+    .then(r => r.json()).then(j => {
+      if (j && j.status === "approved" && j.token && typeof window.KairosStore.installApproved === "function") window.KairosStore.installApproved(String(url).trim(), app.name, sid, srv, j.id, j.token);
+      else status(sid, "Download non riuscito: premi AGGIORNA in alto e riprova.");
+    }, () => status(sid, "Download non riuscito: controlla la connessione e riprova."));
+};
+// tasto Indietro dell'app: nessuna finestra da chiudere, decide l'app (indietro o esci)
+window.kairosBack = () => false;
 
 // ---------- navigazione con telecomando ----------
 const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
@@ -1280,11 +824,9 @@ function moveFocus(dir, list) {
 }
 document.addEventListener("keydown", e => {
   if (!entered) { if (["Enter", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key) || e.keyCode === 23) { e.preventDefault(); enter(); } return; }
-  if (AP.isOpen()) { AP.key(e); return; }   // finestra di autorizzazione aperta: le frecce restano dentro
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); moveFocus(e.key); }
 });
 document.addEventListener("focusin", e => {
-  if (AP.isOpen() && !document.getElementById("ap").contains(e.target)) { AP.focusFirst(); return; }
   const c = e.target.closest(".card");
   setFocusCard(c);
   if (entered) Sound.hover(c ? [...grid.children].indexOf(c) : 0);
@@ -1333,10 +875,11 @@ const recApp = name => { const n = String(name).toLowerCase().replace(/[\s-]/g, 
 async function recRules() {
   let R = Object.assign({}, REC_DEF, STORE.recommend || {});
   try {
-    const srv = apServer() || AP_DEFAULT;
-    const c = new AbortController(); setTimeout(() => c.abort(), 4000);
-    const d = await fetch(srv + "/api/store/config", { cache: "no-store", signal: c.signal }).then(r => r.ok ? r.json() : null);
-    if (d && d.recommend) R = Object.assign(R, d.recommend);
+    for (const srv of PANEL) {
+      const c = new AbortController(); setTimeout(() => c.abort(), 4000);
+      const d = await fetch(srv + "/api/store/config", { cache: "no-store", signal: c.signal }).then(r => r.ok ? r.json() : null, () => null);
+      if (d && d.recommend) { R = Object.assign(R, d.recommend); break; }
+    }
   } catch (_) {}
   return R;
 }
@@ -1366,7 +909,7 @@ document.getElementById("recBtn").addEventListener("click", () => { recommend().
   const start = () => {
     if (done) return; done = true;
     renderTexts(); renderCards(); refreshInstalled();
-    tellApp(); AP.prefetch(); AP.resume();
+    unlockNative(); hello();
     if (isTV && entered && !(document.activeElement && document.activeElement.closest && document.activeElement.closest(".card, .hud"))) {
       const f = document.querySelector("a.btn:not([aria-disabled='true'])"); if (f) f.focus();
     }
@@ -1376,7 +919,6 @@ document.getElementById("recBtn").addEventListener("click", () => { recommend().
     .then(r => r.ok ? r.json() : null)
     .then(d => {
       if (done || !d || !Array.isArray(d.apps)) return;
-      appsLoaded = true;
       APPS = d.apps.filter(a => a && a.name && !a.hidden);
       if (d.store) STORE = Object.assign({}, STORE, d.store);
       if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
@@ -1400,12 +942,10 @@ function pollApps() {
       // ricorda quale card era selezionata per non far perdere la posizione col telecomando
       const act = document.activeElement, cards = [...document.querySelectorAll(".card")];
       const idx = act && act.closest ? cards.indexOf(act.closest(".card")) : -1;
-      appsLoaded = true;
       APPS = d.apps.filter(a => a && a.name && !a.hidden);
       if (d.store) STORE = Object.assign({}, STORE, d.store);
-      STORE.approval = d.store && d.store.approval; // tolta da apps.json = server predefinito (AP_DEFAULT)
       if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
-      renderTexts(); renderCards(); refreshInstalled(); tellApp(); AP.prefetch();
+      renderTexts(); renderCards(); refreshInstalled();
       if (idx >= 0) { const c = document.querySelectorAll(".card")[Math.min(idx, APPS.length - 1)]; const b = c && c.querySelector("a.btn"); if (b) b.focus(); }
     })
     .catch(() => {});

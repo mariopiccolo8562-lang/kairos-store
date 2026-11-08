@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +43,9 @@ import java.util.Locale;
 /**
  * Kairos Store: mostra la pagina dello store e scarica/installa gli APK
  * (link Downloader aftv.news/CODICE o link diretti .apk).
+ * Store APERTO (come IBO Player): nessun codice del venditore e nessuna autorizzazione,
+ * «Installa» scarica subito. Le versioni precedenti ricordavano il server delle autorizzazioni
+ * e bloccavano i download: questa versione lo dimentica all'avvio.
  */
 public class MainActivity extends Activity {
 
@@ -77,6 +79,9 @@ public class MainActivity extends Activity {
         s.setLoadWithOverviewMode(true);
         s.setTextZoom(100); // la pagina si adatta da sola allo schermo: niente ingrandimento del testo di sistema
         s.setMediaPlaybackRequiresUserGesture(false);
+
+        // store aperto: via il ricordo della vecchia autorizzazione (con lei i download venivano bloccati)
+        prefs().edit().remove(PREF_SERVER).apply();
 
         web.addJavascriptInterface(new Bridge(), "KairosStore");
         web.setWebViewClient(new WebViewClient() {
@@ -176,47 +181,29 @@ public class MainActivity extends Activity {
         return true;
     }
 
-    /** Oggetto visibile dalla pagina come window.KairosStore */
-    /** Indirizzo della pagina aperta: le funzioni dell'autorizzazione rispondono solo alla pagina dello store */
+    /** Indirizzo della pagina aperta */
     private volatile String pageUrl = "";
 
-    private boolean isTrustedPage() {
-        String u = pageUrl;
-        if (u.startsWith("file:///android_asset/")) return true;
-        String base = BuildConfig.STORE_URL;
-        if (base.isEmpty()) return false;
-        int q = base.indexOf('?');
-        if (q >= 0) base = base.substring(0, q);
-        int h = base.indexOf('#');
-        if (h >= 0) base = base.substring(0, h);
-        return !base.isEmpty() && u.startsWith(base);
-    }
-
+    /** Oggetto visibile dalla pagina come window.KairosStore */
     private class Bridge {
         @JavascriptInterface
         public void install(String url, String name, String statusId) {
             runOnUiThread(() -> startDownload(url, name, statusId));
         }
 
-        /**
-         * Download autorizzato dal venditore: prima di scaricare lo store conferma l'autorizzazione
-         * con il server (vale solo per questo dispositivo, questo link e per 30 minuti).
-         */
+        /** (pagine vecchie dello store) download «autorizzato»: con lo store aperto parte e basta */
         @JavascriptInterface
         public void installApproved(String url, String name, String statusId, String server, String id, String token) {
-            // il server è quello ricordato; una pagina diversa dallo store non può sceglierne un altro
-            final String stored = storedApprovalServer();
-            final String srv = !stored.isEmpty() ? stored : (isTrustedPage() ? server : "");
-            runOnUiThread(() -> startApprovedDownload(url, name, statusId, srv, id, token));
+            runOnUiThread(() -> startDownload(url, name, statusId));
         }
 
-        /** Codice casuale di questa installazione, usato nelle richieste di autorizzazione */
+        /** Codice casuale di questa installazione: il pannello conta così gli store installati e i download */
         @JavascriptInterface
         public String deviceId() {
             return installId();
         }
 
-        /** Modello del dispositivo, mostrato al venditore nella richiesta */
+        /** Modello del dispositivo (riepilogo dello store nel pannello e «App consigliata») */
         @JavascriptInterface
         public String deviceName() {
             String m = (Build.MANUFACTURER + " " + Build.MODEL).trim();
@@ -236,18 +223,15 @@ public class MainActivity extends Activity {
             } catch (Throwable t) { return 0; }
         }
 
-        /** Server delle autorizzazioni indicato in apps.json ("" = nessuna autorizzazione richiesta) */
+        /** (pagine vecchie dello store) server delle autorizzazioni: lo store è aperto, non si ricorda più nulla */
         @JavascriptInterface
         public void setApprovalServer(String server) {
-            if (!isTrustedPage()) return; // solo la pagina dello store può attivare o disattivare l'autorizzazione
-            String s = cleanServer(server);
-            if (s.isEmpty()) prefs().edit().remove(PREF_SERVER).apply();
-            else prefs().edit().putString(PREF_SERVER, s).apply();
+            prefs().edit().remove(PREF_SERVER).apply();
         }
 
         @JavascriptInterface
         public String approvalServer() {
-            return storedApprovalServer();
+            return "";
         }
 
         @JavascriptInterface
@@ -396,7 +380,7 @@ public class MainActivity extends Activity {
                 if (latest > BuildConfig.VERSION_CODE) {
                     String apk = "https://github.com/" + BuildConfig.GITHUB_REPO + "/releases/latest/download/KairosStore.apk";
                     status(UPD, "Nuova versione di Kairos Store (1.0." + latest + "): aggiornamento in corso…");
-                    runOnUiThread(() -> beginDownload(apk, "KairosStore", UPD)); // aggiornamento dello store: niente autorizzazione
+                    runOnUiThread(() -> beginDownload(apk, "KairosStore", UPD)); // aggiornamento dello store
                 } else if (manual) {
                     runOnUiThread(() -> loadStore(true, "ok"));
                 }
@@ -417,23 +401,11 @@ public class MainActivity extends Activity {
                 || pm.hasSystemFeature("amazon.hardware.fire_tv");
     }
 
-    // ------------------------------------------------------------ autorizzazione del venditore
+    // ------------------------------------------------------------ identità dell'installazione
 
+    /** chiave in cui le versioni precedenti ricordavano il server delle autorizzazioni (ora si cancella) */
     private static final String PREF_SERVER = "approval_server";
     private static final String PREF_DID = "did";
-
-    /** Server delle autorizzazioni ricordato ("" = l'autorizzazione non è attiva) */
-    private String storedApprovalServer() {
-        return prefs().getString(PREF_SERVER, "");
-    }
-
-    /** Solo https://dominio[:porta], senza percorsi */
-    private static String cleanServer(String s) {
-        if (s == null) return "";
-        s = s.trim();
-        while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
-        return s.matches("(?i)https://[a-z0-9.-]+(:\\d{1,5})?") ? s : "";
-    }
 
     private synchronized String installId() {
         String d = prefs().getString(PREF_DID, "");
@@ -445,108 +417,12 @@ public class MainActivity extends Activity {
         return d;
     }
 
-    /** L'APK di Kairos Store stesso (aggiornamento automatico): non serve l'autorizzazione */
-    private boolean isSelfUpdate(String url) {
-        return !BuildConfig.GITHUB_REPO.isEmpty() && url != null
-                && url.equals("https://github.com/" + BuildConfig.GITHUB_REPO + "/releases/latest/download/KairosStore.apk");
-    }
-
     /**
      * Ingresso di tutti i download chiesti dalla pagina o dai link (install(), link .apk / aftv.news,
-     * download della WebView). Se l'autorizzazione è attiva questi download sono bloccati:
-     * passano solo quelli confermati dal server con installApproved().
+     * download della WebView). Store aperto: nessuna autorizzazione, il download parte subito.
      */
     private void startDownload(String url, String name, String statusId) {
-        if (!storedApprovalServer().isEmpty() && !isSelfUpdate(url)) {
-            status(statusId, "Per scaricare questa app serve l'autorizzazione del venditore.");
-            if (url != null) {
-                web.evaluateJavascript("window.kairosNeedApproval && window.kairosNeedApproval("
-                        + JSONObject.quote(url) + ")", null);
-            }
-            return;
-        }
         beginDownload(url, name, statusId);
-    }
-
-    private void startApprovedDownload(String url, String name, String statusId, String server, String id, String token) {
-        if (busy) {
-            status(statusId, "Attendi: è già in corso un download…");
-            return;
-        }
-        final String srv = cleanServer(server);
-        if (srv.isEmpty() || url == null || id == null || token == null) {
-            status(statusId, "Autorizzazione non valida. Richiedila di nuovo.");
-            return;
-        }
-        final String link = url.trim();
-        busy = true;
-        status(statusId, "Verifica dell'autorizzazione…");
-        new Thread(() -> {
-            try {
-                String err = consumeApproval(srv, id, token, link);
-                if (err != null) {
-                    status(statusId, err);
-                    return;
-                }
-                prefs().edit().putString(PREF_SERVER, srv).apply();
-                status(statusId, "Connessione…");
-                download(link, name, statusId);
-            } catch (Exception e) {
-                status(statusId, "Download non riuscito. Controlla la connessione e riprova.");
-            } finally {
-                busy = false;
-            }
-        }).start();
-    }
-
-    /** Il server conferma (e conta) l'autorizzazione per questo dispositivo e questo link: null = ok */
-    private String consumeApproval(String server, String id, String token, String url) {
-        HttpURLConnection c = null;
-        try {
-            JSONObject body = new JSONObject();
-            body.put("id", id);
-            body.put("did", installId());
-            body.put("token", token);
-            body.put("url", url);
-            byte[] out = body.toString().getBytes(StandardCharsets.UTF_8);
-            c = (HttpURLConnection) new URL(server + "/api/store/consume").openConnection();
-            c.setInstanceFollowRedirects(false);
-            c.setConnectTimeout(15000);
-            c.setReadTimeout(15000);
-            c.setRequestMethod("POST");
-            c.setDoOutput(true);
-            c.setFixedLengthStreamingMode(out.length);
-            c.setRequestProperty("Content-Type", "application/json");
-            c.setRequestProperty("User-Agent", "KairosStore/" + BuildConfig.VERSION_NAME);
-            try (OutputStream os = c.getOutputStream()) {
-                os.write(out);
-            }
-            int code = c.getResponseCode();
-            InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
-            String text = "";
-            if (in != null) {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                try (InputStream is = in) {
-                    byte[] buf = new byte[4096];
-                    int n;
-                    while ((n = is.read(buf)) != -1 && bos.size() < 65536) bos.write(buf, 0, n);
-                }
-                text = bos.toString("UTF-8");
-            }
-            JSONObject j = text.trim().startsWith("{") ? new JSONObject(text) : new JSONObject();
-            if (code == 200 && j.optBoolean("ok") && url.equals(j.optString("appUrl"))) return null;
-            // ogni autorizzazione vale per un solo download: revocata o già usata → serve una nuova richiesta
-            String st = j.optString("status", "");
-            if ("revoked".equals(st)) return "Autorizzazione revocata dal venditore.";
-            if ("used".equals(st)) return "Autorizzazione già usata: richiedila di nuovo.";
-            String err = j.optString("error", "");
-            if (err.length() > 160) err = err.substring(0, 160);
-            return err.isEmpty() ? "Autorizzazione non valida o scaduta. Richiedila di nuovo." : err;
-        } catch (Exception e) {
-            return "Impossibile verificare l'autorizzazione: controlla la connessione e riprova.";
-        } finally {
-            if (c != null) c.disconnect();
-        }
     }
 
     // ------------------------------------------------------------ download
@@ -802,7 +678,7 @@ public class MainActivity extends Activity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (event.getRepeatCount() > 0) return true; // tasto tenuto premuto: una sola azione
-            // prima chiude la finestra aperta nella pagina (es. autorizzazione), poi torna indietro / esce
+            // prima chiude l'eventuale finestra aperta nella pagina, poi torna indietro / esce
             web.evaluateJavascript("(window.kairosBack && window.kairosBack()) ? 1 : 0", v -> {
                 if ("1".equals(v)) return;
                 if (web.canGoBack()) web.goBack();

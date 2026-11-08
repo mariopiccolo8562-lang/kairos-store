@@ -1,29 +1,18 @@
 # kairos-store
 Kairos Store - store per le mie app Android
 
-## Autorizzazione dei download
+## Store aperto (come IBO Player)
 
-Puoi fare in modo che nessuno scarichi un'app dallo store senza il tuo ok.
+Lo store è **aperto**: chi installa Kairos Store vede subito tutte le app e preme **Installa** (o **Scarica** dal browser), e il download parte. Niente codice del venditore all'avvio, niente «Richiedi autorizzazione», nessun blocco dopo codici sbagliati, per nessuno (titolare o agenti).
 
-1. Prima prepara il pannello Cloudflare (repository **kairos-iptv**, guida al punto *"Approvazione download dello store"*: chiave Resend `RESEND_KEY` ed email).
-2. Qui apri `docs/apps.json` e, dentro `"store"`, metti l'indirizzo del pannello **senza** `/panel`:
-   ```json
-   "approval": { "server": "https://kairos-panel.TUO-SOTTODOMINIO.workers.dev", "on": true }
-   ```
-   Salva (Commit). La pagina dello store si aggiorna da sola in circa un minuto.
-3. Da quel momento, quando un cliente preme **Installa**:
-   - lo store mostra *"Per scaricare questa app serve l'autorizzazione del venditore"* e il pulsante **Richiedi autorizzazione**;
-   - a te arriva un'email con app, dispositivo e un **codice di 6 cifre**, e la richiesta compare nel pannello (pagina **Download store**);
-   - premi **Autorizza** (email o pannello) e il download parte da solo, oppure detti il codice al cliente che lo inserisce nello store (sulle TV c'è un tastierino da usare con le frecce del telecomando).
-4. Per tornare ai download liberi: `"server": ""` oppure `"on": false`. Se invece spegni l'interruttore nel pannello, i download partono subito ma restano registrati.
+Per le app Kairos non cambia nulla: il cliente apre l'app, manda la **foto del codice** che vede sulla TV e il titolare (o l'agente) lo attiva dal pannello Kairos Control.
 
-L'app Kairos Store (dalla nuova versione, che si aggiorna da sola) controlla anche lei l'autorizzazione con il server prima di scaricare: un download non autorizzato viene bloccato anche se arriva da un link. L'aggiornamento dello store stesso non chiede autorizzazione.
+- **Cosa resta**: elenco delle app (da `docs/apps.json`, modificabile dal *Pannello Kairos Store*), pulsante **App consigliata per questo dispositivo** (regole dal pannello Kairos Control → *Riepilogo store*), pulsante **AGGIORNA** e aggiornamento automatico dello store.
+- **Conteggi**: la pagina avvisa il pannello quando lo store si apre e quando parte un download (`/api/store/hello` e `/api/store/download` su `panel-kairos.com`). Servono solo al titolare per vedere quanti store ci sono e quanti scaricano (pannello → **Riepilogo store**); se il pannello non risponde, lo store scarica lo stesso.
+- **Store già installati (versioni fino alla 1.0.129)**: la pagina dello store la scaricano da GitHub Pages a ogni apertura, quindi vedono subito quella nuova, senza codice; la pagina spegne anche il blocco dei download che l'APK vecchio ricordava. Se per qualche motivo l'APK vecchio mostra la sua copia interna della pagina (store senza internet verso GitHub), il pannello approva all'istante ogni richiesta e accetta qualunque codice. In più lo store si aggiorna da solo alla versione nuova alla prima apertura (controllo delle release su GitHub).
+- Il blocco `"approval"` in `apps.json` non serve più: se c'è, viene ignorato.
 
-> I link degli APK e i codici Downloader scritti in `apps.json` restano pubblici (il repository è pubblico): chi li copia può scaricare fuori dallo store. Con l'autorizzazione attiva i link non compaiono più nei pulsanti della pagina, ma restano leggibili in `apps.json`.
-
-## Store intestati ai venditori (attivazione)
-
-Se nel pannello Kairos Control scegli **Solo store attivati, senza conferma**, alla prima apertura lo store mostra **«Attiva lo store»**: si scrive una volta il **codice del venditore** (quello dell'agente o del titolare) e da lì ogni download parte da solo, intestato a quel venditore; nello header compare *«Store di <nome>»* (toccalo per cambiare venditore). Uno store non attivato non scarica. Il link `?v=CODICE` precompila il codice nelle richieste ma **non attiva** lo store. Guida completa nel README di **kairos-iptv**, sezione *Store intestati ai venditori*.
+> I link degli APK e i codici Downloader scritti in `apps.json` sono pubblici (il repository è pubblico): con lo store aperto è voluto.
 
 ## Pannello (worker/)
 
