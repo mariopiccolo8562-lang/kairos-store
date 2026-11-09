@@ -370,8 +370,9 @@ html.tv .intro-bar b{box-shadow:none}
 
 <script>
 /* =================================================================
-   CONFIG — elenco di RISERVA. L'elenco vero è in apps.json e si
-   modifica dal pannello: https://<tuo-sito>/kairos-store/admin/
+   CONFIG — elenco di RISERVA (copia di apps.json): si usa solo se
+   apps.json non arriva. L'elenco vero è in apps.json e si modifica dal
+   Pannello Kairos Store
    code  = codice Downloader (solo promemoria, non viene mostrato)
    url   = link DIRETTO all'APK (usato dal pulsante: niente pagine o cookie)
    icon  = immagine nella cartella icons/
@@ -389,14 +390,21 @@ let STORE = {
 };
 
 let APPS = [
-  { name: "OrbixPlay",  tag: "PLAYER",   description: "Player moderno e veloce per TV e smartphone.", code: "618101",  url: "https://apk.orbixplay.com/firestick.apk", icon: "icons/orbixplay.webp", glow: "#38bdf8" },
-  { name: "IboOne",     tag: "PLAYER",   description: "Interfaccia elegante, ottimizzata per il telecomando.", code: "2533617", url: "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk", icon: "icons/iboone.webp", glow: "#22c55e" },
-  { name: "IboPro",     tag: "PLAYER",   description: "La versione Pro, ricca di funzioni.", code: "9416617", url: "https://www.dropbox.com/scl/fi/0v0iupzuvtwxoim9kgeok/ibop.apk?rlkey=m1su3jzjamu2rod5crm0vup1v&st=6mqrxj7c&dl=1", icon: "icons/ibopro.webp", glow: "#ef4444" },
-  { name: "OraPlayer",  tag: "PLAYER",   description: "Leggero e reattivo, ideale per Fire TV.", code: "8408809", url: "https://upgrade.logicyel.com/testapk/ora_stb_prodRelease_1000122.apk", icon: "icons/oraplayer.webp", glow: "#f43f5e" },
-  { name: "MT",         tag: "STREAM",   description: "Streaming fluido con VPN integrata.", code: "8128314", url: "https://www.dropbox.com/scl/fi/8tjxhc4k5reyee08eray2/MirkoTeam-7.0-v910-vpn.apk?rlkey=izdccv5uyqq7hmubl2ooynls4&st=objtg0ex&dl=1", icon: "icons/mt.webp", glow: "#f5b84a" },
-  { name: "TiviMate",   tag: "PLAYER",   description: "Guida TV completa e interfaccia curata.", code: "2578076", url: "https://api.tivimateiptvpro.com/api/download/android", icon: "icons/tivimate.webp", glow: "#60a5fa" },
-  { name: "Ibo Player", tag: "PLAYER",   description: "Semplice e immediato, per tutti i dispositivi.", code: "1171959", url: "http://ibodesk.com/iboupdate.apk", icon: "icons/iboplayer.webp", glow: "#dc2626", light: true },
-  { name: "Selling",    tag: "SMARTERS", description: "Player completo con profili multipli.", code: "7033537", url: "https://download2.slt.st/smarters5slt.apk", icon: "icons/selling.webp", glow: "#e11d48" },
+  { name: "Kairos Pro", tag: "Kairos", description: "La nostra app più bella: stile Netflix in nero e rosso, fluidissima e antibuffering, si adatta alle connessioni lente con tutte le nuove tecnologie", code: "", url: "https://panel-kairos.com/get/pro.apk", icon: "icons/kairos-pro-mw2kwyma.webp", glow: "#ff0000" },
+  { name: "Kairos Premium", tag: "PLAYER", description: "La nostra app più bella: stile Netflix in nero e oro, fluidissima e antibuffering, si adatta alle connessioni lente", code: "", url: "https://panel-kairos.com/get/premium.apk", icon: "icons/kairos-premium.webp", glow: "#d4af37", pkg: "com.kairos.premium" },
+  { name: "Kairos Tv", tag: "PLAYER", description: "La nostra app originale, con: stile a tema Netflix", code: "", url: "https://panel-kairos.com/get/tv.apk", icon: "icons/kairos-tv-mw2metv8.webp", glow: "#2dadf2" },
+  { name: "Kairos Plus", tag: "ANTEPRIMA", description: "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.", code: "", url: "https://panel-kairos.com/get/plus.apk", icon: "icons/kairos-plus.webp", glow: "#a855f7", pkg: "com.kairos.plus" },
+  { name: "Kairos-XC", tag: "Kairos", description: "La nostra app originale XC", code: "", url: "https://panel-kairos.com/get/xc.apk", icon: "icons/kairos-xc-mw2qqo36.webp", glow: "#fe6422" },
+  { name: "Kairos-Lite", tag: "Lite", description: "La nostra app originale lite", code: "", url: "https://panel-kairos.com/get/lite.apk", icon: "", glow: "#ffb546" },
+  { name: "OrbixPlay", tag: "PLAYER", description: "Player moderno e veloce per TV e smartphone.", code: "618101", url: "https://apk.orbixplay.com/firestick.apk", icon: "icons/orbixplay.webp", glow: "#38bdf8" },
+  { name: "IboOne", tag: "PLAYER", description: "Interfaccia elegante, ottimizzata per il telecomando.", code: "2533617", url: "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk", icon: "icons/iboone.webp", glow: "#22c55e" },
+  { name: "MaxPlayer", tag: "PLAYER", description: "Player IPTV ufficiale, si installa dallo store Amazon-Google-Apple.", code: "", url: "https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV", icon: "icons/maxplayer-mw1htxz1.webp", glow: "#ee9d00", pkg: "tv.maxplayer.android" },
+  { name: "IboPro", tag: "PLAYER", description: "La versione Pro, ricca di funzioni.", code: "9416617", url: "https://www.dropbox.com/scl/fi/0v0iupzuvtwxoim9kgeok/ibop.apk?rlkey=m1su3jzjamu2rod5crm0vup1v&st=6mqrxj7c&dl=1", icon: "icons/ibopro.webp", glow: "#ef4444" },
+  { name: "OraPlayer", tag: "PLAYER", description: "Leggero e reattivo, ideale per Fire TV.", code: "8408809", url: "https://upgrade.logicyel.com/testapk/ora_stb_prodRelease_1000122.apk", icon: "icons/oraplayer.webp", glow: "#f43f5e" },
+  { name: "MT", tag: "STREAM", description: "Streaming fluido con VPN integrata.", code: "8128314", url: "https://www.dropbox.com/scl/fi/8tjxhc4k5reyee08eray2/MirkoTeam-7.0-v910-vpn.apk?rlkey=izdccv5uyqq7hmubl2ooynls4&st=objtg0ex&dl=1", icon: "icons/mt.webp", glow: "#f5b84a" },
+  { name: "TiviMate", tag: "PLAYER", description: "Guida TV completa e interfaccia curata.", code: "2578076", url: "https://api.tivimateiptvpro.com/api/download/android", icon: "icons/tivimate.webp", glow: "#60a5fa" },
+  { name: "Ibo Player", tag: "PLAYER", description: "Semplice e immediato, per tutti i dispositivi.", code: "1171959", url: "http://ibodesk.com/iboupdate.apk", icon: "icons/iboplayer.webp", glow: "#dc2626", light: true },
+  { name: "Selling", tag: "SMARTERS", description: "Player completo con profili multipli.", code: "7033537", url: "https://download2.slt.st/smarters5slt.apk", icon: "icons/selling.webp", glow: "#e11d48" },
 ];
 /* ======================== fine CONFIG ======================== */
 
@@ -535,6 +543,7 @@ function burst(x, y, color) {
 }
 
 // ---------- testi ----------
+let typerT = 0;
 function renderTexts() {
 document.title = "Kairos Store";
 document.getElementById("storeName").textContent = STORE.name;
@@ -553,13 +562,14 @@ document.getElementById("footer").textContent = (STORE.contact ? STORE.contact +
 })();
 (function typer() {
   const el = document.getElementById("typed"); let li = 0, ci = 0, del = false;
+  clearTimeout(typerT); // la lista si è aggiornata: si ferma lo «scrittore» di prima (altrimenti due scrivono insieme)
   if (isTV || reduce) { el.textContent = STORE.taglines[0]; return; }
   (function step() {
-    const s = STORE.taglines[li];
+    const s = STORE.taglines[li] || "";
     el.textContent = s.slice(0, ci);
-    if (!del && ci < s.length) ci++; else if (!del) { del = true; return setTimeout(step, 2200); }
+    if (!del && ci < s.length) ci++; else if (!del) { del = true; typerT = setTimeout(step, 2200); return; }
     else if (ci > 0) ci--; else { del = false; li = (li + 1) % STORE.taglines.length; }
-    setTimeout(step, del ? 28 : 55);
+    typerT = setTimeout(step, del ? 28 : 55);
   })();
 })();
 }
@@ -580,7 +590,7 @@ APPS.forEach((app, i) => {
   card.innerHTML = `
     <span class="inst" id="in${i}" hidden>INSTALLATA</span>
     <div class="inner">
-      <span class="num">${String(i + 1).padStart(2, "0")}</span>
+      <span class="num">${("0" + (i + 1)).slice(-2)}</span>
       <div class="top">
         <div class="icon${app.light ? " light contain" : ""}"><img alt="" decoding="async" src="${esc(app.icon)}" onerror="this.parentNode.classList.add('noimg')"><span class="fb">${esc(app.name.charAt(0))}</span></div>
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
@@ -673,6 +683,7 @@ function status(id, text) {
   }
   if (/completato/i.test(text)) Sound.done();
   if (/non riuscito|non disponibile|annullata|Impossibile/i.test(text)) Sound.error();
+  if (/^Attendi/.test(text)) setTimeout(() => { if (el.textContent === text) status(id, ""); }, 4000); // non resta sulla scheda per sempre
 }
 window.kairosStatus = status;
 
@@ -709,7 +720,7 @@ function toast(text, keep) {
 }
 function updStatus(text) {
   if (!text) { toastEl.classList.remove("on"); updateBtn.classList.remove("spin"); return; }
-  const end = /Conferma|non riuscit|non disponibile|annullata|Impossibile|Permesso/i.test(text);
+  const end = /Conferma|non riuscit|non disponibile|annullata|Impossibile|Permesso|Attendi/i.test(text); // «Attendi…»: c'è già un download, il pulsante torna premibile
   if (/^Download completato/i.test(text)) text = "Download completato. Avvio installazione…";
   toast(text.replace(/^Download (\d+%)$/, "Aggiornamento di Kairos Store: $1"), !end);
   if (end) updateBtn.classList.remove("spin");
@@ -872,38 +883,53 @@ function recPick(R, d) {
   return { app: R.strongApp, why: "strong" };
 }
 const recApp = name => { const n = String(name).toLowerCase().replace(/[\s-]/g, ""); return APPS.findIndex(a => String(a.name).toLowerCase().replace(/[\s-]/g, "") === n); };
-async function recRules() {
-  let R = Object.assign({}, REC_DEF, STORE.recommend || {});
-  try {
-    for (const srv of PANEL) {
-      const c = new AbortController(); setTimeout(() => c.abort(), 4000);
-      const d = await fetch(srv + "/api/store/config", { cache: "no-store", signal: c.signal }).then(r => r.ok ? r.json() : null, () => null);
-      if (d && d.recommend) { R = Object.assign(R, d.recommend); break; }
-    }
-  } catch (_) {}
-  return R;
+// (senza async/await: la pagina deve funzionare anche nelle WebView vecchie dei box Android)
+function recRules() {
+  const R = Object.assign({}, REC_DEF, STORE.recommend || {});
+  const ask = srv => Promise.race([
+    fetch(srv + "/api/store/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null),
+    new Promise(res => setTimeout(() => res(null), 4000)),
+  ]);
+  return PANEL.reduce((p, srv) => p.then(got => got || ask(srv).then(d => (d && d.recommend ? Object.assign(R, d.recommend) : null))), Promise.resolve(null))
+    .then(() => R, () => R);
 }
-async function recommend() {
+function recommend() {
   const box = document.getElementById("recBox"), btn = document.getElementById("recBtn");
   box.hidden = false; box.innerHTML = "Sto esaminando il dispositivo…"; btn.disabled = true;
-  const R = await recRules(), d = recDevice(), p = recPick(R, d), i = recApp(p.app);
-  btn.disabled = false;
-  document.querySelectorAll(".card.rec-hi").forEach(c => c.classList.remove("rec-hi"));
-  if (i < 0) { box.innerHTML = "<b>Per questo dispositivo è consigliata " + esc(p.app) + "</b>, al momento non presente in questo Store. Scegli un'app dall'elenco qui sotto."; return; }
-  const inst = document.getElementById("in" + i), installed = inst && !inst.hidden;
-  const dev = d.name || (d.fire ? "Fire TV" : d.tv ? "Android TV" : "questo dispositivo");
-  let html = "<span class='rb-app'>✦ " + esc(p.app) + "</span><br>" + esc(R.text.replace("{app}", p.app));
-  if (d.name) html += "<br><small>Dispositivo: " + esc(dev) + (d.ram ? " · " + Math.round(d.ram / 1024 * 10) / 10 + " GB di memoria" : "") + (d.andr ? " · Android " + d.andr : "") + "</small>";
-  if (p.why === "weak") { const pi = recApp(R.strongApp), pin = pi >= 0 && document.getElementById("in" + pi); if (pin && !pin.hidden && pi !== i) html += "<br><small>Su questo apparecchio " + esc(R.strongApp) + " è già installata: resta utilizzabile, ma " + esc(p.app) + " offre una fluidità migliore con lo stesso abbonamento.</small>"; }
-  html += installed ? "<br><b>" + esc(p.app) + " è già installata su questo dispositivo.</b>" : "<br><a class='rb-act' href='#' id='recGo'>INSTALLA " + esc(p.app).toUpperCase() + "</a>";
-  box.innerHTML = html;
-  const card = document.querySelector('a.btn[data-i="' + i + '"]'); if (card) { card.closest(".card").classList.add("rec-hi"); card.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); }
-  const go = document.getElementById("recGo");
-  if (go) { go.onclick = e => { e.preventDefault(); if (card) { card.focus(); card.click(); } }; if (isTV) go.focus(); }
+  return recRules().then(R => {
+    const d = recDevice(), p = recPick(R, d), i = recApp(p.app);
+    btn.disabled = false;
+    document.querySelectorAll(".card.rec-hi").forEach(c => c.classList.remove("rec-hi"));
+    if (i < 0) { box.innerHTML = "<b>Per questo dispositivo è consigliata " + esc(p.app) + "</b>, al momento non presente in questo Store. Scegli un'app dall'elenco qui sotto."; if (isTV) btn.focus(); return; }
+    const inst = document.getElementById("in" + i), installed = inst && !inst.hidden;
+    const dev = d.name || (d.fire ? "Fire TV" : d.tv ? "Android TV" : "questo dispositivo");
+    let html = "<span class='rb-app'>✦ " + esc(p.app) + "</span><br>" + esc(R.text.replace("{app}", p.app));
+    if (d.name) html += "<br><small>Dispositivo: " + esc(dev) + (d.ram ? " · " + Math.round(d.ram / 1024 * 10) / 10 + " GB di memoria" : "") + (d.andr ? " · Android " + d.andr : "") + "</small>";
+    if (p.why === "weak") { const pi = recApp(R.strongApp), pin = pi >= 0 && document.getElementById("in" + pi); if (pin && !pin.hidden && pi !== i) html += "<br><small>Su questo apparecchio " + esc(R.strongApp) + " è già installata: resta utilizzabile, ma " + esc(p.app) + " offre una fluidità migliore con lo stesso abbonamento.</small>"; }
+    html += installed ? "<br><b>" + esc(p.app) + " è già installata su questo dispositivo.</b>" : "<br><a class='rb-act' href='#' id='recGo'>INSTALLA " + esc(p.app).toUpperCase() + "</a>";
+    box.innerHTML = html;
+    const card = document.querySelector('a.btn[data-i="' + i + '"]'); if (card) { card.closest(".card").classList.add("rec-hi"); card.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); }
+    const go = document.getElementById("recGo");
+    if (go) { go.onclick = e => { e.preventDefault(); if (card) { card.focus(); card.click(); } }; if (isTV) go.focus(); }
+    else if (isTV) btn.focus(); // il pulsante era disattivato durante l'esame: il telecomando non resta senza selezione
+  }, () => { btn.disabled = false; box.hidden = true; });
 }
 document.getElementById("recBtn").addEventListener("click", () => { recommend().catch(() => {}); });
 
 // ---------- elenco app da apps.json (modificabile dal pannello di gestione) ----------
+let appsSig = "";          // apps.json mostrato adesso ("" = elenco di riserva)
+function applyList(d) {
+  APPS = d.apps.filter(a => a && a.name && !a.hidden);
+  if (d.store) STORE = Object.assign({}, STORE, d.store);
+  if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
+}
+// ridisegna le schede ricordando quale era selezionata, per non far perdere la posizione col telecomando
+function rerender() {
+  const act = document.activeElement, cards = [...document.querySelectorAll(".card")];
+  const idx = act && act.closest ? cards.indexOf(act.closest(".card")) : -1;
+  renderTexts(); renderCards(); refreshInstalled();
+  if (idx >= 0) { const c = document.querySelectorAll(".card")[Math.min(idx, APPS.length - 1)]; const b = c && c.querySelector("a.btn"); if (b) b.focus(); }
+}
 (function loadApps() {
   let done = false;
   const start = () => {
@@ -916,44 +942,33 @@ document.getElementById("recBtn").addEventListener("click", () => { recommend().
   };
   setTimeout(start, 4000); // rete lenta: dopo 4 secondi usa l'elenco di riserva
   fetch("apps.json?t=" + Date.now(), { cache: "no-store" })
-    .then(r => r.ok ? r.json() : null)
-    .then(d => {
-      if (done || !d || !Array.isArray(d.apps)) return;
-      APPS = d.apps.filter(a => a && a.name && !a.hidden);
-      if (d.store) STORE = Object.assign({}, STORE, d.store);
-      if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
+    .then(r => r.ok ? r.text() : null)
+    .then(t => {
+      const d = t ? JSON.parse(t) : null;
+      if (!d || !Array.isArray(d.apps)) return;
+      appsSig = t; applyList(d);
+      if (done) rerender(); // arrivato dopo l'elenco di riserva (rete lenta): adesso si vede quello vero
     })
     .catch(() => {})
     .then(start);
 })();
 
 // ---------- aggiornamento in tempo reale: ricontrolla apps.json ogni minuto ----------
-let appsSig = "";
+// (se all'avvio era rimasto l'elenco di riserva, al primo controllo riuscito compare quello vero)
 function pollApps() {
   fetch("apps.json?t=" + Date.now(), { cache: "no-store" })
     .then(r => r.ok ? r.text() : null)
     .then(t => {
-      if (!t) return;
-      if (!appsSig) { appsSig = t; return; }
-      if (t === appsSig) return;
-      appsSig = t;
+      if (!t || t === appsSig) return;
       const d = JSON.parse(t);
       if (!d || !Array.isArray(d.apps)) return;
-      // ricorda quale card era selezionata per non far perdere la posizione col telecomando
-      const act = document.activeElement, cards = [...document.querySelectorAll(".card")];
-      const idx = act && act.closest ? cards.indexOf(act.closest(".card")) : -1;
-      APPS = d.apps.filter(a => a && a.name && !a.hidden);
-      if (d.store) STORE = Object.assign({}, STORE, d.store);
-      if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
-      renderTexts(); renderCards(); refreshInstalled();
-      if (idx >= 0) { const c = document.querySelectorAll(".card")[Math.min(idx, APPS.length - 1)]; const b = c && c.querySelector("a.btn"); if (b) b.focus(); }
+      appsSig = t; applyList(d); rerender();
     })
     .catch(() => {});
 }
-pollApps();
 setInterval(pollApps, 60000);
 
-function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 </script>
 </body>
 </html>
