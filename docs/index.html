@@ -864,7 +864,7 @@ intro.focus();
 // senza interazione entra da solo (in silenzio, il browser blocca i suoni)
 setTimeout(() => { if (!entered) enter(); }, isTV ? 6000 : 4200);
 const ip = document.getElementById("introPress");
-if (ip && !isTV && !isStoreApp) ip.textContent = "TOCCA PER ENTRARE";
+if (ip && !isTV && (!isStoreApp || (navigator.maxTouchPoints || 0) > 0)) ip.textContent = "TOCCA PER ENTRARE"; // nell'app solo sugli schermi a sfioramento
 
 // ---------- app consigliata per il dispositivo (regole dal pannello: App e Store → App consigliata) ----------
 const REC_DEF = { weakApp: 'Kairos Tv', weakMb: 1536, oldApp: 'Kairos-Lite', oldSdk: 7, strongApp: 'Kairos Pro', text: 'Per questo dispositivo è consigliata {app}: stesso abbonamento e stesse liste, con la migliore fluidità su questo apparecchio.' };
@@ -900,13 +900,15 @@ function recommend() {
     const d = recDevice(), p = recPick(R, d), i = recApp(p.app);
     btn.disabled = false;
     document.querySelectorAll(".card.rec-hi").forEach(c => c.classList.remove("rec-hi"));
+    // iPhone, iPad e smart TV Samsung/LG: nessuna app si installa, quindi niente «Installa» che non fa nulla
+    if (disabled) { box.innerHTML = "<b>Le app dello store sono per Android</b> (Fire TV, Android TV, smartphone e tablet Android): su iPhone, iPad e sulle smart TV Samsung o LG non si installano."; if (isTV) btn.focus(); return; }
     if (i < 0) { box.innerHTML = "<b>Per questo dispositivo è consigliata " + esc(p.app) + "</b>, al momento non presente in questo Store. Scegli un'app dall'elenco qui sotto."; if (isTV) btn.focus(); return; }
     const inst = document.getElementById("in" + i), installed = inst && !inst.hidden;
     const dev = d.name || (d.fire ? "Fire TV" : d.tv ? "Android TV" : "questo dispositivo");
     let html = "<span class='rb-app'>✦ " + esc(p.app) + "</span><br>" + esc(R.text.replace("{app}", p.app));
     if (d.name) html += "<br><small>Dispositivo: " + esc(dev) + (d.ram ? " · " + Math.round(d.ram / 1024 * 10) / 10 + " GB di memoria" : "") + (d.andr ? " · Android " + d.andr : "") + "</small>";
     if (p.why === "weak") { const pi = recApp(R.strongApp), pin = pi >= 0 && document.getElementById("in" + pi); if (pin && !pin.hidden && pi !== i) html += "<br><small>Su questo apparecchio " + esc(R.strongApp) + " è già installata: resta utilizzabile, ma " + esc(p.app) + " offre una fluidità migliore con lo stesso abbonamento.</small>"; }
-    html += installed ? "<br><b>" + esc(p.app) + " è già installata su questo dispositivo.</b>" : "<br><a class='rb-act' href='#' id='recGo'>INSTALLA " + esc(p.app).toUpperCase() + "</a>";
+    html += installed ? "<br><b>" + esc(p.app) + " è già installata su questo dispositivo.</b>" : "<br><a class='rb-act' href='#' id='recGo'>" + label + " " + esc(p.app).toUpperCase() + "</a>";
     box.innerHTML = html;
     const card = document.querySelector('a.btn[data-i="' + i + '"]'); if (card) { card.closest(".card").classList.add("rec-hi"); card.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); }
     const go = document.getElementById("recGo");
