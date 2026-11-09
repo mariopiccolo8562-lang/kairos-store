@@ -21,6 +21,7 @@ import android.util.Base64;
 import android.view.KeyEvent;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -51,6 +52,22 @@ public class MainActivity extends Activity {
 
     private static final int REQ_UNKNOWN_SOURCES = 42;
     private static final String LOCAL_PAGE = "file:///android_asset/index.html";
+
+    // ---- indirizzi dei download: pagina dello store, aggiornamento dello store, APK delle app (vedi StoreLinks) ----
+    /** indirizzo dei download, il dominio dedicato: l'unico da cambiare */
+    static final String DL_BASE = "https://store-k.download";
+    /** pannello Kairos: seconda base, con gli stessi percorsi /store/ e /get/... */
+    static final String PANEL = "https://panel-kairos.com";
+    private static final List<String> BASES = StoreLinks.bases(DL_BASE, PANEL);
+    /** pagine dello store in ordine: dominio dei download, pannello, GitHub Pages (storeUrl), poi la copia nell'APK */
+    private static final List<String> PAGES = StoreLinks.pages(BASES, BuildConfig.STORE_URL);
+    /** file brevi (aggiornamento dello store): connessione al massimo 5 s, così il dominio non ancora attivo fa
+     *  passare in fretta al pannello */
+    private static final int FEED_CONNECT_MS = 5000, FEED_READ_MS = 10000;
+    /** la pagina dello store non ha ancora risposto dopo questo tempo: si passa alla successiva */
+    private static final long PAGE_WAIT_MS = 12000L;
+    /** il file dell'aggiornamento letto da meno di un minuto vale per la pagina e per il controllo dell'aggiornamento */
+    private static final long FEED_FRESH_MS = 60_000L;
 
     private WebView web;
     private File pendingApk;
@@ -104,16 +121,24 @@ public class MainActivity extends Activity {
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                // Store online non raggiungibile: usa la copia inclusa nell'APK
-                if (failingUrl != null && !BuildConfig.STORE_URL.isEmpty()
-                        && failingUrl.startsWith(BuildConfig.STORE_URL)) {
-                    view.loadUrl(LOCAL_PAGE);
+                // pagina dello store non raggiungibile: la successiva (pannello, GitHub Pages), alla fine la copia nell'APK
+                if (isCurrentPage(failingUrl)) nextPage();
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse response) {
+                // la pagina dello store risponde con un errore (es. 502 del pannello, 404): stessa cosa
+                if (request != null && request.isForMainFrame() && response != null && response.getStatusCode() >= 400
+                        && isCurrentPage(String.valueOf(request.getUrl()))) {
+                    nextPage();
                 }
             }
 
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 pageUrl = url == null ? "" : url;
+                // la pagina dello store ha risposto: niente passaggio alla successiva per il tempo scaduto
+                if (isCurrentPage(url)) poll.removeCallbacks(pageWatchdog);
             }
 
             @Override
@@ -145,19 +170,62 @@ public class MainActivity extends Activity {
         }
     };
 
-    /** Carica sempre la versione più recente della lista app (niente copia vecchia in memoria). */
+    // ---- pagina dello store: la prima base che risponde bene, poi le successive, alla fine la copia nell'APK ----
+    private int pageIdx = 0;
+    private int pageGen = 0;
+    private boolean pageSkipIntro = false;
+    private String pageMsg = null;
+    /** la pagina in caricamento non ha risposto entro PAGE_WAIT_MS (connessione appesa): la successiva */
+    private final Runnable pageWatchdog = this::nextPage;
+
+    /**
+     * Carica sempre la versione più recente della lista app (niente copia vecchia in memoria). Prima si sceglie la base:
+     * la prima che risponde con il file dell'aggiornamento valido, così un dominio non ancora attivo o parcheggiato non
+     * arriva mai nella pagina; lo stesso file serve poi al controllo dell'aggiornamento, senza chiederlo di nuovo.
+     */
     private void loadStore(boolean skipIntro, String msg) {
         if (destroyed) return;
         lastRefresh = System.currentTimeMillis();
-        if (BuildConfig.STORE_URL.isEmpty()) {
+        pageSkipIntro = skipIntro;
+        pageMsg = msg;
+        final int gen = ++pageGen;
+        web.clearCache(true);
+        new Thread(() -> {
+            StoreFeed f = freshBaseFeed();
+            final int start = f != null ? f.base : BASES.size(); // nessuna base: GitHub Pages, poi la copia nell'APK
+            runOnUiThread(() -> {
+                if (destroyed || gen != pageGen) return;
+                pageIdx = start;
+                loadPage();
+            });
+        }).start();
+    }
+
+    /** carica la pagina dello store numero pageIdx; finita la lista, la copia inclusa nell'APK */
+    private void loadPage() {
+        if (destroyed) return;
+        poll.removeCallbacks(pageWatchdog);
+        if (pageIdx >= PAGES.size()) {
             web.loadUrl(LOCAL_PAGE);
             return;
         }
-        web.clearCache(true);
-        String url = BuildConfig.STORE_URL + (BuildConfig.STORE_URL.contains("?") ? "&" : "?") + "t=" + lastRefresh;
-        if (skipIntro) url += "&intro=0";
-        if (msg != null) url += "&msg=" + msg;
+        String base = PAGES.get(pageIdx);
+        String url = base + (base.contains("?") ? "&" : "?") + "t=" + lastRefresh;
+        if (pageSkipIntro) url += "&intro=0";
+        if (pageMsg != null) url += "&msg=" + pageMsg;
+        poll.postDelayed(pageWatchdog, PAGE_WAIT_MS);
         web.loadUrl(url);
+    }
+
+    private void nextPage() {
+        if (destroyed || pageIdx >= PAGES.size()) return;
+        pageIdx++;
+        loadPage();
+    }
+
+    /** [u] è la pagina dello store in caricamento adesso */
+    private boolean isCurrentPage(String u) {
+        return u != null && pageIdx < PAGES.size() && u.startsWith(PAGES.get(pageIdx));
     }
 
     @Override
@@ -390,54 +458,128 @@ public class MainActivity extends Activity {
 
     private static final String UPD = "stUpd";
 
-    private void checkStoreUpdate(boolean manual) {
-        if (BuildConfig.GITHUB_REPO.isEmpty()) {
-            if (manual) loadStore(true, "ok");
-            return;
+    /** versione dello store letta: N di 1.0.N, link dell'APK e indice della base che ha risposto (-1 = GitHub) */
+    private static final class StoreFeed {
+        final int build;
+        final String apk;
+        final int base;
+
+        StoreFeed(int build, String apk, int base) {
+            this.build = build;
+            this.apk = apk;
+            this.base = base;
         }
+    }
+
+    /** ultimo controllo delle basi (null = nessuna ha risposto bene) e quando: vale per la pagina e per l'aggiornamento */
+    private volatile StoreFeed lastFeed;
+    private volatile long lastFeedAt = 0;
+
+    /**
+     * Controllo dell'aggiornamento dello store: /get/store.json dal dominio dei download, poi dal pannello, e solo se
+     * nessuno dei due risponde bene l'ultima release su GitHub (come prima). L'APK si scarica dal link del file che ha
+     * risposto e, se non riesce, dalle basi successive e alla fine da GitHub.
+     */
+    private void checkStoreUpdate(boolean manual) {
         if (busy) {
             if (manual) status(UPD, "Attendi: è già in corso un download…");
             return;
         }
         if (manual) status(UPD, "Controllo aggiornamenti…");
         new Thread(() -> {
-            try {
-                HttpURLConnection c = (HttpURLConnection) new URL(
-                        "https://api.github.com/repos/" + BuildConfig.GITHUB_REPO + "/releases/latest").openConnection();
-                c.setConnectTimeout(15000);
-                c.setReadTimeout(15000);
-                c.setRequestProperty("Accept", "application/vnd.github+json");
-                c.setRequestProperty("User-Agent", "KairosStore/" + BuildConfig.VERSION_NAME);
-                int code = c.getResponseCode();
-                if (code != 200) {
-                    c.disconnect();
-                    throw new Exception("risposta " + code);
-                }
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                try (InputStream in = c.getInputStream()) {
-                    byte[] buf = new byte[8192];
-                    int n;
-                    while ((n = in.read(buf)) != -1) bos.write(buf, 0, n);
-                } finally {
-                    c.disconnect();
-                }
-                String tag = new JSONObject(bos.toString("UTF-8")).optString("tag_name", ""); // es. "v1.0.12"
-                String num = tag.substring(tag.lastIndexOf('.') + 1).replaceAll("[^0-9]", "");
-                int latest = num.isEmpty() ? 0 : Integer.parseInt(num);
-                if (latest > BuildConfig.VERSION_CODE) {
-                    String apk = "https://github.com/" + BuildConfig.GITHUB_REPO + "/releases/latest/download/KairosStore.apk";
-                    status(UPD, "Nuova versione di Kairos Store (1.0." + latest + "): aggiornamento in corso…");
-                    runOnUiThread(() -> beginDownload(apk, "KairosStore", UPD)); // aggiornamento dello store
-                } else if (manual) {
-                    runOnUiThread(() -> loadStore(true, "ok"));
-                }
-            } catch (Exception e) {
+            // pulsante AGGIORNA: sempre dalla rete; all'apertura vale il file appena letto per scegliere la pagina
+            StoreFeed f = manual ? baseFeedNow() : freshBaseFeed();
+            if (f == null) f = githubFeed();
+            if (f == null) {
                 if (manual) {
                     status(UPD, "Controllo aggiornamenti non riuscito. Ricarico la lista delle app…");
                     runOnUiThread(() -> web.postDelayed(() -> loadStore(true, null), 1800));
                 }
+                return;
+            }
+            if (f.build > BuildConfig.VERSION_CODE) {
+                final List<String> apks = StoreLinks.apkUrls(f.apk, BASES, ghStoreApk());
+                status(UPD, "Nuova versione di Kairos Store (1.0." + f.build + "): aggiornamento in corso…");
+                runOnUiThread(() -> beginDownload(apks, "KairosStore", UPD)); // aggiornamento dello store
+            } else if (manual) {
+                runOnUiThread(() -> loadStore(true, "ok"));
             }
         }).start();
+    }
+
+    /** file dell'aggiornamento dalla prima base che risponde bene (200, JSON con versione e link https); null = nessuna */
+    private StoreFeed baseFeed() {
+        List<String> feeds = StoreLinks.feeds(BASES);
+        for (int i = 0; i < feeds.size(); i++) {
+            try {
+                JSONObject j = new JSONObject(httpText(feeds.get(i), null));
+                int n = StoreLinks.build(j.optString("version", ""));
+                String apk = j.optString("url", "");
+                if (n > 0 && apk.startsWith("https://")) return new StoreFeed(n, apk, i);
+            } catch (Exception ignored) {
+                // nessuna risposta, errore, HTML (dominio parcheggiato) o JSON non valido: la base successiva
+            }
+        }
+        return null;
+    }
+
+    /** [baseFeed] dalla rete adesso, ricordato per la pagina e per il controllo dell'aggiornamento */
+    private StoreFeed baseFeedNow() {
+        StoreFeed f = baseFeed();
+        lastFeed = f;
+        lastFeedAt = System.currentTimeMillis();
+        return f;
+    }
+
+    /** come [baseFeedNow], ma vale quello letto meno di un minuto fa: la pagina e l'aggiornamento non lo chiedono due volte */
+    private StoreFeed freshBaseFeed() {
+        if (lastFeedAt > 0 && System.currentTimeMillis() - lastFeedAt < FEED_FRESH_MS) return lastFeed;
+        return baseFeedNow();
+    }
+
+    /** riserva di oggi: l'ultima release su GitHub (con il repository privato fallisce senza danni); null = niente */
+    private StoreFeed githubFeed() {
+        if (BuildConfig.GITHUB_REPO.isEmpty()) return null;
+        try {
+            JSONObject j = new JSONObject(httpText("https://api.github.com/repos/" + BuildConfig.GITHUB_REPO + "/releases/latest",
+                    "application/vnd.github+json"));
+            int n = StoreLinks.build(j.optString("tag_name", "")); // es. "v1.0.131"
+            if (n > 0) return new StoreFeed(n, ghStoreApk(), -1);
+        } catch (Exception ignored) {
+            // GitHub non risponde (o repository privato)
+        }
+        return null;
+    }
+
+    /** APK dell'ultima release su GitHub, l'ultima riserva; "" senza repository */
+    private static String ghStoreApk() {
+        return BuildConfig.GITHUB_REPO.isEmpty() ? ""
+                : "https://github.com/" + BuildConfig.GITHUB_REPO + "/releases/latest/download/KairosStore.apk";
+    }
+
+    /** GET di un file breve (al massimo 256 KB): il testo se la risposta è 200, altrimenti un'eccezione */
+    private static String httpText(String url, String accept) throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            c.setConnectTimeout(FEED_CONNECT_MS);
+            c.setReadTimeout(FEED_READ_MS);
+            c.setRequestProperty("User-Agent", "KairosStore/" + BuildConfig.VERSION_NAME);
+            if (accept != null) c.setRequestProperty("Accept", accept);
+            int code = c.getResponseCode();
+            if (code != 200) throw new Exception("risposta " + code);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try (InputStream in = c.getInputStream()) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) != -1) {
+                    bos.write(buf, 0, n);
+                    if (bos.size() > 256 * 1024) throw new Exception("risposta troppo grande");
+                }
+            }
+            return bos.toString("UTF-8");
+        } finally {
+            c.disconnect();
+        }
     }
 
     private boolean isTelevision() {
@@ -469,14 +611,16 @@ public class MainActivity extends Activity {
     /**
      * Ingresso di tutti i download chiesti dalla pagina o dai link (install(), link .apk / aftv.news,
      * download della WebView). Store aperto: nessuna autorizzazione, il download parte subito.
+     * Un'app Kairos dal dominio dei download che non si scarica si riprova con lo stesso link sul pannello.
      */
     private void startDownload(String url, String name, String statusId) {
-        beginDownload(url, name, statusId);
+        beginDownload(StoreLinks.apkUrls(url, BASES, ""), name, statusId);
     }
 
     // ------------------------------------------------------------ download
 
-    private void beginDownload(String url, String name, String statusId) {
+    /** scarica il primo di [urls] che riesce; se nessuno riesce, il messaggio del primo errore */
+    private void beginDownload(List<String> urls, String name, String statusId) {
         if (destroyed) return;
         if (busy) {
             status(statusId, "Attendi: è già in corso un download…");
@@ -485,12 +629,20 @@ public class MainActivity extends Activity {
         busy = true;
         status(statusId, "Connessione…");
         new Thread(() -> {
+            String err = null;
             try {
-                download(url, name, statusId);
-            } catch (DownloadError e) {
-                status(statusId, e.getMessage());
-            } catch (Exception e) {
-                status(statusId, "Download non riuscito. Controlla la connessione e riprova.");
+                for (String u : urls) {
+                    try {
+                        download(u, name, statusId);
+                        return;
+                    } catch (DownloadError e) {
+                        if (err == null) err = e.getMessage();
+                        if (e.local) break; // memoria piena: da un'altra base non cambierebbe niente
+                    } catch (Exception e) {
+                        if (err == null) err = "Download non riuscito. Controlla la connessione e riprova.";
+                    }
+                }
+                status(statusId, err != null ? err : "Download non riuscito. Controlla la connessione e riprova.");
             } finally {
                 busy = false;
             }
@@ -500,7 +652,13 @@ public class MainActivity extends Activity {
     /** errore del download con il messaggio da mostrare al cliente */
     private static class DownloadError extends Exception {
         private static final long serialVersionUID = 1L;
-        DownloadError(String msg) { super(msg); }
+        /** problema del dispositivo (memoria piena): un'altra base non cambierebbe niente */
+        final boolean local;
+        DownloadError(String msg) { this(msg, false); }
+        DownloadError(String msg, boolean local) {
+            super(msg);
+            this.local = local;
+        }
     }
 
     private void download(String startUrl, String name, String statusId) throws Exception {
@@ -534,10 +692,9 @@ public class MainActivity extends Activity {
         String type = c.getContentType() == null ? "" : c.getContentType().toLowerCase(Locale.ROOT);
         String path = current.toLowerCase(Locale.ROOT);
         if (type.startsWith("text/html") && !path.contains(".apk")) {
-            // Il link porta a una pagina web invece che al file: non la mostriamo
+            // Il link porta a una pagina web invece che al file: non la mostriamo (si prova la base successiva, se c'è)
             c.disconnect();
-            status(statusId, "Download non disponibile al momento. Riprova più tardi.");
-            return;
+            throw new DownloadError("Download non disponibile al momento. Riprova più tardi.");
         }
 
         File dir = getExternalFilesDir(null) != null
@@ -556,7 +713,7 @@ public class MainActivity extends Activity {
         if (total > 0 && free > 0 && free < total + 10L * 1024 * 1024) {
             c.disconnect();
             throw new DownloadError("Download non riuscito: spazio insufficiente (servono circa "
-                    + (total / (1024 * 1024) + 10) + " MB liberi). Libera memoria e riprova.");
+                    + (total / (1024 * 1024) + 10) + " MB liberi). Libera memoria e riprova.", true);
         }
         long done = 0;
         int lastPct = -1;
@@ -571,7 +728,7 @@ public class MainActivity extends Activity {
                     os.write(buf, 0, n);
                 } catch (java.io.IOException e) {
                     if (dir.getUsableSpace() < 2L * 1024 * 1024 || String.valueOf(e.getMessage()).contains("ENOSPC")) {
-                        throw new DownloadError("Download non riuscito: la memoria del dispositivo è piena. Libera spazio e riprova.");
+                        throw new DownloadError("Download non riuscito: la memoria del dispositivo è piena. Libera spazio e riprova.", true);
                     }
                     throw e;
                 }
@@ -726,6 +883,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         destroyed = true;
         poll.removeCallbacks(periodicCheck);
+        poll.removeCallbacks(pageWatchdog);
         stopPermissionWatcher();
         // libera la WebView (e con lei la memoria della pagina): uscendo con Indietro restava in memoria a ogni apertura
         if (web != null) {
@@ -808,10 +966,11 @@ public class MainActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 
-    /** true se la WebView mostra la pagina dello store (online o la copia nell'APK) */
+    /** true se la WebView mostra la pagina dello store (da una delle basi, da GitHub Pages o la copia nell'APK) */
     private boolean onStorePage() {
         String u = web.getUrl();
         if (u == null || u.startsWith(LOCAL_PAGE) || u.startsWith("about:")) return true;
-        return !BuildConfig.STORE_URL.isEmpty() && u.startsWith(BuildConfig.STORE_URL);
+        for (String p : PAGES) if (u.startsWith(p)) return true;
+        return false;
     }
 }

@@ -412,10 +412,21 @@ let APPS = [
 // (es. https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV — "asin" facoltativo, per Amazon)
 const storePkg = app => { const m = /^https:\/\/play\.google\.com\/store\/apps\/details\?(?:[^#]*&)?id=([A-Za-z0-9._]+)/.exec(app.url || ""); return m ? m[1] : ""; };
 const storeAsin = app => { const m = /[?&]asin=([A-Z0-9]{10})(?:&|$)/.exec(app.url || ""); return m ? m[1] : ""; };
+// App Kairos (/get/<app>.apk): con la pagina servita dal dominio dei download o dal pannello il link è relativo, sullo
+// stesso dominio della pagina (il cliente vede un solo indirizzo); da GitHub Pages o dalla copia dentro l'APK il link
+// resta quello del pannello, come prima.
+const DL_HOSTS = ["store-k.download", "panel-kairos.com"];
+const onDlHost = DL_HOSTS.indexOf(location.hostname) >= 0;
+const kairosLink = u => {
+  const m = /^https:\/\/(?:store-k\.download|panel-kairos\.com)(\/get\/[A-Za-z0-9._-]+)$/.exec(String(u || "").trim());
+  return !m ? u : onDlHost ? m[1] : "https://panel-kairos.com" + m[1];
+};
+// link completo (per l'app Android e per il conteggio dei download): quello relativo diventa del dominio della pagina
+const absUrl = u => { try { return new URL(u, location.href).href; } catch (e) { return u; } };
 const downloadUrl = app => {
   const pkg = storePkg(app);
   if (pkg) return /AFT[A-Z0-9]|Silk.*TV/i.test(navigator.userAgent || "") ? "amzn://apps/android?p=" + pkg : "https://play.google.com/store/apps/details?id=" + pkg;
-  return app.url || ("https://aftv.news/" + encodeURIComponent(String(app.code).trim()));
+  return app.url ? kairosLink(app.url) : ("https://aftv.news/" + encodeURIComponent(String(app.code).trim()));
 };
 
 // ---------- dispositivo ----------
@@ -556,8 +567,11 @@ document.getElementById("footer").textContent = (STORE.contact ? STORE.contact +
     try { if (window.KairosStore.appVersion) set(window.KairosStore.appVersion()); } catch (e) {}
     return;
   }
-  fetch("https://api.github.com/repos/mariopiccolo8562-lang/kairos-store/releases/latest")
-    .then(r => r.ok ? r.json() : null).then(j => { if (j && j.tag_name) set(String(j.tag_name).replace(/^v/, "")); })
+  // dal pannello (o dal dominio dei download) /get/store.json; se non risponde, l'ultima release su GitHub come prima
+  fetch((onDlHost ? "" : "https://panel-kairos.com") + "/get/store.json", { cache: "no-store" })
+    .then(r => r.ok ? r.json() : null).then(j => { if (!(j && j.version)) throw 0; set(String(j.version).replace(/^v/, "")); })
+    .catch(() => fetch("https://api.github.com/repos/mariopiccolo8562-lang/kairos-store/releases/latest")
+      .then(r => r.ok ? r.json() : null).then(j => { if (j && j.tag_name) set(String(j.tag_name).replace(/^v/, "")); }))
     .catch(() => {});
 })();
 (function typer() {
@@ -650,7 +664,7 @@ grid.addEventListener("click", e => {
   const i = +a.dataset.i, app = APPS[i], r = a.getBoundingClientRect();
   burst(r.left + r.width / 2, r.top + r.height / 2, app.glow || "#22d3ee");
   Sound.whoosh();
-  track(app, downloadUrl(app)); // il pannello conta il download (non blocca nulla)
+  track(app, absUrl(downloadUrl(app))); // il pannello conta il download (non blocca nulla)
   if (storePkg(app)) { // app degli store ufficiali (Amazon Appstore / Google Play): niente download dallo store
     if (isStoreApp) {
       e.preventDefault();
@@ -662,7 +676,7 @@ grid.addEventListener("click", e => {
   if (isStoreApp) {
     e.preventDefault();
     unlockNative(); // l'APK vecchio non deve più chiedere l'autorizzazione
-    window.KairosStore.install(downloadUrl(app), app.name, "st" + i);
+    window.KairosStore.install(absUrl(downloadUrl(app)), app.name, "st" + i);
   } else {
     status("st" + i, "Download avviato…");
     setTimeout(() => status("st" + i, ""), 5000);
@@ -796,7 +810,7 @@ function track(app, url) { panelPost("download", { did: installId(), app: app.na
 // riserva per l'APK vecchio: se nonostante tutto dice ancora «serve l'autorizzazione», la si prende al volo dal pannello
 // (che ora approva tutto subito) e il download parte lo stesso, senza finestre
 window.kairosNeedApproval = url => {
-  const i = APPS.findIndex(a => String(downloadUrl(a)).trim() === String(url).trim()), app = APPS[i], sid = i >= 0 ? "st" + i : "";
+  const i = APPS.findIndex(a => String(absUrl(downloadUrl(a))).trim() === String(url).trim()), app = APPS[i], sid = i >= 0 ? "st" + i : "";
   if (!app) return;
   let srv = ""; try { srv = String(window.KairosStore.approvalServer && window.KairosStore.approvalServer() || ""); } catch (e) {}
   srv = /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(srv) ? srv : PANEL[0];

@@ -14,6 +14,10 @@ Per le app Kairos non cambia nulla: il cliente apre l'app, manda la **foto del c
 
 > I link degli APK e i codici Downloader scritti in `apps.json` sono pubblici (il repository è pubblico): con lo store aperto è voluto.
 
+## Indirizzi dei download
+
+L'APK dello store prende la pagina, il suo aggiornamento e le app Kairos da `https://store-k.download` (costante `DL_BASE` in `MainActivity.java`), poi dal pannello `https://panel-kairos.com` (`/store/`, `/get/store.json`, `/get/<app>.apk`); solo se nessuno dei due risponde bene usa GitHub Pages e l'ultima release (riserva finché il repository è pubblico), alla fine la copia della pagina dentro l'APK. Nella pagina i link `/get/…` delle app Kairos sono relativi quando la pagina arriva dal dominio dei download o dal pannello, del pannello quando arriva da GitHub Pages.
+
 ## Pannello (worker/)
 
 Il **PANNELLO KAIROS STORE** (`https://kairos-store.<account>.workers.dev`) è il Worker Cloudflare in `worker/index.js`.
