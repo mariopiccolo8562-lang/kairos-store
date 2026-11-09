@@ -60,4 +60,6 @@ preBuild.dependsOn copyStorePage
 
 dependencies {
     implementation 'androidx.core:core:1.13.1'
+    // prove JVM della scelta delle basi (StoreLinksTest): solo per i test, non entra nell'APK
+    testImplementation 'junit:junit:4.13.2'
 }
