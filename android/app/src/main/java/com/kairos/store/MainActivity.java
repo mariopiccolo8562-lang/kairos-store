@@ -56,6 +56,12 @@ public class MainActivity extends Activity {
     private File pendingApk;
     private String pendingStatusId;
     private volatile boolean busy = false;
+    /** true mentre lo store è in primo piano (gli aggiornamenti e l'installer non partono quando il cliente usa un'altra app) */
+    private volatile boolean resumed = false;
+    private volatile boolean destroyed = false;
+    /** APK scaricato mentre lo store era in sottofondo: l'installazione parte quando il cliente torna nello store */
+    private File deferredApk;
+    private String deferredStatusId;
 
     // ---- aggiornamenti ----
     private static final long REFRESH_AFTER_MS = 5 * 60 * 1000L; // ricarica la lista se l'app torna in primo piano dopo 5 minuti
@@ -133,13 +139,15 @@ public class MainActivity extends Activity {
     private final Runnable periodicCheck = new Runnable() {
         @Override
         public void run() {
-            if (!busy && pendingApk == null) checkStoreUpdate(false);
+            // solo con lo store davanti: in sottofondo non scarica e non apre l'installer sopra l'app che il cliente sta usando
+            if (resumed && !busy && pendingApk == null) checkStoreUpdate(false);
             poll.postDelayed(this, PERIODIC_MS);
         }
     };
 
     /** Carica sempre la versione più recente della lista app (niente copia vecchia in memoria). */
     private void loadStore(boolean skipIntro, String msg) {
+        if (destroyed) return;
         lastRefresh = System.currentTimeMillis();
         if (BuildConfig.STORE_URL.isEmpty()) {
             web.loadUrl(LOCAL_PAGE);
@@ -155,6 +163,20 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        resumed = true;
+        appsCacheAt = 0; // app installate o tolte mentre si era fuori: si rileggono
+        // download finito mentre lo store era in sottofondo (o chiuso con Indietro): si installa adesso
+        if (prefs().contains(PREF_DEFERRED)) {
+            File f = new File(prefs().getString(PREF_DEFERRED, ""));
+            if (deferredApk == null && f.isFile() && System.currentTimeMillis() - f.lastModified() < 30 * 60 * 1000L) deferredApk = f;
+            prefs().edit().remove(PREF_DEFERRED).apply();
+        }
+        if (deferredApk != null) {
+            File apk = deferredApk;
+            String sid = deferredStatusId;
+            deferredApk = null;
+            install(apk, sid);
+        }
         // tornando da un'installazione o disinstallazione: aggiorna i pulsanti delle app
         if (web != null) web.evaluateJavascript("window.kairosRefreshInstalled && window.kairosRefreshInstalled()", null);
         // App rimasta aperta in sottofondo: al ritorno aggiorna lista e versione
@@ -163,6 +185,12 @@ public class MainActivity extends Activity {
             updateCheckDone = false;
             loadStore(true, null);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        resumed = false;
+        super.onPause();
     }
 
     /** true = il link lo gestisce l'app (download), false = lo apre la WebView */
@@ -309,23 +337,42 @@ public class MainActivity extends Activity {
         String saved = prefs().getString("pkg_" + key, "");
         if (!saved.isEmpty() && isInstalled(saved)) return saved;
         try {
-            PackageManager pm = getPackageManager();
-            List<ApplicationInfo> apps = pm.getInstalledApplications(0);
             String partial = "";
-            for (ApplicationInfo ai : apps) {
-                if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
-                if (ai.packageName.equals(getPackageName())) continue;
-                String label = norm(String.valueOf(pm.getApplicationLabel(ai)));
-                if (label.isEmpty()) continue;
-                if (label.equals(key)) return ai.packageName;
+            for (String[] a : userApps()) {
+                String label = a[0];
+                if (label.equals(key)) return a[1];
                 if (partial.isEmpty() && key.length() >= 4 && (label.startsWith(key) || key.startsWith(label) && label.length() >= 4)) {
-                    partial = ai.packageName;
+                    partial = a[1];
                 }
             }
             return partial;
         } catch (Exception e) {
             return "";
         }
+    }
+
+    /**
+     * App installate dal cliente: {nome normalizzato, pacchetto}. La pagina chiede ogni app dello store una per una
+     * (15 e più): leggere ogni volta tutte le app e i loro nomi bloccava la pagina per qualche secondo sulle chiavette
+     * da 1 GB. Ora l'elenco si legge una volta e vale qualche secondo (e si rilegge quando si torna nello store).
+     */
+    private List<String[]> appsCache;
+    private volatile long appsCacheAt = 0;
+
+    private synchronized List<String[]> userApps() {
+        long now = System.currentTimeMillis();
+        if (appsCache != null && now - appsCacheAt < 5000) return appsCache;
+        PackageManager pm = getPackageManager();
+        java.util.ArrayList<String[]> list = new java.util.ArrayList<>();
+        for (ApplicationInfo ai : pm.getInstalledApplications(0)) {
+            if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
+            if (ai.packageName.equals(getPackageName())) continue;
+            String label = norm(String.valueOf(pm.getApplicationLabel(ai)));
+            if (!label.isEmpty()) list.add(new String[]{label, ai.packageName});
+        }
+        appsCache = list;
+        appsCacheAt = now;
+        return list;
     }
 
     /** Ricorda il pacchetto contenuto nell'APK scaricato, per riconoscere l'app in seguito. */
@@ -406,6 +453,8 @@ public class MainActivity extends Activity {
     /** chiave in cui le versioni precedenti ricordavano il server delle autorizzazioni (ora si cancella) */
     private static final String PREF_SERVER = "approval_server";
     private static final String PREF_DID = "did";
+    /** APK scaricato da installare alla prossima apertura dello store */
+    private static final String PREF_DEFERRED = "deferred_apk";
 
     private synchronized String installId() {
         String d = prefs().getString(PREF_DID, "");
@@ -428,6 +477,7 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------ download
 
     private void beginDownload(String url, String name, String statusId) {
+        if (destroyed) return;
         if (busy) {
             status(statusId, "Attendi: è già in corso un download…");
             return;
@@ -437,12 +487,20 @@ public class MainActivity extends Activity {
         new Thread(() -> {
             try {
                 download(url, name, statusId);
+            } catch (DownloadError e) {
+                status(statusId, e.getMessage());
             } catch (Exception e) {
                 status(statusId, "Download non riuscito. Controlla la connessione e riprova.");
             } finally {
                 busy = false;
             }
         }).start();
+    }
+
+    /** errore del download con il messaggio da mostrare al cliente */
+    private static class DownloadError extends Exception {
+        private static final long serialVersionUID = 1L;
+        DownloadError(String msg) { super(msg); }
     }
 
     private void download(String startUrl, String name, String statusId) throws Exception {
@@ -459,11 +517,16 @@ public class MainActivity extends Activity {
             if (code >= 300 && code < 400) {
                 String loc = c.getHeaderField("Location");
                 c.disconnect();
+                c = null; // (se i reindirizzamenti non finiscono, sotto si ferma con un errore)
                 if (loc == null) throw new Exception("reindirizzamento non valido");
                 current = new URL(new URL(current), loc).toString();
                 continue;
             }
-            if (code >= 400) throw new Exception("il server ha risposto " + code);
+            if (code >= 400) {
+                c.disconnect();
+                // link dell'app rotto o release senza file (il pannello risponde 502): non è colpa della connessione
+                throw new DownloadError("Download non disponibile al momento. Riprova più tardi.");
+            }
             break;
         }
         if (c == null) throw new Exception("troppi reindirizzamenti");
@@ -488,13 +551,30 @@ public class MainActivity extends Activity {
         File out = new File(dir, safe + ".apk");
 
         long total = c.getContentLength();
+        // memoria piena: lo si dice subito, invece di «controlla la connessione» a metà download
+        long free = dir.getUsableSpace();
+        if (total > 0 && free > 0 && free < total + 10L * 1024 * 1024) {
+            c.disconnect();
+            throw new DownloadError("Download non riuscito: spazio insufficiente (servono circa "
+                    + (total / (1024 * 1024) + 10) + " MB liberi). Libera memoria e riprova.");
+        }
         long done = 0;
         int lastPct = -1;
+        byte[] head = new byte[4];
+        boolean complete = false;
         try (InputStream in = c.getInputStream(); OutputStream os = new FileOutputStream(out)) {
             byte[] buf = new byte[64 * 1024];
             int n;
             while ((n = in.read(buf)) != -1) {
-                os.write(buf, 0, n);
+                for (int k = 0; k < n && done + k < 4; k++) head[(int) (done + k)] = buf[k];
+                try {
+                    os.write(buf, 0, n);
+                } catch (java.io.IOException e) {
+                    if (dir.getUsableSpace() < 2L * 1024 * 1024 || String.valueOf(e.getMessage()).contains("ENOSPC")) {
+                        throw new DownloadError("Download non riuscito: la memoria del dispositivo è piena. Libera spazio e riprova.");
+                    }
+                    throw e;
+                }
                 done += n;
                 if (total > 0) {
                     int pct = (int) (done * 100 / total);
@@ -506,8 +586,23 @@ public class MainActivity extends Activity {
                     status(statusId, "Download " + (done / (1024 * 1024)) + " MB");
                 }
             }
+            complete = true;
         } finally {
             c.disconnect();
+            if (!complete) //noinspection ResultOfMethodCallIgnored
+                out.delete(); // niente file a metà che occupano la memoria
+        }
+        // connessione caduta prima della fine: il file sarebbe un APK rotto («errore durante l'analisi del pacchetto»)
+        if (done == 0 || (total > 0 && done < total)) {
+            //noinspection ResultOfMethodCallIgnored
+            out.delete();
+            throw new DownloadError("Download non riuscito: si è interrotto. Controlla la connessione e riprova.");
+        }
+        // un APK comincia sempre con «PK»: altrimenti il link ha dato una pagina o un messaggio, non l'app
+        if (head[0] != 'P' || head[1] != 'K') {
+            //noinspection ResultOfMethodCallIgnored
+            out.delete();
+            throw new DownloadError("Download non disponibile al momento. Riprova più tardi.");
         }
         rememberPackage(name, out);
         status(statusId, "Download completato. Avvio installazione…");
@@ -517,6 +612,16 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------ installazione
 
     private void install(File apk, String statusId) {
+        if (destroyed || !resumed) {
+            // il cliente è uscito dallo store durante il download: l'installer non si apre sopra un'altra app
+            // (da Android 10 il sistema lo bloccherebbe e l'installazione andrebbe persa); parte quando torna qui,
+            // anche se nel frattempo lo store è stato chiuso (il file resta valido 30 minuti)
+            deferredApk = apk;
+            deferredStatusId = statusId;
+            prefs().edit().putString(PREF_DEFERRED, apk.getAbsolutePath()).apply();
+            status(statusId, "Download completato: l'installazione parte quando torni in Kairos Store.");
+            return;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && !getPackageManager().canRequestPackageInstalls()) {
             pendingApk = apk;
@@ -528,8 +633,10 @@ public class MainActivity extends Activity {
                 startActivityForResult(i, REQ_UNKNOWN_SOURCES);
                 startPermissionWatcher();
                 return;
-            } catch (ActivityNotFoundException e) {
-                // Alcune Fire TV non hanno questa schermata: proviamo comunque
+            } catch (Exception e) {
+                // Alcune Fire TV non hanno questa schermata: proviamo comunque.
+                // Niente più APK «in attesa del permesso», altrimenti lo store non si aggiornerebbe più al ritorno.
+                pendingApk = null;
                 status(statusId, "Se l'installazione è bloccata: Impostazioni > Il mio Fire TV > "
                         + "Opzioni sviluppatore > Installa app sconosciute > Kairos Store.");
             }
@@ -617,8 +724,17 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        destroyed = true;
         poll.removeCallbacks(periodicCheck);
         stopPermissionWatcher();
+        // libera la WebView (e con lei la memoria della pagina): uscendo con Indietro restava in memoria a ogni apertura
+        if (web != null) {
+            try {
+                web.stopLoading();
+                web.removeJavascriptInterface("KairosStore");
+                web.destroy();
+            } catch (Exception ignored) { }
+        }
         super.onDestroy();
     }
 
@@ -668,10 +784,10 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------ varie
 
     private void status(String statusId, String text) {
-        if (statusId == null) return;
+        if (statusId == null || destroyed) return;
         String js = "window.kairosStatus && window.kairosStatus("
                 + JSONObject.quote(statusId) + "," + JSONObject.quote(text) + ")";
-        runOnUiThread(() -> web.evaluateJavascript(js, null));
+        runOnUiThread(() -> { if (!destroyed) web.evaluateJavascript(js, null); });
     }
 
     @Override
@@ -681,11 +797,21 @@ public class MainActivity extends Activity {
             // prima chiude l'eventuale finestra aperta nella pagina, poi torna indietro / esce
             web.evaluateJavascript("(window.kairosBack && window.kairosBack()) ? 1 : 0", v -> {
                 if ("1".equals(v)) return;
-                if (web.canGoBack()) web.goBack();
+                // sulla pagina dello store Indietro esce: la cronologia ha solo le ricariche (AGGIORNA, ritorno dopo
+                // 5 minuti) o, senza internet, la pagina online non raggiungibile, che riportava sempre qui
+                // (si poteva uscire solo con Home). Da una pagina esterna aperta da un link si torna allo store.
+                if (!onStorePage() && web.canGoBack()) web.goBack();
                 else onBackPressed();
             });
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    /** true se la WebView mostra la pagina dello store (online o la copia nell'APK) */
+    private boolean onStorePage() {
+        String u = web.getUrl();
+        if (u == null || u.startsWith(LOCAL_PAGE) || u.startsWith("about:")) return true;
+        return !BuildConfig.STORE_URL.isEmpty() && u.startsWith(BuildConfig.STORE_URL);
     }
 }
