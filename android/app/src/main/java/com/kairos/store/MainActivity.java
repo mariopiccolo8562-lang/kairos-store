@@ -291,6 +291,8 @@ public class MainActivity extends Activity {
 
     /** Indirizzo della pagina aperta */
     private volatile String pageUrl = "";
+    /** scheda del dispositivo già letta (deviceSpecs) */
+    private volatile String specsCache;
 
     /** Oggetto visibile dalla pagina come window.KairosStore */
     private class Bridge {
@@ -329,6 +331,18 @@ public class MainActivity extends Activity {
                 am.getMemoryInfo(mi);
                 return mi.totalMem / (1024L * 1024L);
             } catch (Throwable t) { return 0; }
+        }
+
+        /** scheda del dispositivo per «App consigliata» (11 novembre 2026): processore, RAM, memoria interna, Android,
+         *  schermo, H.265 e 4K, in JSON (vedi DeviceSpecs). Si legge una volta per apertura dello store. */
+        @JavascriptInterface
+        public String deviceSpecs() {
+            String c = specsCache;
+            if (c == null) {
+                try { c = DeviceSpecs.json(MainActivity.this); } catch (Throwable t) { c = "{}"; }
+                specsCache = c;
+            }
+            return c;
         }
 
         /** (pagine vecchie dello store) server delle autorizzazioni: lo store è aperto, non si ricorda più nulla */

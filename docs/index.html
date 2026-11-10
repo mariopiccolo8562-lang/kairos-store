@@ -283,6 +283,15 @@ html.tv .intro-bar b{box-shadow:none}
 .rec:focus,.rec:hover{outline:none;border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.35),0 0 30px rgba(34,211,238,.35)}
 .rec-box{display:block}.rec-box[hidden]{display:none}.rec-box .rb-app{font-size:1.25em;font-weight:900}.rec-box .rb-act{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:#22d3ee;color:#04141a;font-weight:900;text-decoration:none}
 .rec-box .rb-act:focus{outline:3px solid #fff}.card.rec-hi{outline:3px solid #22d3ee;outline-offset:4px}
+.rec-box .rb-dev{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);text-align:left}
+.rec-box .rb-dev b.rb-h,.rec-box .rb-apps b.rb-h{display:block;font-size:.8em;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-bottom:6px}
+.rec-box .rb-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:6px 16px;font-size:.88em}
+.rec-box .rb-kv div{display:flex;gap:8px;min-width:0}.rec-box .rb-kv span{opacity:.7;flex:none}.rec-box .rb-kv em{font-style:normal;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.rec-box .rb-apps{margin-top:12px;text-align:left}
+.rec-box .rb-li{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-top:6px;border-radius:10px;border:1px solid rgba(255,255,255,.12);color:inherit;text-decoration:none;font-size:.92em}
+.rec-box .rb-li:focus,.rec-box .rb-li:hover{outline:none;border-color:#22d3ee;background:rgba(34,211,238,.12)}
+.rec-box .rb-li .rb-ok{flex:none;width:22px;text-align:center;font-weight:900}.rec-box .rb-li.ok .rb-ok{color:#4ade80}.rec-box .rb-li.no{opacity:.6}.rec-box .rb-li.no .rb-ok{color:#f87171}
+.rec-box .rb-li b{flex:1;min-width:0}.rec-box .rb-li small{flex:none;opacity:.8}.rec-box .rb-li .rb-top{flex:none;font-size:.78em;font-weight:900;padding:2px 8px;border-radius:999px;background:#22d3ee;color:#04141a}
 </style>
 </head>
 <body>
@@ -880,15 +889,56 @@ const ip = document.getElementById("introPress");
 if (ip && !isTV && (!isStoreApp || (navigator.maxTouchPoints || 0) > 0)) ip.textContent = "TOCCA PER ENTRARE"; // nell'app solo sugli schermi a sfioramento
 
 // ---------- app consigliata per il dispositivo (regole dal pannello: App e Store → App consigliata) ----------
-const REC_DEF = { weakApp: 'Kairos Tv', weakMb: 1536, oldApp: 'Kairos-Lite', oldSdk: 7, strongApp: 'Kairos Pro', text: 'Per questo dispositivo è consigliata {app}: stesso abbonamento e stesse liste, con la migliore fluidità su questo apparecchio.' };
+// 11 novembre 2026: sulle chiavette deboli Kairos-XC (la più leggera); «mem» = memoria richiesta da ogni app, in MB (dal pannello)
+const REC_DEF = { weakApp: 'Kairos-XC', weakMb: 1536, oldApp: 'Kairos-Lite', oldSdk: 7, strongApp: 'Kairos Pro', text: 'Per questo dispositivo è consigliata {app}: stesso abbonamento e stesse liste, con la migliore fluidità su questo apparecchio.',
+  mem: { 'Kairos-XC': 512, 'Kairos Tv': 1024, 'Kairos-Lite': 1024, 'Kairos Premium': 1536, 'Kairos Plus': 1536, 'Kairos Pro': 2048 } };
 function recDevice() {
-  let ram = 0;
+  let ram = 0, approx = false;
   try { if (isStoreApp && typeof KairosStore.totalRamMb === "function") ram = +KairosStore.totalRamMb() || 0; } catch (_) {}
-  if (!ram && navigator.deviceMemory) ram = navigator.deviceMemory * 1024; // browser: valore approssimato
+  if (!ram && navigator.deviceMemory) { ram = navigator.deviceMemory * 1024; approx = true; } // browser: valore approssimato
   const am = /Android (\d+)/.exec(ua), andr = am ? +am[1] : 0;
   const stick = /AFT(M|T|SS|MM|KA|KRT|KM|SSS|B)\b/.test(ua); // Fire TV Stick (le Cube sono AFTA/AFTR/AFTGAZL)
   let name = ""; try { if (isStoreApp && KairosStore.deviceName) name = KairosStore.deviceName(); } catch (_) {}
-  return { ram, andr, stick, fire: isFireTV, tv: isTV, name };
+  // scheda del dispositivo (Kairos Store 1.0.134 o successivo): processore, RAM libera, memoria interna, schermo, video
+  let sp = {}; try { if (isStoreApp && typeof KairosStore.deviceSpecs === "function") sp = JSON.parse(KairosStore.deviceSpecs() || "{}") || {}; } catch (_) { sp = {}; }
+  if (+sp.ramMb > 0) ram = +sp.ramMb;
+  return { ram, approx, andr: andr || parseInt(sp.android, 10) || 0, stick, fire: isFireTV, tv: isTV, name, sp, gpu: recGpu() };
+}
+/** scheda video, dalla WebView (anche sugli store vecchi e nel browser); "" se non si può sapere */
+function recGpu() {
+  try {
+    const c = document.createElement("canvas"), gl = c.getContext("webgl") || c.getContext("experimental-webgl"); if (!gl) return "";
+    const ext = gl.getExtension("WEBGL_debug_renderer_info");
+    const r = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) || "");
+    return r.replace(/^ANGLE \((.*)\)$/, "$1").replace(/\s+/g, " ").trim().slice(0, 60);
+  } catch (_) { return ""; }
+}
+// memoria «come la chiama il negozio»: Android dice un po' meno (1,9 GB per 2 GB), si arrotonda a mezzo GB
+const recNom = mb => (mb ? Math.ceil(mb / 512) * 512 : 0);
+const recSize = mb => { if (!(mb > 0)) return "—"; if (mb < 1000) return Math.round(mb) + " MB"; const g = Math.round(mb / 1024 * 10) / 10; return String(g).replace(".", ",") + " GB"; };
+/** righe della scheda del dispositivo: solo quello che si sa */
+function recSpecs(d) {
+  const sp = d.sp || {}, kv = [];
+  const model = d.name || [sp.brand, sp.model].filter(Boolean).join(" ") || (d.fire ? "Fire TV" : d.tv ? "Android TV" : "");
+  if (model) kv.push(["Dispositivo", model]);
+  const cores = +sp.cores || +navigator.hardwareConcurrency || 0;
+  const cpu = [sp.soc || "", cores ? cores + " core" : "", +sp.ghz ? String(sp.ghz).replace(".", ",") + " GHz" : "", sp.bits ? sp.bits + " bit" : ""].filter(Boolean).join(" · ");
+  if (cpu) kv.push(["Processore", cpu]);
+  if (d.ram) kv.push(["RAM", recSize(recNom(d.ram)) + (d.approx ? " (circa)" : "") + (+sp.ramFreeMb ? " · libera " + recSize(+sp.ramFreeMb) : "")]);
+  if (+sp.romMb) kv.push(["Memoria interna", recSize(+sp.romMb) + (+sp.romFreeMb >= 0 ? " · liberi " + recSize(+sp.romFreeMb) : "")]);
+  if (d.andr) kv.push(["Android", String(sp.android || d.andr)]);
+  const sw = +sp.w || Math.round((screen.width || 0) * (window.devicePixelRatio || 1)), sh = +sp.h || Math.round((screen.height || 0) * (window.devicePixelRatio || 1));
+  if (sw && sh) kv.push(["Schermo", Math.max(sw, sh) + "×" + Math.min(sw, sh) + (sp.hdr ? " · HDR" : "")]);
+  if (d.gpu) kv.push(["Scheda video", d.gpu]);
+  if (sp.hevc !== undefined || sp.uhd !== undefined) kv.push(["Video", "H.265 " + (sp.hevc ? "sì" : "no") + " · 4K " + (sp.uhd ? "sì" : "no")]);
+  return kv;
+}
+/** app Kairos dello Store dalla più leggera (a parità di memoria l'ordine del pannello), con ✓ se il dispositivo ha abbastanza memoria */
+function recList(R, d, top) {
+  const mem = R.mem && typeof R.mem === "object" ? R.mem : REC_DEF.mem, nom = recNom(d.ram), out = [];
+  Object.keys(mem).forEach((name, k) => { const i = recApp(name); if (i >= 0) out.push({ name: APPS[i].name, i, mb: +mem[name] || 0, k }); });
+  out.sort((a, b) => a.mb - b.mb || a.k - b.k);
+  return out.map(x => Object.assign(x, { fit: nom ? nom >= x.mb : null, top: recApp(top) === x.i }));
 }
 function recPick(R, d) {
   if (d.stick || (d.ram && d.ram < R.weakMb) || (!d.ram && d.tv)) return { app: R.weakApp, why: "weak" };
@@ -917,12 +967,16 @@ function recommend() {
     if (disabled) { box.innerHTML = "<b>Le app dello store sono per Android</b> (Fire TV, Android TV, smartphone e tablet Android): su iPhone, iPad e sulle smart TV Samsung o LG non si installano."; if (isTV) btn.focus(); return; }
     if (i < 0) { box.innerHTML = "<b>Per questo dispositivo è consigliata " + esc(p.app) + "</b>, al momento non presente in questo Store. Scegli un'app dall'elenco qui sotto."; if (isTV) btn.focus(); return; }
     const inst = document.getElementById("in" + i), installed = inst && !inst.hidden;
-    const dev = d.name || (d.fire ? "Fire TV" : d.tv ? "Android TV" : "questo dispositivo");
     let html = "<span class='rb-app'>✦ " + esc(p.app) + "</span><br>" + esc(String(R.text || "").split("{app}").join(p.app));
-    if (d.name) html += "<br><small>Dispositivo: " + esc(dev) + (d.ram ? " · " + Math.round(d.ram / 1024 * 10) / 10 + " GB di memoria" : "") + (d.andr ? " · Android " + d.andr : "") + "</small>";
     if (p.why === "weak") { const pi = recApp(R.strongApp), pin = pi >= 0 && document.getElementById("in" + pi); if (pin && !pin.hidden && pi !== i) html += "<br><small>Su questo apparecchio " + esc(R.strongApp) + " è già installata: resta utilizzabile, ma " + esc(p.app) + " offre una fluidità migliore con lo stesso abbonamento.</small>"; }
     html += installed ? "<br><b>" + esc(p.app) + " è già installata su questo dispositivo.</b>" : "<br><a class='rb-act' href='#' id='recGo'>" + label + " " + esc(p.app).toUpperCase() + "</a>";
+    // scheda del dispositivo e app Kairos dalla più leggera (11 novembre 2026)
+    const kv = recSpecs(d);
+    if (kv.length) html += "<div class='rb-dev'><b class='rb-h'>Il tuo dispositivo</b><div class='rb-kv'>" + kv.map(([k, v]) => "<div><span>" + esc(k) + "</span><em>" + esc(v) + "</em></div>").join("") + "</div></div>";
+    const L = recList(R, d, p.app);
+    if (L.length > 1) html += "<div class='rb-apps'><b class='rb-h'>App Kairos, dalla più leggera</b>" + L.map(x => "<a href='#' class='rb-li " + (x.fit === false ? "no" : "ok") + "' data-rbi='" + x.i + "'><span class='rb-ok'>" + (x.fit === null ? "•" : x.fit ? "✓" : "✗") + "</span><b>" + esc(x.name) + "</b>" + (x.top ? "<span class='rb-top'>CONSIGLIATA</span>" : "") + "<small>" + (x.fit === false ? "serve " + recSize(x.mb) : "richiede " + recSize(x.mb)) + "</small></a>").join("") + (d.ram ? "" : "<small style='display:block;margin-top:6px;opacity:.75'>La memoria di questo dispositivo non si può leggere: guarda quanta ne richiede ogni app.</small>") + "</div>";
     box.innerHTML = html;
+    box.querySelectorAll("[data-rbi]").forEach(a => { a.onclick = e => { e.preventDefault(); const c = document.querySelector('a.btn[data-i="' + a.dataset.rbi + '"]'); if (c) { document.querySelectorAll(".card.rec-hi").forEach(x => x.classList.remove("rec-hi")); c.closest(".card").classList.add("rec-hi"); c.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); c.focus(); } }; });
     const card = document.querySelector('a.btn[data-i="' + i + '"]'); if (card) { card.closest(".card").classList.add("rec-hi"); card.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); }
     const go = document.getElementById("recGo");
     if (go) { go.onclick = e => { e.preventDefault(); if (card) { card.focus(); card.click(); } }; if (isTV) go.focus(); }
