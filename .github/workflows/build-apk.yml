@@ -46,6 +46,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           STORE_URL: ${{ vars.STORE_URL }}
+          KAIROS_DL_BASE2: ${{ vars.KAIROS_DL_BASE2 }}  # secondo dominio dei download, di riserva (facoltativo)
         run: |
           if [ -n "$KEYSTORE_FILE" ]; then TASK=assembleRelease; DIR=release; else TASK=assembleDebug; DIR=debug; fi
           EXTRA=""; if [ -n "$STORE_URL" ]; then EXTRA="-PstoreUrl=$STORE_URL"; fi
