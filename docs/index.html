@@ -412,14 +412,15 @@ let APPS = [
 // (es. https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV — "asin" facoltativo, per Amazon)
 const storePkg = app => { const m = /^https:\/\/play\.google\.com\/store\/apps\/details\?(?:[^#]*&)?id=([A-Za-z0-9._]+)/.exec(app.url || ""); return m ? m[1] : ""; };
 const storeAsin = app => { const m = /[?&]asin=([A-Z0-9]{10})(?:&|$)/.exec(app.url || ""); return m ? m[1] : ""; };
-// App Kairos (/get/<app>.apk): con la pagina servita dal dominio dei download o dal pannello il link è relativo, sullo
-// stesso dominio della pagina (il cliente vede un solo indirizzo); da GitHub Pages o dalla copia dentro l'APK il link
-// resta quello del pannello, come prima.
-const DL_HOSTS = ["store-k.download", "panel-kairos.com"];
-const onDlHost = DL_HOSTS.indexOf(location.hostname) >= 0;
+// App Kairos (/get/<app>.apk): con la pagina servita dal dominio dei download (o da un suo dominio di riserva) il link è
+// relativo, sullo stesso dominio della pagina (il cliente vede un solo indirizzo); dal pannello, da GitHub Pages o dalla
+// copia dentro l'APK il link va sul dominio dei download. Dal 10 novembre 2026 niente download dal pannello né da GitHub.
+const DL_MAIN = "https://store-k.download";
+const NOT_DL = /(^|\.)panel-kairos\.com$|\.workers\.dev$|\.github\.io$/i;
+const onDlHost = location.protocol === "https:" && !NOT_DL.test(location.hostname);
 const kairosLink = u => {
   const m = /^https:\/\/(?:store-k\.download|panel-kairos\.com)(\/get\/[A-Za-z0-9._-]+)$/.exec(String(u || "").trim());
-  return !m ? u : onDlHost ? m[1] : "https://panel-kairos.com" + m[1];
+  return !m ? u : onDlHost ? m[1] : DL_MAIN + m[1];
 };
 // link completo (per l'app Android e per il conteggio dei download): quello relativo diventa del dominio della pagina
 const absUrl = u => { try { return new URL(u, location.href).href; } catch (e) { return u; } };
@@ -567,11 +568,9 @@ document.getElementById("footer").textContent = (STORE.contact ? STORE.contact +
     try { if (window.KairosStore.appVersion) set(window.KairosStore.appVersion()); } catch (e) {}
     return;
   }
-  // dal pannello (o dal dominio dei download) /get/store.json; se non risponde, l'ultima release su GitHub come prima
-  fetch((onDlHost ? "" : "https://panel-kairos.com") + "/get/store.json", { cache: "no-store" })
-    .then(r => r.ok ? r.json() : null).then(j => { if (!(j && j.version)) throw 0; set(String(j.version).replace(/^v/, "")); })
-    .catch(() => fetch("https://api.github.com/repos/mariopiccolo8562-lang/kairos-store/releases/latest")
-      .then(r => r.ok ? r.json() : null).then(j => { if (j && j.tag_name) set(String(j.tag_name).replace(/^v/, "")); }))
+  // /get/store.json del dominio dei download (quello della pagina, se è servita da lì); niente pannello né GitHub
+  fetch((onDlHost ? "" : DL_MAIN) + "/get/store.json", { cache: "no-store" })
+    .then(r => r.ok ? r.json() : null).then(j => { if (j && j.version) set(String(j.version).replace(/^v/, "")); })
     .catch(() => {});
 })();
 (function typer() {

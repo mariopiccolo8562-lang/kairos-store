@@ -16,7 +16,7 @@ Per le app Kairos non cambia nulla: il cliente apre l'app, manda la **foto del c
 
 ## Indirizzi dei download
 
-L'APK dello store prende la pagina, il suo aggiornamento e le app Kairos da `https://store-k.download` (costante `DL_BASE` in `MainActivity.java`), poi dal pannello `https://panel-kairos.com` (`/store/`, `/get/store.json`, `/get/<app>.apk`); solo se nessuno dei due risponde bene usa GitHub Pages e l'ultima release (riserva finché il repository è pubblico), alla fine la copia della pagina dentro l'APK. Nella pagina i link `/get/…` delle app Kairos sono relativi quando la pagina arriva dal dominio dei download o dal pannello, del pannello quando arriva da GitHub Pages.
+L'APK dello store prende la pagina, il suo aggiornamento e le app Kairos solo da `https://store-k.download` (costante `DL_BASE` in `MainActivity.java`) e, se non risponde bene, dalle riserve con gli stessi percorsi (`/store/`, `/get/store.json`, `/get/<app>.apk`): `DL_BASE2` (variabile `KAIROS_DL_BASE2` del repository, vuota finché non c'è un secondo dominio) e i domini che `/get/store.json` annuncia in `mirrors` (la lista `DL_HOSTS` del pannello: lo store li ricorda e li usa dall'apertura dopo). Niente pannello né GitHub negli aggiornamenti e nei download (dal 10 novembre 2026); per la pagina restano GitHub Pages (variabile `STORE_URL`, se c'è) e alla fine la copia dentro l'APK. Nella pagina i link `/get/…` delle app Kairos sono relativi quando la pagina arriva dal dominio dei download (o da una sua riserva), di `https://store-k.download` quando arriva dal pannello, da GitHub Pages o dalla copia nell'APK.
 
 ## Pannello (worker/)
 
