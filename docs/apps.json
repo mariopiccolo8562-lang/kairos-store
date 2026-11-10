@@ -50,11 +50,11 @@
       "tag": "ANTEPRIMA",
       "description": "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.",
       "url": "https://panel-kairos.com/get/plus.apk",
-      "code": "",
+      "code": "7465745",
       "icon": "icons/kairos-plus.webp",
       "glow": "#a855f7",
       "pkg": "com.kairos.plus",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
