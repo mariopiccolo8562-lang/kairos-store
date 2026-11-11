@@ -3,6 +3,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Android 12+: aggiornamento dello store senza conferma (vedi Quiet.java) -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
 
@@ -27,7 +29,7 @@
         android:banner="@drawable/banner"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Material.NoActionBar"
+        android:theme="@style/Store"
         android:usesCleartextTraffic="true">
 
         <activity
@@ -40,6 +42,9 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- esito dell'aggiornamento dello store senza conferma -->
+        <receiver android:name=".QuietDone" android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
