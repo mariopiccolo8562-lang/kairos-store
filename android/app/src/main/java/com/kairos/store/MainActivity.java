@@ -81,6 +81,20 @@ public class MainActivity extends Activity {
     /** true mentre lo store è in primo piano (gli aggiornamenti e l'installer non partono quando il cliente usa un'altra app) */
     private volatile boolean resumed = false;
     private volatile boolean destroyed = false;
+    /** schermata dello store visibile (tra onStart e onStop) */
+    private volatile boolean started = false;
+    /** Android 12+: versione nuova dello store già scaricata, si installa da sola quando il cliente esce (Quiet.java) */
+    private File selfReady;
+    private int selfCode;
+    private final Runnable quietRun = () -> {
+        File f = selfReady;
+        int c = selfCode;
+        if (started || f == null) return;
+        selfReady = null;
+        Context app = getApplicationContext();
+        Quiet.tried(app, c); // un tentativo per versione: se non riesce, alla prossima apertura torna la conferma di Android
+        new Thread(() -> Quiet.install(app, f, c), "kx-quiet").start();
+    };
     /** APK scaricato mentre lo store era in sottofondo: l'installazione parte quando il cliente torna nello store */
     private File deferredApk;
     private String deferredStatusId;
@@ -271,6 +285,26 @@ public class MainActivity extends Activity {
     protected void onPause() {
         resumed = false;
         super.onPause();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        started = true;
+        poll.removeCallbacks(quietRun); // tornato nello store: l'aggiornamento aspetta la prossima uscita
+    }
+
+    @Override
+    protected void onStop() {
+        started = false;
+        if (selfReady != null) scheduleQuiet();
+        super.onStop();
+    }
+
+    /** uscito dallo store: tra 10 secondi, se non torna, la versione nuova dello store si installa da sola */
+    private void scheduleQuiet() {
+        poll.removeCallbacks(quietRun);
+        poll.postDelayed(quietRun, 10_000);
     }
 
     /** true = il link lo gestisce l'app (download), false = lo apre la WebView */
@@ -789,6 +823,15 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------ installazione
 
     private void install(File apk, String statusId) {
+        // Android 12+: l'aggiornamento dello store si installa da solo, senza conferma, quando il cliente esce dallo store
+        int sc = Quiet.selfCode(this, apk);
+        if (sc > 0 && Quiet.ok(this, sc)) {
+            selfReady = apk;
+            selfCode = sc;
+            status(statusId, "Kairos Store 1.0." + sc + " è pronto: si aggiorna da solo quando esci dallo store.");
+            if (!started) scheduleQuiet();
+            return;
+        }
         if (destroyed || !resumed) {
             // il cliente è uscito dallo store durante il download: l'installer non si apre sopra un'altra app
             // (da Android 10 il sistema lo bloccherebbe e l'installazione andrebbe persa); parte quando torna qui,

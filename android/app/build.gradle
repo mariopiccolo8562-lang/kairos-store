@@ -11,12 +11,13 @@ def dlBase2 = (System.getenv('KAIROS_DL_BASE2') ?: '').toString().trim().replace
 
 android {
     namespace 'com.kairos.store'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId 'com.kairos.store'
         minSdk 24
-        targetSdk 34
+        // Android 15 (11 novembre 2026): sotto 35 i telefoni con Android 17 avvisano «creata per una versione precedente»
+        targetSdk 35
         versionCode runNumber
         versionName "1.0.${runNumber}"
         buildConfigField 'String', 'STORE_URL', "\"${storeUrl}\""

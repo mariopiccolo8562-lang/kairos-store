@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 15+ con targetSdk 35: la pagina resta tra la barra di stato e quella di navigazione come prima
+         (senza, sui telefoni finirebbe sotto le barre di sistema) -->
+    <style name="Store" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>
