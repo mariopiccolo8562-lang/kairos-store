@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
@@ -718,24 +719,43 @@ public class MainActivity extends Activity {
     private void download(String startUrl, String name, String statusId) throws Exception {
         String current = startUrl;
         HttpURLConnection c = null;
+        // «niente http non sicuro» (11 novembre 2026): un reindirizzamento verso http si prova prima in https; se la
+        // versione https non risponde o dà errore si torna a http da soli (fallback). I link di partenza http li mette
+        // già in ordine StoreLinks.apkUrls (prima https, poi http).
+        String fallback = null;
         // Segue i reindirizzamenti (aftv.news -> link reale dell'APK), anche http <-> https
         for (int i = 0; i < 10; i++) {
-            c = (HttpURLConnection) new URL(current).openConnection();
-            c.setInstanceFollowRedirects(false);
-            c.setConnectTimeout(20000);
-            c.setReadTimeout(30000);
-            c.setRequestProperty("User-Agent", "KairosStore/1.0 (Android)");
-            int code = c.getResponseCode();
+            int code;
+            try {
+                c = (HttpURLConnection) new URL(current).openConnection();
+                c.setInstanceFollowRedirects(false);
+                c.setConnectTimeout(20000);
+                c.setReadTimeout(30000);
+                c.setRequestProperty("User-Agent", "KairosStore/1.0 (Android)");
+                code = c.getResponseCode();
+            } catch (java.io.IOException e) {
+                if (c != null) c.disconnect();
+                c = null;
+                if (fallback == null) throw e;
+                current = fallback; // https non raggiungibile: il link http come prima
+                fallback = null;
+                continue;
+            }
             if (code >= 300 && code < 400) {
                 String loc = c.getHeaderField("Location");
                 c.disconnect();
                 c = null; // (se i reindirizzamenti non finiscono, sotto si ferma con un errore)
                 if (loc == null) throw new Exception("reindirizzamento non valido");
-                current = new URL(new URL(current), loc).toString();
+                String next = new URL(new URL(current), loc).toString();
+                String sec = StoreLinks.secure(next);
+                // il server che rimanda da https a http si ascolta (altrimenti si girerebbe in tondo)
+                if (sec != null && !sec.equals(current)) { fallback = next; current = sec; }
+                else { fallback = null; current = next; }
                 continue;
             }
             if (code >= 400) {
                 c.disconnect();
+                if (fallback != null) { c = null; current = fallback; fallback = null; continue; }
                 // link dell'app rotto o release senza file (il pannello risponde 502): non è colpa della connessione
                 throw new DownloadError("Download non disponibile al momento. Riprova più tardi.");
             }
@@ -815,9 +835,44 @@ public class MainActivity extends Activity {
             out.delete();
             throw new DownloadError("Download non disponibile al momento. Riprova più tardi.");
         }
+        // «solo APK firmati da te»: un'app Kairos con un'altra firma non si installa (si prova la base successiva, se c'è)
+        String bad = signProblem(out);
+        if (bad != null) {
+            //noinspection ResultOfMethodCallIgnored
+            out.delete();
+            throw new DownloadError(bad);
+        }
         rememberPackage(name, out);
         status(statusId, "Download completato. Avvio installazione…");
         runOnUiThread(() -> install(out, statusId));
+    }
+
+    /** firma dell'APK scaricato (KairosSign): null = si può installare. Firma illeggibile: decide Android */
+    private String signProblem(File apk) {
+        try {
+            PackageManager pm = getPackageManager();
+            String path = apk.getAbsolutePath();
+            PackageInfo pi = null;
+            List<String> certs = new ArrayList<>();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                pi = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNING_CERTIFICATES);
+                if (pi != null && pi.signingInfo != null) {
+                    Signature[] sg = pi.signingInfo.getApkContentsSigners(); // chi firma adesso (anche con la chiave ruotata)
+                    if (sg != null) for (Signature x : sg) certs.add(KairosSign.sha256(x.toByteArray()));
+                }
+            }
+            if (certs.isEmpty()) {
+                @SuppressWarnings("deprecation") PackageInfo old = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNATURES);
+                if (old != null) {
+                    if (pi == null) pi = old;
+                    @SuppressWarnings("deprecation") Signature[] sg = old.signatures;
+                    if (sg != null) for (Signature x : sg) certs.add(KairosSign.sha256(x.toByteArray()));
+                }
+            }
+            return pi == null ? null : KairosSign.check(pi.packageName, certs);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // ------------------------------------------------------------ installazione

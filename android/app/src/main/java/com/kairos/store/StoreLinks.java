@@ -79,18 +79,30 @@ final class StoreLinks {
     }
 
     /**
-     * Da dove scaricare un APK, in ordine: [url]; se è un link {@code /get/...} di una base, lo stesso percorso sulle basi
-     * successive. I link delle app degli altri (fuori dalle basi) restano soli.
+     * Da dove scaricare un APK, in ordine: [url] (se è http, prima la sua versione https); se è un link {@code /get/...} di
+     * una base, lo stesso percorso sulle basi successive. I link delle app degli altri (fuori dalle basi) restano soli.
      */
     static List<String> apkUrls(String url, List<String> bases) {
         ArrayList<String> out = new ArrayList<>();
-        if (url != null && !url.trim().isEmpty()) out.add(url.trim());
+        if (url != null && !url.trim().isEmpty()) {
+            // «niente http non sicuro» (11 novembre 2026): un link http si prova prima in https, poi com'era
+            String sec = secure(url);
+            if (sec != null) out.add(sec);
+            out.add(url.trim());
+        }
         int at = baseOf(url, bases);
         if (at >= 0) {
             String path = url.trim().substring(bases.get(at).length());
             if (path.startsWith("/get/")) for (int i = at + 1; i < bases.size(); i++) add(out, bases.get(i) + path);
         }
         return out;
+    }
+
+    /** la versione https di un link http (null se il link non è http) */
+    static String secure(String url) {
+        if (url == null) return null;
+        String u = url.trim();
+        return u.regionMatches(true, 0, "http://", 0, 7) && u.length() > 7 ? "https://" + u.substring(7) : null;
     }
 
     /** numero N della versione 1.0.N (es. «1.0.131» o il tag «v1.0.131» → 131); 0 se non c'è */

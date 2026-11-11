@@ -98,4 +98,18 @@ public class StoreLinksTest {
         assertEquals(0, StoreLinks.build(null));
         assertEquals(0, StoreLinks.build("1.0.99999999999"));
     }
+
+    /** «niente http non sicuro»: un link http si prova prima in https e, se non va, com'era */
+    @Test
+    public void httpPrimaInHttps() {
+        assertEquals(Arrays.asList("https://ibodesk.com/iboupdate.apk", "http://ibodesk.com/iboupdate.apk"),
+                StoreLinks.apkUrls("http://ibodesk.com/iboupdate.apk", bases));
+        assertEquals(Arrays.asList("https://x.example/a.apk", "HTTP://x.example/a.apk"), StoreLinks.apkUrls(" HTTP://x.example/a.apk ", bases));
+        assertEquals(Collections.singletonList("https://apk.orbixplay.com/firestick.apk"), StoreLinks.apkUrls("https://apk.orbixplay.com/firestick.apk", bases));
+        assertEquals("https://a.example/x?y=1", StoreLinks.secure("http://a.example/x?y=1"));
+        assertEquals(null, StoreLinks.secure("https://a.example/x"));
+        assertEquals(null, StoreLinks.secure("ftp://a.example/x"));
+        assertEquals(null, StoreLinks.secure("http://"));
+        assertEquals(null, StoreLinks.secure(null));
+    }
 }
