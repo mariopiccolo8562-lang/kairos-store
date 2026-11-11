@@ -14,6 +14,15 @@ Per le app Kairos non cambia nulla: il cliente apre l'app, manda la **foto del c
 
 > I link degli APK e i codici Downloader scritti in `apps.json` sono pubblici (il repository è pubblico): con lo store aperto è voluto.
 
+### Download solo con codice (11 novembre 2026)
+
+Il titolare può accendere **«Download solo con codice»** nel pannello Kairos Control (Riepilogo store). Da quel momento la pagina, prima di ogni download, chiede il via libera al pannello (`/api/store/download`): senza un codice valido su questo dispositivo esce la finestra **«🔑 Codice del rivenditore»** con un tastierino usabile col telecomando (frecce e OK), coi tasti numerici o col dito; Indietro e ANNULLA la chiudono. Il codice (6 cifre, generato dal titolare o da un agente col permesso) vale una volta, su quel dispositivo, per tutte le app e per la durata scelta dal titolare (30 minuti, 2 ore o 24 ore). Spento, il pannello risponde subito di sì e tutto è come prima. All'apertura `/api/store/hello` (o `/api/store/config` nel browser) dice se serve il codice; se il pannello non risponde lo store scarica lo stesso, tranne quando l'ultima risposta diceva che serve il codice. Il codice protegge lo store, non i file: i link diretti degli APK restano (servono agli aggiornamenti).
+
+### Sicurezza dei download nell'APK (11 novembre 2026)
+
+- **Solo APK Kairos firmati**: un'app Kairos (Pro `com.kairos.player`, TV, Premium, Lite, XC, Plus, Nova, Store) si installa solo se l'APK scaricato è firmato con la sua chiave (impronte SHA-256 in `KairosSign.java`, lette dalle release pubblicate). Un APK con il pacchetto di un'app Kairos ma un'altra firma non si installa («Installazione bloccata: questo file non è firmato da Kairos»). Le app degli altri non si controllano. **Se una chiave cambia, prima va aggiornata l'impronta qui.**
+- **https prima di http**: un link http (anche un reindirizzamento) si prova prima in https; se non risponde o dà errore si torna a http da soli (`StoreLinks.secure`, `apkUrls`).
+
 ## Indirizzi dei download
 
 L'APK dello store prende la pagina, il suo aggiornamento e le app Kairos solo da `https://store-k.download` (costante `DL_BASE` in `MainActivity.java`) e, se non risponde bene, dalle riserve con gli stessi percorsi (`/store/`, `/get/store.json`, `/get/<app>.apk`): `DL_BASE2` (variabile `KAIROS_DL_BASE2` del repository, vuota finché non c'è un secondo dominio) e i domini che `/get/store.json` annuncia in `mirrors` (la lista `DL_HOSTS` del pannello: lo store li ricorda e li usa dall'apertura dopo). Niente pannello né GitHub negli aggiornamenti e nei download (dal 10 novembre 2026); per la pagina restano GitHub Pages (variabile `STORE_URL`, se c'è) e alla fine la copia dentro l'APK. Nella pagina i link `/get/…` delle app Kairos sono relativi quando la pagina arriva dal dominio dei download (o da una sua riserva), di `https://store-k.download` quando arriva dal pannello, da GitHub Pages o dalla copia nell'APK.
