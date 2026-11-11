@@ -292,6 +292,35 @@ html.tv .intro-bar b{box-shadow:none}
 .rec-box .rb-li:focus,.rec-box .rb-li:hover{outline:none;border-color:#22d3ee;background:rgba(34,211,238,.12)}
 .rec-box .rb-li .rb-ok{flex:none;width:22px;text-align:center;font-weight:900}.rec-box .rb-li.ok .rb-ok{color:#4ade80}.rec-box .rb-li.no{opacity:.6}.rec-box .rb-li.no .rb-ok{color:#f87171}
 .rec-box .rb-li b{flex:1;min-width:0}.rec-box .rb-li small{flex:none;opacity:.8}.rec-box .rb-li .rb-top{flex:none;font-size:.78em;font-weight:900;padding:2px 8px;border-radius:999px;background:#22d3ee;color:#04141a}
+/* «Download solo con codice» (11 novembre 2026): finestra per le 6 cifre del rivenditore, con tastierino per il telecomando */
+#codeDlg{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,5,12,.8)}
+#codeDlg.on{display:flex}
+#codeDlg .cd-box{width:min(94vw,430px);max-height:100%;overflow:auto;padding:22px 22px 18px;border-radius:22px;background:linear-gradient(160deg,rgba(18,24,48,.98),rgba(8,11,24,.98));border:1px solid var(--edge);box-shadow:0 30px 90px -20px rgba(34,211,238,.4);text-align:center}
+#codeDlg h3{margin:0 0 6px;font:800 19px var(--display);letter-spacing:.08em;color:#fff}
+#codeDlg p{margin:0 0 14px;color:var(--muted);font-size:16px;line-height:1.4}
+#codeDlg .cd-dg{display:flex;gap:8px;justify-content:center;margin:4px 0 10px}
+#codeDlg .cd-dg span{width:44px;height:54px;border-radius:12px;display:grid;place-items:center;font:800 26px var(--display);color:#fff;background:rgba(255,255,255,.05);border:1px solid var(--edge)}
+#codeDlg .cd-dg span.cur{border-color:var(--c1);box-shadow:0 0 0 2px rgba(34,211,238,.3)}
+#codeDlg .cd-err{min-height:22px;margin:0 0 8px;color:#fca5a5;font-size:15px}
+#codeDlg .cd-err.ok{color:#6ee7b7}
+#codeDlg .cd-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#codeDlg button{font:700 22px var(--display);height:52px;border-radius:12px;border:1px solid var(--edge);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;outline:none}
+#codeDlg button:focus,#codeDlg button:hover{border-color:#fff;background:rgba(34,211,238,.2);box-shadow:0 0 0 3px rgba(255,255,255,.85)}
+#codeDlg button.ok{background:var(--c1);color:#04141a;border-color:var(--c1)}
+#codeDlg button.ok:focus{background:#67e8f9}
+#codeDlg button.cd-no{margin-top:10px;width:100%;height:44px;font:700 13px var(--display);letter-spacing:.16em;color:var(--muted)}
+#codeDlg.busy .cd-pad{opacity:.5;pointer-events:none}
+html.tv #codeDlg{padding:0}
+html.tv #codeDlg .cd-box{width:34rem;padding:1.6rem 1.8rem 1.3rem;border-radius:1.6rem;box-shadow:none}
+html.tv #codeDlg h3{font-size:1.5rem;margin-bottom:.4rem}
+html.tv #codeDlg p{font-size:1.25rem;margin-bottom:1rem}
+html.tv #codeDlg .cd-dg{gap:.6rem;margin-bottom:.6rem}
+html.tv #codeDlg .cd-dg span{width:3.6rem;height:4.4rem;border-radius:.9rem;font-size:2.2rem}
+html.tv #codeDlg .cd-err{min-height:1.7rem;font-size:1.15rem;margin-bottom:.6rem}
+html.tv #codeDlg .cd-pad{gap:.6rem}
+html.tv #codeDlg button{height:3.6rem;border-radius:.9rem;font-size:1.7rem}
+html.tv #codeDlg button.cd-no{height:3rem;font-size:1rem;margin-top:.7rem}
+html.tv #codeDlg button:focus{box-shadow:0 0 0 .25rem #fff}
 </style>
 </head>
 <body>
@@ -672,24 +701,32 @@ grid.addEventListener("click", e => {
   const i = +a.dataset.i, app = APPS[i], r = a.getBoundingClientRect();
   burst(r.left + r.width / 2, r.top + r.height / 2, app.glow || "#22d3ee");
   Sound.whoosh();
-  track(app, absUrl(downloadUrl(app))); // il pannello conta il download (non blocca nulla)
+  // nell'app (e nel browser quando serve il codice) prima il via libera del pannello, poi il download: startDl();
+  // nel browser con lo store aperto il link parte subito, come sempre, e il pannello conta il download
+  if (isStoreApp || codesOn) { e.preventDefault(); startDl(i); return; }
+  track(app, absUrl(downloadUrl(app)));
+  status("st" + i, storePkg(app) ? "Apro lo store ufficiale…" : "Download avviato…");
+  setTimeout(() => status("st" + i, ""), 5000);
+});
+/** il download vero e proprio (dopo il via libera del pannello) */
+function installApp(i) {
+  const app = APPS[i], sid = "st" + i, url = downloadUrl(app);
   if (storePkg(app)) { // app degli store ufficiali (Amazon Appstore / Google Play): niente download dallo store
     if (isStoreApp) {
-      e.preventDefault();
-      if (typeof window.KairosStore.openStore === "function") window.KairosStore.openStore(storePkg(app), storeAsin(app), "st" + i);
-      else status("st" + i, "Aggiorna Kairos Store (pulsante AGGIORNA) per installare questa app");
-    } else { status("st" + i, "Apro lo store ufficiale…"); setTimeout(() => status("st" + i, ""), 5000); }
+      if (typeof window.KairosStore.openStore === "function") window.KairosStore.openStore(storePkg(app), storeAsin(app), sid);
+      else status(sid, "Aggiorna Kairos Store (pulsante AGGIORNA) per installare questa app");
+    } else { status(sid, "Apro lo store ufficiale…"); setTimeout(() => status(sid, ""), 5000); location.href = url; }
     return;
   }
   if (isStoreApp) {
-    e.preventDefault();
     unlockNative(); // l'APK vecchio non deve più chiedere l'autorizzazione
-    window.KairosStore.install(absUrl(downloadUrl(app)), app.name, "st" + i);
+    window.KairosStore.install(absUrl(url), app.name, sid);
   } else {
-    status("st" + i, "Download avviato…");
-    setTimeout(() => status("st" + i, ""), 5000);
+    status(sid, "Download avviato…");
+    setTimeout(() => status(sid, ""), 5000);
+    location.href = url;
   }
-});
+}
 
 // l'app Android aggiorna lo stato del download con questa funzione
 function status(id, text) {
@@ -812,9 +849,132 @@ unlockNative();
 try { ["kairosApproval", "kairosAct", "kairosSeller"].forEach(k => localStorage.removeItem(k)); sessionStorage.removeItem("kairosGateOk"); } catch (e) {}
 let helloSent = false;
 function hello() { if (helloSent || !isStoreApp) return; // conta solo le app Kairos Store installate, non le visite dal browser
-  helloSent = true; panelPost("hello", { did: installId(), device: deviceName(), v: appVer() }).catch(() => {}); }
-/** download partito: il pannello lo conta (non blocca mai nulla) */
-function track(app, url) { panelPost("download", { did: installId(), app: app.name, url: String(url || ""), device: deviceName(), src: isStoreApp ? "app" : "web" }).catch(() => {}); }
+  helloSent = true; panelPost("hello", { did: installId(), device: deviceName(), v: appVer() }).then(j => { if (j && typeof j.codes === "boolean") setCodes(j.codes); }).catch(() => {}); }
+/** download partito dal browser con lo store aperto: il pannello lo conta (e se intanto serve il codice, vale dal prossimo) */
+function track(app, url) { dlAsk(app, url, 2500); }
+
+// ---------- «Download solo con codice» (11 novembre 2026) ----------
+// Se il titolare lo accende nel pannello (Riepilogo store), il pannello dà il via libera a un download solo a chi ha scritto
+// il codice di 6 cifre del suo rivenditore: vale una volta, su questo dispositivo, per tutte le app e per la durata scelta
+// dal titolare (30 minuti, 2 ore o 24 ore). Spento (di serie) risponde subito di sì e lo Store resta aperto come prima.
+// Il pannello che non risponde non ferma lo Store, tranne quando l'ultima risposta diceva che serve il codice.
+let codesOn = false; try { codesOn = localStorage.getItem("kairosCodes") === "1"; } catch (e) {}
+function setCodes(on) { codesOn = !!on; try { localStorage.setItem("kairosCodes", codesOn ? "1" : "0"); } catch (e) {} }
+/** nel browser (niente /hello): se serve il codice, i pulsanti Installa aspettano il via libera */
+function codesCheck() {
+  if (isStoreApp) return;
+  const ask = k => k >= PANEL.length ? Promise.resolve(null) : fetch(PANEL[k] + "/api/store/config", { cache: "no-store", credentials: "omit" }).then(r => r.ok ? r.json() : null, () => ask(k + 1));
+  ask(0).then(d => { if (d && typeof d.codes === "boolean") setCodes(d.codes); }).catch(() => {});
+}
+/** via libera del pannello (e conteggio del download): "go", "code" (serve il codice), "wait" (troppe richieste) o "off" */
+function dlAsk(app, url, ms) {
+  const body = { did: installId(), app: app.name, url: String(url || ""), device: deviceName(), src: isStoreApp ? "app" : "web" };
+  return Promise.race([panelPost("download", body), new Promise(res => setTimeout(() => res(null), ms || (codesOn ? 9000 : 3000)))]).then(j => {
+    if (j && j.ok) { if (typeof j.codes === "boolean") setCodes(j.codes); return "go"; }
+    if (j && j.need === "code") { setCodes(true); return "code"; }
+    if (j && j.http === 429) return "wait";
+    if (j && j.http) return "go";                 // altre risposte del pannello: come prima, si scarica
+    return codesOn ? "off" : "go";                // pannello che non risponde
+  }, () => (codesOn ? "off" : "go"));
+}
+const dlBusy = {};
+function startDl(i) {
+  const app = APPS[i], sid = "st" + i;
+  if (!app || dlBusy[i]) return;
+  dlBusy[i] = true;
+  status(sid, "Avvio del download…");
+  dlAsk(app, absUrl(downloadUrl(app))).then(res => {
+    dlBusy[i] = false;
+    if (res === "go") { status(sid, ""); installApp(i); return; }
+    if (res === "code") { status(sid, ""); codeAsk(ok => { if (ok) startDl(i); }); return; }
+    if (res === "wait") { status(sid, "Attendi un momento e riprova"); return; }
+    status(sid, "Impossibile verificare il codice: controlla la connessione e riprova.");
+  });
+}
+
+/* finestra del codice: 6 cifre col tastierino (telecomando, dita o mouse) o coi tasti numerici; alla sesta cifra si controlla */
+let cd = null; // { cb, v, prev, busy }
+function codeEl() {
+  let el = document.getElementById("codeDlg");
+  if (el) return el;
+  el = document.createElement("div"); el.id = "codeDlg"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "cdT");
+  el.innerHTML = "<div class='cd-box'><h3 id='cdT'>🔑 CODICE DEL RIVENDITORE</h3><p>Per scaricare scrivi il codice di 6 cifre che ti ha dato il tuo rivenditore.</p>"
+    + "<div class='cd-dg' id='cdDg' aria-live='polite'></div><div class='cd-err' id='cdErr'></div><div class='cd-pad'>"
+    + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => "<button type='button' data-k='" + n + "'>" + n + "</button>").join("")
+    + "<button type='button' data-k='del' aria-label='Cancella'>⌫</button><button type='button' data-k='0'>0</button><button type='button' data-k='ok' class='ok' aria-label='Conferma'>OK</button></div>"
+    + "<button type='button' class='cd-no' data-k='no'>ANNULLA</button></div>";
+  el.addEventListener("click", e => {
+    const b = e.target.closest("button[data-k]");
+    if (!b) { if (e.target === el) codeClose(false); return; }
+    const k = b.dataset.k;
+    if (k === "no") return codeClose(false);
+    if (k === "del") return codeKey("del");
+    if (k === "ok") return codeSend();
+    codeKey(k);
+  });
+  document.body.appendChild(el);
+  return el;
+}
+function codePaint(msg, good) {
+  const v = cd ? cd.v : "", dg = document.getElementById("cdDg"), er = document.getElementById("cdErr");
+  if (dg) dg.innerHTML = [0, 1, 2, 3, 4, 5].map(k => "<span class='" + (k === v.length ? "cur" : "") + "'>" + (v[k] || "") + "</span>").join("");
+  if (er && msg !== undefined) { er.textContent = msg; er.classList.toggle("ok", !!good); }
+}
+function codeAsk(cb) {
+  if (cd) return;
+  const el = codeEl();
+  cd = { cb, v: "", prev: document.activeElement, busy: false };
+  el.classList.remove("busy"); el.classList.add("on");
+  codePaint("");
+  Sound.select();
+  setTimeout(() => { const b = el.querySelector("[data-k='1']"); if (b) b.focus(); }, 30);
+}
+function codeClose(ok) {
+  const el = document.getElementById("codeDlg"), c = cd;
+  if (!c || !el) return;
+  cd = null; el.classList.remove("on");
+  if (c.prev && c.prev.focus && document.contains(c.prev)) try { c.prev.focus(); } catch (e) {}
+  c.cb(ok);
+}
+function codeKey(k) {
+  if (!cd || cd.busy) return;
+  if (k === "del") cd.v = cd.v.slice(0, -1);
+  else if (/^\d$/.test(k) && cd.v.length < 6) cd.v += k;
+  codePaint("");
+  if (cd.v.length === 6) codeSend();
+}
+function codeSend() {
+  if (!cd || cd.busy) return;
+  if (cd.v.length !== 6) { codePaint("Scrivi tutte e 6 le cifre"); Sound.error(); return; }
+  const el = document.getElementById("codeDlg");
+  cd.busy = true; el.classList.add("busy"); codePaint("Controllo il codice…", true);
+  panelPost("code", { did: installId(), code: cd.v, device: deviceName() }).then(j => {
+    if (!cd) return;
+    cd.busy = false; el.classList.remove("busy");
+    if (j && j.ok) {
+      const u = +j.until || 0, hm = u ? new Date(u).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "";
+      codePaint("✓ Codice giusto", true); Sound.done();
+      toast("✓ Codice accettato: su questo dispositivo puoi scaricare le app" + (hm ? " fino alle " + hm : ""));
+      setTimeout(() => codeClose(true), 450);
+      return;
+    }
+    cd.v = ""; Sound.error();
+    codePaint(j && j.error ? String(j.error) : "Impossibile verificare il codice: controlla la connessione e riprova.");
+    const b = el.querySelector("[data-k='1']"); if (b) b.focus();
+  });
+}
+// tasti: numeri dal telecomando o dalla tastiera, frecce dentro la finestra, Indietro/Esc chiude
+document.addEventListener("keydown", e => {
+  if (!cd) return;
+  const k = e.key;
+  if (/^\d$/.test(k)) { e.preventDefault(); e.stopPropagation(); codeKey(k); return; }
+  if (k === "Backspace" || k === "Delete") { e.preventDefault(); e.stopPropagation(); codeKey("del"); return; }
+  if (k === "Escape") { e.preventDefault(); e.stopPropagation(); codeClose(false); return; }
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)) {
+    e.preventDefault(); e.stopPropagation();
+    moveFocus(k, [...document.querySelectorAll("#codeDlg button")]);
+  }
+}, true);
 // riserva per l'APK vecchio: se nonostante tutto dice ancora «serve l'autorizzazione», la si prende al volo dal pannello
 // (che ora approva tutto subito) e il download parte lo stesso, senza finestre
 window.kairosNeedApproval = url => {
@@ -830,7 +990,7 @@ window.kairosNeedApproval = url => {
     }, () => status(sid, "Download non riuscito: controlla la connessione e riprova."));
 };
 // tasto Indietro dell'app: nessuna finestra da chiudere, decide l'app (indietro o esci)
-window.kairosBack = () => false;
+window.kairosBack = () => { if (cd) { codeClose(false); return true; } return false; };
 
 // ---------- navigazione con telecomando ----------
 const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
@@ -1004,7 +1164,7 @@ function rerender() {
   const start = () => {
     if (done) return; done = true;
     renderTexts(); renderCards(); refreshInstalled();
-    unlockNative(); hello();
+    unlockNative(); hello(); codesCheck();
     if (isTV && entered && !(document.activeElement && document.activeElement.closest && document.activeElement.closest(".card, .hud"))) {
       const f = document.querySelector("a.btn:not([aria-disabled='true'])"); if (f) f.focus();
     }
