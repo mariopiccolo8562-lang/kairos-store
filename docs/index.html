@@ -1120,12 +1120,20 @@ function recommend() {
   const box = document.getElementById("recBox"), btn = document.getElementById("recBtn");
   box.hidden = false; box.innerHTML = "Sto esaminando il dispositivo…"; btn.disabled = true;
   return recRules().then(R => {
-    const d = recDevice(), p = recPick(R, d), i = recApp(p.app);
+    const d = recDevice();
+    let p = recPick(R, d), i = recApp(p.app);
+    // app consigliata non presente in questo Store (tolta o nascosta dal pannello): si consiglia la più adatta tra quelle
+    // presenti, senza nominare quella che non c'è. Dispositivo debole o vecchio: la più leggera; altrimenti la più completa che ci sta
+    if (i < 0) {
+      const L0 = recList(R, d, ""), fitL = L0.filter(x => x.fit !== false);
+      const alt = L0.length ? (p.why === "strong" && fitL.length ? fitL[fitL.length - 1] : (fitL[0] || L0[0])) : null;
+      if (alt) { p = { app: alt.name, why: p.why }; i = alt.i; }
+    }
     btn.disabled = false;
     document.querySelectorAll(".card.rec-hi").forEach(c => c.classList.remove("rec-hi"));
     // iPhone, iPad e smart TV Samsung/LG: nessuna app si installa, quindi niente «Installa» che non fa nulla
     if (disabled) { box.innerHTML = "<b>Le app dello store sono per Android</b> (Fire TV, Android TV, smartphone e tablet Android): su iPhone, iPad e sulle smart TV Samsung o LG non si installano."; if (isTV) btn.focus(); return; }
-    if (i < 0) { box.innerHTML = "<b>Per questo dispositivo è consigliata " + esc(p.app) + "</b>, al momento non presente in questo Store. Scegli un'app dall'elenco qui sotto."; if (isTV) btn.focus(); return; }
+    if (i < 0) { box.innerHTML = "<b>Scegli un'app dall'elenco qui sotto.</b>"; if (isTV) btn.focus(); return; }
     const inst = document.getElementById("in" + i), installed = inst && !inst.hidden;
     let html = "<span class='rb-app'>✦ " + esc(p.app) + "</span><br>" + esc(String(R.text || "").split("{app}").join(p.app));
     if (p.why === "weak") { const pi = recApp(R.strongApp), pin = pi >= 0 && document.getElementById("in" + pi); if (pin && !pin.hidden && pi !== i) html += "<br><small>Su questo apparecchio " + esc(R.strongApp) + " è già installata: resta utilizzabile, ma " + esc(p.app) + " offre una fluidità migliore con lo stesso abbonamento.</small>"; }

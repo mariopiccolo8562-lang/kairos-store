@@ -27,6 +27,7 @@ Il titolare può accendere **«Download solo con codice»** nel pannello Kairos 
 
 - **App nascoste** (`hidden: true` in `apps.json`, dal pannello: Store → App dello store → l'occhio sulla riga): lo Store non le mostra a nessuno, né ai clienti né agli agenti. Quando la pagina arriva dal pannello (`store-k.download/store/`, `panel-kairos.com/store/`) il file `apps.json` esce già **senza** le app nascoste: prima arrivavano e la pagina non le disegnava. Gli indirizzi `/get/<app>.apk` restano: chi ha già l'app continua ad aggiornarla.
 - **Ultimo elenco arrivato** (`localStorage.kairosList`): è la riserva del dispositivo al posto dell'elenco scritto nella pagina. Così un'app tolta o nascosta non torna in vista quando `apps.json` non arriva (rete lenta o assente). L'elenco scritto nella pagina vale solo alla prima apertura senza rete.
+- **«App consigliata»**: se l'app consigliata dalle regole non è nello Store (tolta o nascosta), la pagina consiglia la più adatta tra quelle presenti (dispositivo debole o vecchio: la più leggera; altrimenti la più completa che ci sta) e non nomina quella che non c'è.
 - **Icone nuove** delle app Kairos: `docs/icons/kairos-<app>-2026.webp` (192×192, piene, senza cornice: angoli e bagliore li mette la scheda). Colore del bagliore (`glow`) uguale a quello del logo. Le icone delle app di terzi non cambiano. Quelle di prima restano nel repository.
 
 ## Indirizzi dei download
