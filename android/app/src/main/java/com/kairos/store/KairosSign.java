@@ -33,6 +33,8 @@ final class KairosSign {
         m.put("com.kairos.plus", new String[]{"B8924B44B889788D5CE0A7D0D1B831BE18AC89B7B2A9325D97BAEFFBBF808BB0"});
         m.put("com.kairos.nova", new String[]{"7AED4961F7D88C3E3980621020BBBDFC4F6354C53F2D810D565330FACFE2AD3B"});
         m.put("com.kairos.store", new String[]{"CDAA7695421CDEB84D9DE803F124B8EC0231E2667C731CD0528CE5A4A3465CCE"});
+        // KAIROS Ultimate (13 novembre 2026): la chiave fissa delle release, la stessa da «prova-2» in poi
+        m.put("com.kairos.ultimate", new String[]{"C5C5A1F286C5B9F230922084B668684A6BFC73DC25015BBD2614487220E94920"});
         PINS = Collections.unmodifiableMap(m);
     }
 

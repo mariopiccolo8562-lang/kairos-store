@@ -20,6 +20,7 @@ public class KairosSignTest {
         assertNull(KairosSign.check("com.kairos.player", Collections.singletonList(PRO)));
         assertNull(KairosSign.check("com.kairos.tv", Collections.singletonList(TV)));
         assertNull(KairosSign.check("com.kairos.xc", Collections.singletonList(TV)));        // stessa chiave di TV
+        assertNull(KairosSign.check("com.kairos.ultimate", Collections.singletonList("C5C5A1F286C5B9F230922084B668684A6BFC73DC25015BBD2614487220E94920")));
         // come la scrive keytool: con i due punti e in minuscolo
         assertNull(KairosSign.check("com.kairos.premium", Collections.singletonList("27:b3:54:67:c3:56:78:6c:0a:56:57:5b:7a:8d:84:55:4f:74:4d:9d:c6:69:11:17:5f:11:19:1b:76:80:9f:49")));
     }
@@ -30,6 +31,8 @@ public class KairosSignTest {
         assertEquals(KairosSign.MSG, KairosSign.check("com.kairos.premium", Collections.singletonList(TV)));   // chiave di un'altra app Kairos
         assertEquals(KairosSign.MSG, KairosSign.check("com.kairos.store", Arrays.asList("CDAA7695421CDEB84D9DE803F124B8EC0231E2667C731CD0528CE5A4A3465CCE", ALTRA))); // due firmatari: tutti Kairos
         assertEquals(KairosSign.MSG, KairosSign.check("com.kairos.nova", Collections.singletonList("")));
+        // KAIROS Ultimate firmata con la chiave temporanea di «prova-1»: non passa
+        assertEquals(KairosSign.MSG, KairosSign.check("com.kairos.ultimate", Collections.singletonList("1C776A7AA880A32901CF8A5B99FA0CBBE1222F15D7382EBB7D85589DE2641DAA")));
     }
 
     @Test
@@ -43,7 +46,7 @@ public class KairosSignTest {
 
     @Test
     public void tutteLeAppKairosHannoUnImpronta() {
-        assertEquals(8, KairosSign.PINS.size());
+        assertEquals(9, KairosSign.PINS.size());
         for (String[] p : KairosSign.PINS.values()) for (String x : p) assertEquals(64, x.replaceAll("[^0-9A-F]", "").length());
     }
 
