@@ -82,6 +82,30 @@
       "hidden": false
     },
     {
+      "name": "Kairos STB",
+      "tag": "NOVITÀ",
+      "description": "Home in orbita con i prossimi eventi e «Continua a guardare» sempre in vista. Nove temi, leggera anche sulle chiavette.",
+      "url": "https://panel-kairos.com/get/portal.apk",
+      "code": "",
+      "icon": "icons/kairos-stb-2026.webp",
+      "glow": "#9c8cff",
+      "pkg": "com.kairos.portal",
+      "light": false,
+      "hidden": false
+    },
+    {
+      "name": "Kairos Smarters",
+      "tag": "NOVITÀ",
+      "description": "TV, Film e Serie in tre grandi tessere, con «Eventi ora» in primo piano. Nove temi, semplice da usare con il telecomando.",
+      "url": "https://panel-kairos.com/get/smart.apk",
+      "code": "",
+      "icon": "icons/kairos-smarters-2026.webp",
+      "glow": "#f58bdd",
+      "pkg": "com.kairos.smart",
+      "light": false,
+      "hidden": false
+    },
+    {
       "name": "OrbixPlay",
       "tag": "PLAYER",
       "description": "Player moderno e veloce per TV e smartphone.",
