@@ -461,9 +461,19 @@ const storeAsin = app => { const m = /[?&]asin=([A-Z0-9]{10})(?:&|$)/.exec(app.u
 const DL_MAIN = "https://store-k.download";
 const NOT_DL = /(^|\.)panel-kairos\.com$|\.workers\.dev$|\.github\.io$/i;
 const onDlHost = location.protocol === "https:" && !NOT_DL.test(location.hostname);
+// ABI del dispositivo (solo dentro l'app Store, che la conosce): i link /get/<app>.apk la portano in «?abi=», così il pannello
+// dà l'APK leggero di quella ABI dove la release ce l'ha (KAIROS Ultimate dalla 1.0.1: metà del peso) e quello di sempre altrove
+let STORE_ABI = "";
+try {
+  if (typeof window.KairosStore !== "undefined" && typeof window.KairosStore.deviceSpecs === "function") {
+    const abi = String((JSON.parse(window.KairosStore.deviceSpecs() || "{}") || {}).abi || "");
+    if (abi === "arm64-v8a" || abi === "armeabi-v7a") STORE_ABI = abi;
+  }
+} catch (e) { STORE_ABI = ""; }
 const kairosLink = u => {
   const m = /^https:\/\/(?:store-k\.download|panel-kairos\.com)(\/get\/[A-Za-z0-9._-]+)$/.exec(String(u || "").trim());
-  return !m ? u : onDlHost ? m[1] : DL_MAIN + m[1];
+  if (!m) return u;
+  return (onDlHost ? m[1] : DL_MAIN + m[1]) + (STORE_ABI && /\.apk$/.test(m[1]) ? "?abi=" + STORE_ABI : "");
 };
 // link completo (per l'app Android e per il conteggio dei download): quello relativo diventa del dominio della pagina
 const absUrl = u => { try { return new URL(u, location.href).href; } catch (e) { return u; } };
