@@ -428,12 +428,12 @@ let STORE = {
 };
 
 let APPS = [
-  { name: "Kairos Pro", tag: "Kairos", description: "La nostra app più bella: stile Netflix in nero e rosso, fluidissima e antibuffering, si adatta alle connessioni lente con tutte le nuove tecnologie", code: "", url: "https://panel-kairos.com/get/pro.apk", icon: "icons/kairos-pro-mw2kwyma.webp", glow: "#ff0000" },
-  { name: "Kairos Premium", tag: "PLAYER", description: "La nostra app più bella: stile Netflix in nero e oro, fluidissima e antibuffering, si adatta alle connessioni lente", code: "", url: "https://panel-kairos.com/get/premium.apk", icon: "icons/kairos-premium.webp", glow: "#d4af37", pkg: "com.kairos.premium" },
-  { name: "Kairos Tv", tag: "PLAYER", description: "La nostra app originale, con: stile a tema Netflix", code: "", url: "https://panel-kairos.com/get/tv.apk", icon: "icons/kairos-tv-mw2metv8.webp", glow: "#2dadf2" },
-  { name: "Kairos Plus", tag: "ANTEPRIMA", description: "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.", code: "", url: "https://panel-kairos.com/get/plus.apk", icon: "icons/kairos-plus.webp", glow: "#a855f7", pkg: "com.kairos.plus" },
-  { name: "Kairos-XC", tag: "Kairos", description: "La nostra app originale XC", code: "", url: "https://panel-kairos.com/get/xc.apk", icon: "icons/kairos-xc-mw2qqo36.webp", glow: "#fe6422" },
-  { name: "Kairos-Lite", tag: "Lite", description: "La nostra app originale lite", code: "", url: "https://panel-kairos.com/get/lite.apk", icon: "", glow: "#ffb546" },
+  { name: "Kairos Pro", tag: "Kairos", description: "La nostra app più bella: stile Netflix in nero e rosso, fluidissima e antibuffering, si adatta alle connessioni lente con tutte le nuove tecnologie", code: "", url: "https://panel-kairos.com/get/pro.apk", icon: "icons/kairos-pro-2026.webp", glow: "#ffc94d" },
+  { name: "Kairos Premium", tag: "PLAYER", description: "La nostra app più bella: stile Netflix in nero e oro, fluidissima e antibuffering, si adatta alle connessioni lente", code: "", url: "https://panel-kairos.com/get/premium.apk", icon: "icons/kairos-premium-2026.webp", glow: "#b38cff", pkg: "com.kairos.premium" },
+  { name: "Kairos Tv", tag: "PLAYER", description: "La nostra app originale, con: stile a tema Netflix", code: "", url: "https://panel-kairos.com/get/tv.apk", icon: "icons/kairos-tv-2026.webp", glow: "#5ce1ff" },
+  { name: "Kairos Plus", tag: "ANTEPRIMA", description: "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.", code: "", url: "https://panel-kairos.com/get/plus.apk", icon: "icons/kairos-plus-2026.webp", glow: "#5b8cff", pkg: "com.kairos.plus" },
+  { name: "Kairos-XC", tag: "Kairos", description: "La nostra app originale XC", code: "", url: "https://panel-kairos.com/get/xc.apk", icon: "icons/kairos-xc-2026.webp", glow: "#ff6a1f" },
+  { name: "Kairos-Lite", tag: "Lite", description: "La nostra app originale lite", code: "", url: "https://panel-kairos.com/get/lite.apk", icon: "icons/kairos-lite-2026.webp", glow: "#2cf5b1" },
   { name: "OrbixPlay", tag: "PLAYER", description: "Player moderno e veloce per TV e smartphone.", code: "618101", url: "https://apk.orbixplay.com/firestick.apk", icon: "icons/orbixplay.webp", glow: "#38bdf8" },
   { name: "IboOne", tag: "PLAYER", description: "Interfaccia elegante, ottimizzata per il telecomando.", code: "2533617", url: "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk", icon: "icons/iboone.webp", glow: "#22c55e" },
   { name: "MaxPlayer", tag: "PLAYER", description: "Player IPTV ufficiale, si installa dallo store Amazon-Google-Apple.", code: "", url: "https://play.google.com/store/apps/details?id=tv.maxplayer.android&asin=B09KG5K6GV", icon: "icons/maxplayer-mw1htxz1.webp", glow: "#ee9d00", pkg: "tv.maxplayer.android" },
@@ -1152,6 +1152,18 @@ function applyList(d) {
   if (d.store) STORE = Object.assign({}, STORE, d.store);
   if (!Array.isArray(STORE.taglines) || !STORE.taglines.length) STORE.taglines = [""];
 }
+// ultimo elenco arrivato (12 novembre 2026): è la riserva di questo dispositivo, al posto di quello scritto nella pagina.
+// Così un'app tolta o nascosta dal pannello non torna in vista quando l'elenco non arriva (rete lenta o assente).
+const LIST_KEY = "kairosList";
+function saveList(d) {
+  try { localStorage.setItem(LIST_KEY, JSON.stringify({ store: d.store || null, apps: APPS })); } catch (e) {}
+}
+function savedList() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LIST_KEY) || "null");
+    return d && Array.isArray(d.apps) && d.apps.length && d.apps.every(a => a && typeof a.name === "string" && a.name) ? d : null;
+  } catch (e) { return null; }
+}
 // ridisegna le schede ricordando quale era selezionata, per non far perdere la posizione col telecomando
 function rerender() {
   const act = document.activeElement, cards = [...document.querySelectorAll(".card")];
@@ -1161,6 +1173,7 @@ function rerender() {
 }
 (function loadApps() {
   let done = false;
+  const kept = savedList(); if (kept) applyList(kept); // la riserva è l'ultimo elenco arrivato su questo dispositivo
   const start = () => {
     if (done) return; done = true;
     renderTexts(); renderCards(); refreshInstalled();
@@ -1175,7 +1188,7 @@ function rerender() {
     .then(t => {
       const d = t ? JSON.parse(t) : null;
       if (!d || !Array.isArray(d.apps)) return;
-      appsSig = t; applyList(d);
+      appsSig = t; applyList(d); saveList(d);
       if (done) rerender(); // arrivato dopo l'elenco di riserva (rete lenta): adesso si vede quello vero
     })
     .catch(() => {})
@@ -1191,7 +1204,7 @@ function pollApps() {
       if (!t || t === appsSig) return;
       const d = JSON.parse(t);
       if (!d || !Array.isArray(d.apps)) return;
-      appsSig = t; applyList(d); rerender();
+      appsSig = t; applyList(d); saveList(d); rerender();
     })
     .catch(() => {});
 }

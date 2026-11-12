@@ -15,8 +15,8 @@
       "description": "La nostra app più bella: stile Netflix in nero e rosso, fluidissima e antibuffering, si adatta alle connessioni lente con tutte le nuove tecnologie",
       "url": "https://panel-kairos.com/get/pro.apk",
       "code": "6713186",
-      "icon": "icons/kairos-pro-mw2kwyma.webp",
-      "glow": "#ff0000",
+      "icon": "icons/kairos-pro-2026.webp",
+      "glow": "#ffc94d",
       "pkg": "",
       "light": false,
       "hidden": false
@@ -27,8 +27,8 @@
       "description": "La nostra app più bella: stile Netflix in nero e oro, fluidissima e antibuffering, si adatta alle connessioni lente",
       "url": "https://panel-kairos.com/get/premium.apk",
       "code": "2346020",
-      "icon": "icons/kairos-premium.webp",
-      "glow": "#d4af37",
+      "icon": "icons/kairos-premium-2026.webp",
+      "glow": "#b38cff",
       "pkg": "com.kairos.premium",
       "light": false,
       "hidden": false
@@ -39,8 +39,8 @@
       "description": "La nostra app originale, con: stile a tema Netflix",
       "url": "https://panel-kairos.com/get/tv.apk",
       "code": "6180760",
-      "icon": "icons/kairos-tv-mw2metv8.webp",
-      "glow": "#2dadf2",
+      "icon": "icons/kairos-tv-2026.webp",
+      "glow": "#5ce1ff",
       "pkg": "",
       "light": false,
       "hidden": false
@@ -51,10 +51,10 @@
       "description": "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.",
       "url": "https://panel-kairos.com/get/plus.apk",
       "code": "7465745",
-      "icon": "icons/kairos-plus.webp",
-      "glow": "#a855f7",
+      "icon": "icons/kairos-plus-2026.webp",
+      "glow": "#5b8cff",
       "pkg": "com.kairos.plus",
-      "light": true,
+      "light": false,
       "hidden": false
     },
     {
@@ -63,8 +63,8 @@
       "description": "La nostra app originale XC",
       "url": "https://panel-kairos.com/get/xc.apk",
       "code": "2377522",
-      "icon": "icons/kairos-xc-mw2qqo36.webp",
-      "glow": "#fe6422",
+      "icon": "icons/kairos-xc-2026.webp",
+      "glow": "#ff6a1f",
       "pkg": "",
       "light": false,
       "hidden": false
@@ -75,8 +75,8 @@
       "description": "La nostra app originale lite",
       "url": "https://panel-kairos.com/get/lite.apk",
       "code": "8620189",
-      "icon": "",
-      "glow": "#ffb546",
+      "icon": "icons/kairos-lite-2026.webp",
+      "glow": "#2cf5b1",
       "pkg": "",
       "light": false,
       "hidden": false
