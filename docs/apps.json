@@ -223,7 +223,7 @@
       "glow": "#e11d48",
       "pkg": "",
       "light": false,
-      "hidden": false
+      "hidden": true
     }
   ]
 }
