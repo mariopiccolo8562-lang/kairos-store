@@ -55,7 +55,7 @@
       "glow": "#5ce1ff",
       "pkg": "",
       "light": false,
-      "hidden": false
+      "hidden": true
     },
     {
       "name": "Kairos Plus",
@@ -67,7 +67,7 @@
       "glow": "#5b8cff",
       "pkg": "com.kairos.plus",
       "light": false,
-      "hidden": false
+      "hidden": true
     },
     {
       "name": "Kairos-XC",
@@ -91,7 +91,7 @@
       "glow": "#2cf5b1",
       "pkg": "",
       "light": false,
-      "hidden": false
+      "hidden": true
     },
     {
       "name": "Kairos STB",
