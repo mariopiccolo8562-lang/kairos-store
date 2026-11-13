@@ -46,30 +46,6 @@
       "hidden": false
     },
     {
-      "name": "Kairos Tv",
-      "tag": "PLAYER",
-      "description": "La nostra app originale, con: stile a tema Netflix",
-      "url": "https://panel-kairos.com/get/tv.apk",
-      "code": "6180760",
-      "icon": "icons/kairos-tv-2026.webp",
-      "glow": "#5ce1ff",
-      "pkg": "",
-      "light": false,
-      "hidden": true
-    },
-    {
-      "name": "Kairos Plus",
-      "tag": "ANTEPRIMA",
-      "description": "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.",
-      "url": "https://panel-kairos.com/get/plus.apk",
-      "code": "7465745",
-      "icon": "icons/kairos-plus-2026.webp",
-      "glow": "#5b8cff",
-      "pkg": "com.kairos.plus",
-      "light": false,
-      "hidden": true
-    },
-    {
       "name": "Kairos-XC",
       "tag": "Kairos",
       "description": "La nostra app originale XC",
@@ -80,18 +56,6 @@
       "pkg": "",
       "light": false,
       "hidden": false
-    },
-    {
-      "name": "Kairos-Lite",
-      "tag": "Lite",
-      "description": "La nostra app originale lite",
-      "url": "https://panel-kairos.com/get/lite.apk",
-      "code": "8620189",
-      "icon": "icons/kairos-lite-2026.webp",
-      "glow": "#2cf5b1",
-      "pkg": "",
-      "light": false,
-      "hidden": true
     },
     {
       "name": "Kairos STB",
@@ -130,18 +94,6 @@
       "hidden": false
     },
     {
-      "name": "IboOne",
-      "tag": "PLAYER",
-      "description": "Interfaccia elegante, ottimizzata per il telecomando.",
-      "url": "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk",
-      "code": "2533617",
-      "icon": "icons/iboone.webp",
-      "glow": "#22c55e",
-      "pkg": "",
-      "light": false,
-      "hidden": true
-    },
-    {
       "name": "MaxPlayer",
       "tag": "PLAYER",
       "description": "Player IPTV ufficiale, si installa dallo store Amazon-Google-Apple.",
@@ -152,6 +104,54 @@
       "pkg": "tv.maxplayer.android",
       "light": false,
       "hidden": false
+    },
+    {
+      "name": "Kairos Tv",
+      "tag": "PLAYER",
+      "description": "La nostra app originale, con: stile a tema Netflix",
+      "url": "https://panel-kairos.com/get/tv.apk",
+      "code": "6180760",
+      "icon": "icons/kairos-tv-2026.webp",
+      "glow": "#5ce1ff",
+      "pkg": "",
+      "light": false,
+      "hidden": true
+    },
+    {
+      "name": "Kairos Plus",
+      "tag": "ANTEPRIMA",
+      "description": "La nuova app Kairos stile Netflix: lettore nativo fluido su Fire TV e Android TV.",
+      "url": "https://panel-kairos.com/get/plus.apk",
+      "code": "7465745",
+      "icon": "icons/kairos-plus-2026.webp",
+      "glow": "#5b8cff",
+      "pkg": "com.kairos.plus",
+      "light": false,
+      "hidden": true
+    },
+    {
+      "name": "Kairos-Lite",
+      "tag": "Lite",
+      "description": "La nostra app originale lite",
+      "url": "https://panel-kairos.com/get/lite.apk",
+      "code": "8620189",
+      "icon": "icons/kairos-lite-2026.webp",
+      "glow": "#2cf5b1",
+      "pkg": "",
+      "light": false,
+      "hidden": true
+    },
+    {
+      "name": "IboOne",
+      "tag": "PLAYER",
+      "description": "Interfaccia elegante, ottimizzata per il telecomando.",
+      "url": "https://upgrade.logicyel.com/latest/iboone_stb_prodRelease_latest.apk",
+      "code": "2533617",
+      "icon": "icons/iboone.webp",
+      "glow": "#22c55e",
+      "pkg": "",
+      "light": false,
+      "hidden": true
     },
     {
       "name": "IboPro",
