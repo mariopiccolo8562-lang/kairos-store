@@ -19,7 +19,7 @@
       "glow": "#ffb21e",
       "pkg": "com.kairos.heavy",
       "light": false,
-      "hidden": true
+      "hidden": false
     },
     {
       "name": "KAIROS Ultimate",
