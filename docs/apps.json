@@ -26,11 +26,11 @@
       "tag": "NOVITÀ",
       "description": "La più completa: Home con Top 10 e trailer, guida TV su tre livelli, Sport ed eventi in primo piano, temi neon. Per TV e chiavette recenti.",
       "url": "https://panel-kairos.com/get/ult.apk",
-      "code": "",
+      "code": "7192735",
       "icon": "icons/kairos-ultimate-2026.webp",
       "glow": "#ff4fa3",
       "pkg": "com.kairos.ultimate",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
