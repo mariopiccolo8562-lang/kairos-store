@@ -18,7 +18,7 @@
       "icon": "icons/kairos-heavy-2026.webp",
       "glow": "#ffb21e",
       "pkg": "com.kairos.heavy",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -42,7 +42,7 @@
       "icon": "icons/kairos-pro-neon.webp",
       "glow": "#FFD24A",
       "pkg": "",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -54,7 +54,7 @@
       "icon": "icons/kairos-premium-neon.webp",
       "glow": "#C084FC",
       "pkg": "com.kairos.premium",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -66,7 +66,7 @@
       "icon": "icons/kairos-xc-neon.webp",
       "glow": "#FF8A1F",
       "pkg": "",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -78,7 +78,7 @@
       "icon": "icons/kairos-stb-neon.webp",
       "glow": "#22D3EE",
       "pkg": "com.kairos.portal",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -90,7 +90,7 @@
       "icon": "icons/kairos-smarters-neon.webp",
       "glow": "#F472B6",
       "pkg": "com.kairos.smart",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -102,7 +102,7 @@
       "icon": "icons/orbixplay.webp",
       "glow": "#38bdf8",
       "pkg": "",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
@@ -114,7 +114,7 @@
       "icon": "icons/maxplayer-mw1htxz1.webp",
       "glow": "#ee9d00",
       "pkg": "tv.maxplayer.android",
-      "light": false,
+      "light": true,
       "hidden": false
     },
     {
