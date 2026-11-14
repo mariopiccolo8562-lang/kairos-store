@@ -95,6 +95,22 @@ header{display:flex;align-items:center;gap:18px;margin-bottom:30px}
 .update svg{width:18px;height:18px;flex:none}
 .update:focus,.update:hover{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.25),0 0 22px rgba(34,211,238,.4);color:#fff}
 .update.spin svg{animation:spin .9s linear infinite}
+/* «Info» (14 novembre 2026): comunicazioni del venditore e guida «quale app su quale dispositivo», scritte dal pannello */
+.infob{position:relative;color:#fbbf24}
+.infob .ndot{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#ef4444;box-shadow:0 0 12px #ef4444}
+.infob.new .ndot{display:block}
+.notice.info-box{display:block;max-height:64vh;overflow-y:auto;outline:none;line-height:1.55}
+.notice.info-box[hidden]{display:none}
+.notice.info-box:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.25)}
+.info-box .ib-t{font:700 13px var(--display);letter-spacing:.18em;color:var(--c1);margin:0 0 8px}
+.info-box .ib-news{border:1px solid rgba(251,191,36,.45);background:rgba(251,191,36,.07);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.info-box .ib-news .ib-t{color:#fbbf24}
+.info-box h4{margin:14px 0 4px;font-size:1.05em;color:#fff}
+.info-box p{margin:5px 0}
+.info-box ul,.info-box ol{margin:4px 0 8px 22px;padding:0}
+.info-box li{margin:3px 0}
+.info-box .ib-x{margin-top:14px;padding:10px 20px;border-radius:12px;border:1px solid var(--edge);background:rgba(10,14,30,.6);color:var(--c1);font:700 12px var(--display);letter-spacing:.18em;cursor:pointer;outline:none}
+.info-box .ib-x:focus,.info-box .ib-x:hover{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.25);color:#fff}
 #toast{position:fixed;left:50%;bottom:28px;z-index:70;transform:translate(-50%,30px);opacity:0;pointer-events:none;width:max-content;max-width:min(90vw,560px);
   padding:14px 22px;border-radius:14px;border:1px solid var(--edge);background:rgba(10,14,30,.96);color:#fff;font-size:16px;text-align:center;
   box-shadow:0 10px 40px -10px rgba(139,92,246,.6);transition:opacity .25s,transform .25s}
@@ -361,6 +377,7 @@ html.tv #codeDlg button:focus{box-shadow:0 0 0 .25rem #fff}
     </div>
     <div class="hud">
       <span class="chip"><span class="dot"></span><span id="count">0</span> APP ONLINE</span>
+      <button class="update infob" id="infoBtn" type="button" aria-label="Info e comunicazioni" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>INFO</span><i class="ndot"></i></button>
       <button class="update" id="updateBtn" type="button" aria-label="Aggiorna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>AGGIORNA</span></button>
       <button class="sound" id="soundBtn" type="button" aria-label="Effetti sonori"></button>
     </div>
@@ -370,6 +387,8 @@ html.tv #codeDlg button:focus{box-shadow:0 0 0 .25rem #fff}
   <div class="notice" id="noticeSmartTV"><b>Sei sul browser di una smart TV (Samsung, LG o simile).</b> Queste TV non installano file APK. Usa una Fire TV Stick, un box Android TV o uno smartphone Android.</div>
   <div class="notice info" id="noticeFire"><b>Fire TV / Android TV:</b> scegli l'app con le frecce e premi <b>OK</b> sul pulsante Installa.</div>
   <div class="notice" id="noticeDesktop"><b>Sei su un computer.</b> Apri questa pagina dal dispositivo Android, Fire TV o Android TV per installare le app.</div>
+
+  <div class="notice info info-box" id="infoBox" tabindex="0" aria-label="Info e comunicazioni" hidden></div>
 
   <div class="recwrap"><button class="rec" id="recBtn" type="button">✦ APP CONSIGLIATA PER QUESTO DISPOSITIVO</button></div>
   <div class="notice info rec-box" id="recBox" hidden></div>
@@ -1009,7 +1028,7 @@ window.kairosNeedApproval = url => {
 window.kairosBack = () => { if (cd) { codeClose(false); return true; } return false; };
 
 // ---------- navigazione con telecomando ----------
-const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
+const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#infoBtn:not([hidden]), #infoBox:not([hidden]), #infoBox:not([hidden]) #infoClose, #recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
 function moveFocus(dir, list) {
   const items = list || focusables(); const cur = document.activeElement;
   if (!items.includes(cur)) { const f = list ? items[0] : (items[1] || items[0]); if (f) f.focus(); return; }
@@ -1233,6 +1252,74 @@ function pollApps() {
     .catch(() => {});
 }
 setInterval(pollApps, 60000);
+
+// ---------- «Info»: comunicazioni del venditore e guida «quale app su quale dispositivo» ----------
+// Il titolare le scrive nel pannello (pagina «Info») e decide cosa mostrare qui. Il pulsante INFO compare solo se c'è
+// qualcosa da leggere; il pallino rosso segnala una comunicazione nuova. L'ultimo testo arrivato resta in memoria:
+// si legge anche quando il pannello non risponde. Con il telecomando: su/giù scorrono il testo, in fondo c'è CHIUDI.
+const infoBtn = document.getElementById("infoBtn"), infoBox = document.getElementById("infoBox");
+let INFO = null;
+/* testo semplice → HTML: «# Titolo», «1.» passi, «-» elenchi, **grassetto** (come nel pannello) */
+function infoMd(t) {
+  const inl = x => esc(x).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  const out = []; let list = "";
+  const close = () => { if (list) { out.push("</" + list + ">"); list = ""; } };
+  String(t || "").split(/\r?\n/).forEach(raw => {
+    const l = raw.trim(); let m;
+    if (!l) { close(); return; }
+    if ((m = l.match(/^#+\s*(.+)$/))) { close(); out.push("<h4>" + inl(m[1]) + "</h4>"); return; }
+    if ((m = l.match(/^(\d+)[.)]\s+(.+)$/))) { if (list !== "ol") { close(); out.push("<ol>"); list = "ol"; } out.push("<li>" + inl(m[2]) + "</li>"); return; }
+    if ((m = l.match(/^[-•*]\s+(.+)$/))) { if (list !== "ul") { close(); out.push("<ul>"); list = "ul"; } out.push("<li>" + inl(m[1]) + "</li>"); return; }
+    close(); out.push("<p>" + inl(l) + "</p>");
+  });
+  close(); return out.join("");
+}
+function infoSeen() { try { return +localStorage.getItem("kairosInfoSeen") || 0; } catch (e) { return 0; } }
+function infoDraw() {
+  const has = !!(INFO && (INFO.news || INFO.apps));
+  infoBtn.hidden = !has;
+  if (!has) { infoBox.hidden = true; infoBox.innerHTML = ""; return; }
+  infoBtn.classList.toggle("new", !!INFO.news && INFO.newsAt > infoSeen());
+  infoBox.innerHTML = (INFO.news ? '<div class="ib-news"><div class="ib-t">COMUNICAZIONI</div>' + infoMd(INFO.news) + "</div>" : "")
+    + (INFO.apps ? '<div class="ib-t">QUALE APP INSTALLARE</div>' + infoMd(INFO.apps) : "")
+    + '<button class="ib-x" type="button" id="infoClose">CHIUDI</button>';
+}
+function infoToggle(open) {
+  const show = open === undefined ? infoBox.hidden : !!open;
+  if (show && !(INFO && (INFO.news || INFO.apps))) return;
+  infoBox.hidden = !show;
+  if (show) {
+    try { if (INFO.newsAt) localStorage.setItem("kairosInfoSeen", String(INFO.newsAt)); } catch (e) {}
+    infoBtn.classList.remove("new"); infoBox.scrollTop = 0; infoBox.focus();
+    infoBox.scrollIntoView({ block: "start", behavior: (reduce || isTV) ? "auto" : "smooth" });
+  } else infoBtn.focus();
+}
+function infoLoad() {
+  const ask = k => k >= PANEL.length ? Promise.resolve(null) : fetch(PANEL[k] + "/api/store/info", { cache: "no-store", credentials: "omit" }).then(r => r.ok ? r.json() : ask(k + 1), () => ask(k + 1));
+  ask(0).then(d => {
+    if (!d || typeof d !== "object" || typeof d.apps !== "string") return;
+    const open = !infoBox.hidden;
+    INFO = { news: String(d.news || ""), newsAt: +d.newsAt || 0, apps: d.apps };
+    try { localStorage.setItem("kairosInfo", JSON.stringify(INFO)); } catch (e) {}
+    if (!open) infoDraw(); // mentre si legge non si ridisegna sotto gli occhi
+  }).catch(() => {});
+}
+try { const m = JSON.parse(localStorage.getItem("kairosInfo") || "null"); if (m && typeof m === "object" && typeof m.apps === "string") INFO = { news: String(m.news || ""), newsAt: +m.newsAt || 0, apps: m.apps }; } catch (e) {}
+infoDraw(); infoLoad();
+infoBtn.addEventListener("click", () => infoToggle());
+infoBox.addEventListener("click", e => { if (e.target && e.target.id === "infoClose") infoToggle(false); });
+infoBox.addEventListener("keydown", e => {
+  const k = e.key, x = document.getElementById("infoClose");
+  if (k === "Escape" || k === "GoBack" || k === "BrowserBack") { e.preventDefault(); e.stopPropagation(); infoToggle(false); return; }
+  if (document.activeElement === infoBox && (k === "ArrowDown" || k === "ArrowUp")) {
+    e.preventDefault(); e.stopPropagation();
+    const end = infoBox.scrollTop + infoBox.clientHeight >= infoBox.scrollHeight - 4;
+    if (k === "ArrowDown") { if (end) { if (x) x.focus(); } else infoBox.scrollTop += Math.round(infoBox.clientHeight * .5); }
+    else if (infoBox.scrollTop <= 0) infoBtn.focus(); else infoBox.scrollTop -= Math.round(infoBox.clientHeight * .5);
+    return;
+  }
+  if (document.activeElement === x && k === "ArrowUp") { e.preventDefault(); e.stopPropagation(); infoBox.focus(); }
+});
 
 function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 </script>
