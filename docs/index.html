@@ -301,6 +301,26 @@ html.tv .intro-bar b{box-shadow:none}
 .rec:disabled{opacity:.7}
 .rec-box{display:block}.rec-box[hidden]{display:none}.rec-box .rb-app{font-size:1.25em;font-weight:900}.rec-box .rb-act{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:#22d3ee;color:#04141a;font-weight:900;text-decoration:none}
 .rec-box .rb-act:focus{outline:3px solid #fff}.card.rec-hi{outline:3px solid #22d3ee;outline-offset:4px}
+.card .fit{display:inline-block;margin:0 0 12px;padding:6px 10px;border-radius:10px;font:700 11px var(--display);letter-spacing:.1em;line-height:1.3}
+.card .fit[hidden]{display:none}
+.card.fit-ok{box-shadow:0 0 0 2px rgba(74,222,128,.6),0 0 26px rgba(74,222,128,.18)}
+.card.fit-ok .fit{color:#4ade80;border:1px solid rgba(74,222,128,.5);background:rgba(74,222,128,.09)}
+.card.fit-top{box-shadow:0 0 0 3px #22d3ee,0 0 30px rgba(34,211,238,.35)}
+.card.fit-top .fit{color:#04141a;background:#22d3ee;border:1px solid #22d3ee}
+.card.fit-no .top,.card.fit-no .desc{opacity:.5}
+.card.fit-no .fit{color:#fbbf24;border:1px solid rgba(251,191,36,.5);background:rgba(251,191,36,.08)}
+.rec-box .rb-sum{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);text-align:left}
+.rec-box .rb-sum p{margin:4px 0}.rec-box .rb-yes b{color:#4ade80}.rec-box .rb-no b{color:#fbbf24}.rec-box .rb-alt{font-size:.9em;opacity:.8}
+/* comunicazione del venditore in primo piano (14 novembre 2026): si vede appena si apre lo Store, senza premere INFO */
+.notice.news-top{display:block;padding-left:18px;border-color:rgba(251,191,36,.6);background:linear-gradient(135deg,rgba(251,191,36,.14),rgba(12,16,34,.8) 60%);box-shadow:0 0 26px rgba(251,191,36,.16)}
+.notice.news-top::before{display:none}
+.notice.news-top[hidden]{display:none}
+.news-top .nt-t{font:700 13px var(--display);letter-spacing:.18em;color:#fbbf24;margin-bottom:6px}
+.news-top .nt-b{max-height:9.6em;overflow:hidden;line-height:1.55}
+.news-top .nt-b h4{margin:6px 0 2px;font-size:1.08em;color:#fff}.news-top .nt-b p{margin:4px 0}.news-top .nt-b ul,.news-top .nt-b ol{margin:4px 0 6px 22px;padding:0}
+.news-top .nt-more{margin-top:10px;padding:8px 16px;border-radius:12px;border:1px solid rgba(251,191,36,.6);background:rgba(10,14,30,.6);color:#fbbf24;font:700 12px var(--display);letter-spacing:.16em;cursor:pointer;outline:none}
+.news-top .nt-more:focus,.news-top .nt-more:hover{box-shadow:0 0 0 3px rgba(251,191,36,.3);color:#fff}
+.news-top .nt-more[hidden]{display:none}
 .rec-box .rb-dev{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);text-align:left}
 .rec-box .rb-dev b.rb-h,.rec-box .rb-apps b.rb-h{display:block;font-size:.8em;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-bottom:6px}
 .rec-box .rb-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:6px 16px;font-size:.88em}
@@ -388,6 +408,7 @@ html.tv #codeDlg button:focus{box-shadow:0 0 0 .25rem #fff}
   <div class="notice info" id="noticeFire"><b>Fire TV / Android TV:</b> scegli l'app con le frecce e premi <b>OK</b> sul pulsante Installa.</div>
   <div class="notice" id="noticeDesktop"><b>Sei su un computer.</b> Apri questa pagina dal dispositivo Android, Fire TV o Android TV per installare le app.</div>
 
+  <div class="notice news-top" id="newsTop" hidden><div class="nt-t">📣 COMUNICAZIONE</div><div class="nt-b" id="newsTopB"></div><button class="nt-more" type="button" id="newsMore" hidden>LEGGI TUTTO</button></div>
   <div class="notice info info-box" id="infoBox" tabindex="0" aria-label="Info e comunicazioni" hidden></div>
 
   <div class="recwrap"><button class="rec" id="recBtn" type="button">✦ APP CONSIGLIATA PER QUESTO DISPOSITIVO</button></div>
@@ -682,6 +703,7 @@ APPS.forEach((app, i) => {
         <div><h2 class="name">${esc(app.name)}</h2><span class="tag">${esc(app.tag || "APP")}</span></div>
       </div>
       <p class="desc">${esc(app.description)}</p>
+      <p class="fit" id="ft${i}" hidden></p>
       <a class="btn" href="${disabled ? "#" : esc(downloadUrl(app))}" data-i="${i}" ${disabled ? 'aria-disabled="true"' : ""} rel="noopener">${DL}<span>${disabled ? "SOLO ANDROID" : label}</span></a>
       <button class="unbtn" type="button" id="un${i}" data-u="${i}" hidden>${TRASH}<span>DISINSTALLA</span></button>
       <div class="progress" id="pg${i}"><b></b></div>
@@ -695,6 +717,7 @@ APPS.forEach((app, i) => {
   if (!n) { el.textContent = 0; return; }
   const t = setInterval(() => { el.textContent = ++k; if (k >= n) clearInterval(t); }, 120);
 })();
+fitApply(); // i segni «adatta / non adatta» restano anche quando l'elenco si ridisegna
 }
 
 // tilt 3D con il mouse (solo dispositivi con puntatore)
@@ -1028,7 +1051,7 @@ window.kairosNeedApproval = url => {
 window.kairosBack = () => { if (cd) { codeClose(false); return true; } return false; };
 
 // ---------- navigazione con telecomando ----------
-const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#infoBtn:not([hidden]), #infoBox:not([hidden]), #infoBox:not([hidden]) #infoClose, #recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
+const focusables = () => [updateBtn, soundBtn, document.getElementById("recBtn"), ...document.querySelectorAll("#infoBtn:not([hidden]), #newsMore:not([hidden]), #infoBox:not([hidden]), #infoBox:not([hidden]) #infoClose, #recGo, a.btn:not([aria-disabled='true']), .unbtn:not([hidden])")];
 function moveFocus(dir, list) {
   const items = list || focusables(); const cur = document.activeElement;
   if (!items.includes(cur)) { const f = list ? items[0] : (items[1] || items[0]); if (f) f.focus(); return; }
@@ -1086,7 +1109,7 @@ if (ip && !isTV && (!isStoreApp || (navigator.maxTouchPoints || 0) > 0)) ip.text
 // ---------- app consigliata per il dispositivo (regole dal pannello: App e Store → App consigliata) ----------
 // 11 novembre 2026: sulle chiavette deboli Kairos-XC (la più leggera); «mem» = memoria richiesta da ogni app, in MB (dal pannello)
 const REC_DEF = { weakApp: 'Kairos-XC', weakMb: 1536, oldApp: 'Kairos-Lite', oldSdk: 7, strongApp: 'Kairos Pro', text: 'Per questo dispositivo è consigliata {app}: stesso abbonamento e stesse liste, con la migliore fluidità su questo apparecchio.',
-  mem: { 'Kairos-XC': 512, 'Kairos Tv': 1024, 'Kairos-Lite': 1024, 'Kairos Premium': 1536, 'Kairos Plus': 1536, 'Kairos Pro': 2048 } };
+  mem: { 'Kairos-XC': 512, 'Kairos STB': 1024, 'Kairos Smarters': 1024, 'Kairos Tv': 1024, 'Kairos-Lite': 1024, 'Kairos Premium': 1536, 'KAIROS Ultimate': 1536, 'Kairos Plus': 1536, 'Kairos Pro': 2048, 'KAIROS HEAVY': 2048 } };
 function recDevice() {
   let ram = 0, approx = false;
   try { if (isStoreApp && typeof KairosStore.totalRamMb === "function") ram = +KairosStore.totalRamMb() || 0; } catch (_) {}
@@ -1135,6 +1158,42 @@ function recList(R, d, top) {
   out.sort((a, b) => a.mb - b.mb || a.k - b.k);
   return out.map(x => Object.assign(x, { fit: nom ? nom >= x.mb : null, top: recApp(top) === x.i }));
 }
+/** l'app da consigliare: la regola del pannello (recPick), ma sempre un'app che c'è in questo Store e che ci sta in memoria.
+ *  App consigliata non presente (tolta o nascosta dal pannello) o troppo pesante per questo dispositivo: la più adatta tra
+ *  quelle presenti, senza nominare l'altra. Dispositivo debole o vecchio: la più leggera; altrimenti la più completa che ci sta */
+function recBest(R, d) {
+  let p = recPick(R, d), i = recApp(p.app);
+  const L0 = recList(R, d, ""), me = L0.filter(x => x.i === i)[0];
+  if (i < 0 || (me && me.fit === false)) {
+    // le app in anteprima (etichetta ANTEPRIMA, BETA o PROVA nello Store) non si consigliano da sole: restano «adatte»
+    const sure = L0.filter(x => !/ANTEPRIMA|BETA|PROVA/i.test(String(APPS[x.i].tag || ""))), pool = sure.length ? sure : L0;
+    const fitL = pool.filter(x => x.fit !== false);
+    const alt = pool.length ? (p.why === "strong" && fitL.length ? fitL[fitL.length - 1] : (fitL[0] || pool[0])) : null;
+    if (alt) { p = { app: alt.name, why: p.why }; i = alt.i; }
+  }
+  return { p: p, i: i };
+}
+/* ---- segni sulle schede (14 novembre 2026): quando la memoria del dispositivo si legge davvero (dentro l'app Store) ogni
+   app Kairos dice da sola se è adatta, senza premere niente. Le regole sono quelle del pannello (App consigliata e
+   «Memoria richiesta da ogni app»), le stesse della guida «quale app installare». */
+var FIT = null;
+function fitApply() {
+  APPS.forEach((app, i) => {
+    const chip = document.getElementById("ft" + i); if (!chip) return;
+    const card = chip.closest(".card"), x = FIT ? FIT.list.filter(y => y.i === i)[0] : null;
+    card.classList.remove("fit-ok", "fit-no", "fit-top");
+    if (!x || x.fit === null) { chip.hidden = true; chip.textContent = ""; return; }
+    chip.hidden = false;
+    if (x.fit && i === FIT.top) { card.classList.add("fit-ok", "fit-top"); chip.textContent = "★ CONSIGLIATA PER QUESTO DISPOSITIVO"; }
+    else if (x.fit) { card.classList.add("fit-ok"); chip.textContent = "✓ ADATTA A QUESTO DISPOSITIVO"; }
+    else { card.classList.add("fit-no"); chip.textContent = "✗ QUI SERVE PIÙ MEMORIA (" + recSize(x.mb) + ")"; }
+  });
+}
+function fitSet(R, d) {
+  if (disabled || !d.ram || d.approx) { FIT = null; fitApply(); return; } // memoria non letta davvero: nessun segno
+  const best = recBest(R, d);
+  FIT = { top: best.i, list: recList(R, d, best.p.app) }; fitApply();
+}
 function recPick(R, d) {
   if (d.stick || (d.ram && d.ram < R.weakMb) || (!d.ram && d.tv)) return { app: R.weakApp, why: "weak" };
   if (d.andr && d.andr < R.oldSdk) return { app: R.oldApp, why: "old" };
@@ -1155,15 +1214,7 @@ function recommend() {
   const box = document.getElementById("recBox"), btn = document.getElementById("recBtn");
   box.hidden = false; box.innerHTML = "Sto esaminando il dispositivo…"; btn.disabled = true;
   return recRules().then(R => {
-    const d = recDevice();
-    let p = recPick(R, d), i = recApp(p.app);
-    // app consigliata non presente in questo Store (tolta o nascosta dal pannello): si consiglia la più adatta tra quelle
-    // presenti, senza nominare quella che non c'è. Dispositivo debole o vecchio: la più leggera; altrimenti la più completa che ci sta
-    if (i < 0) {
-      const L0 = recList(R, d, ""), fitL = L0.filter(x => x.fit !== false);
-      const alt = L0.length ? (p.why === "strong" && fitL.length ? fitL[fitL.length - 1] : (fitL[0] || L0[0])) : null;
-      if (alt) { p = { app: alt.name, why: p.why }; i = alt.i; }
-    }
+    const d = recDevice(), best = recBest(R, d), p = best.p, i = best.i;
     btn.disabled = false;
     document.querySelectorAll(".card.rec-hi").forEach(c => c.classList.remove("rec-hi"));
     // iPhone, iPad e smart TV Samsung/LG: nessuna app si installa, quindi niente «Installa» che non fa nulla
@@ -1177,6 +1228,15 @@ function recommend() {
     const kv = recSpecs(d);
     if (kv.length) html += "<div class='rb-dev'><b class='rb-h'>Il tuo dispositivo</b><div class='rb-kv'>" + kv.map(([k, v]) => "<div><span>" + esc(k) + "</span><em>" + esc(v) + "</em></div>").join("") + "</div></div>";
     const L = recList(R, d, p.app);
+    fitSet(R, d);
+    // quali vanno bene e quali no, in chiaro (le più complete per prime sui dispositivi forti, le più leggere sui deboli)
+    if (d.ram && L.length > 1) {
+      const yes = L.filter(x => x.fit && !x.top), no = L.filter(x => x.fit === false);
+      if (p.why === "strong") yes.reverse();
+      html += "<div class='rb-sum'><p class='rb-yes'><b>✓ Adatte a questo dispositivo:</b> " + esc(p.app) + " <i>(consigliata)</i>" + yes.map(x => ", " + esc(x.name)).join("") + ".</p>"
+        + (yes.length ? "<p class='rb-alt'>Puoi installare una qualunque di queste: funzionano tutte con lo stesso abbonamento. Nell'elenco qui sotto sono segnate in verde.</p>" : "")
+        + (no.length ? "<p class='rb-no'><b>✗ Da non installare qui:</b> " + no.map(x => esc(x.name) + " (serve " + recSize(x.mb) + ")").join(", ") + ". Su questo dispositivo andrebbero a scatti o si chiuderebbero.</p>" : "") + "</div>";
+    }
     if (L.length > 1) html += "<div class='rb-apps'><b class='rb-h'>App Kairos, dalla più leggera</b>" + L.map(x => "<a href='#' class='rb-li " + (x.fit === false ? "no" : "ok") + "' data-rbi='" + x.i + "'><span class='rb-ok'>" + (x.fit === null ? "•" : x.fit ? "✓" : "✗") + "</span><b>" + esc(x.name) + "</b>" + (x.top ? "<span class='rb-top'>CONSIGLIATA</span>" : "") + "<small>" + (x.fit === false ? "serve " + recSize(x.mb) : "richiede " + recSize(x.mb)) + "</small></a>").join("") + (d.ram ? "" : "<small style='display:block;margin-top:6px;opacity:.75'>La memoria di questo dispositivo non si può leggere: guarda quanta ne richiede ogni app.</small>") + "</div>";
     box.innerHTML = html;
     box.querySelectorAll("[data-rbi]").forEach(a => { a.onclick = e => { e.preventDefault(); const c = document.querySelector('a.btn[data-i="' + a.dataset.rbi + '"]'); if (c) { document.querySelectorAll(".card.rec-hi").forEach(x => x.classList.remove("rec-hi")); c.closest(".card").classList.add("rec-hi"); c.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" }); c.focus(); } }; });
@@ -1278,7 +1338,13 @@ function infoSeen() { try { return +localStorage.getItem("kairosInfoSeen") || 0;
 function infoDraw() {
   const has = !!(INFO && (INFO.news || INFO.apps));
   infoBtn.hidden = !has;
+  // la comunicazione sta in primo piano, in cima allo Store: corta si legge tutta lì, lunga ha «LEGGI TUTTO»
+  const top = document.getElementById("newsTop"), tb = document.getElementById("newsTopB"), more = document.getElementById("newsMore");
+  top.hidden = !(INFO && INFO.news);
+  let whole = false;
+  if (!top.hidden) { tb.innerHTML = infoMd(INFO.news); whole = tb.scrollHeight <= tb.clientHeight + 2; more.hidden = whole; }
   if (!has) { infoBox.hidden = true; infoBox.innerHTML = ""; return; }
+  if (whole) { try { if (INFO.newsAt) localStorage.setItem("kairosInfoSeen", String(INFO.newsAt)); } catch (e) {} } // letta tutta in primo piano: niente pallino
   infoBtn.classList.toggle("new", !!INFO.news && INFO.newsAt > infoSeen());
   infoBox.innerHTML = (INFO.news ? '<div class="ib-news"><div class="ib-t">COMUNICAZIONI</div>' + infoMd(INFO.news) + "</div>" : "")
     + (INFO.apps ? '<div class="ib-t">QUALE APP INSTALLARE</div>' + infoMd(INFO.apps) : "")
@@ -1307,6 +1373,9 @@ function infoLoad() {
 try { const m = JSON.parse(localStorage.getItem("kairosInfo") || "null"); if (m && typeof m === "object" && typeof m.apps === "string") INFO = { news: String(m.news || ""), newsAt: +m.newsAt || 0, apps: m.apps }; } catch (e) {}
 infoDraw(); infoLoad();
 infoBtn.addEventListener("click", () => infoToggle());
+document.getElementById("newsMore").addEventListener("click", () => infoToggle(true));
+// dentro l'app Store la memoria si legge davvero: le schede dicono da sole quali app sono adatte a questo dispositivo
+setTimeout(() => { try { const d0 = recDevice(); if (d0.ram && !d0.approx) recRules().then(R => fitSet(R, recDevice())).catch(() => {}); } catch (e) {} }, 1200);
 infoBox.addEventListener("click", e => { if (e.target && e.target.id === "infoClose") infoToggle(false); });
 infoBox.addEventListener("keydown", e => {
   const k = e.key, x = document.getElementById("infoClose");
